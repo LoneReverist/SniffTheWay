@@ -1,0 +1,7 @@
+.vs/
+x64/
+build/*
+build-debug/*
+build-release/*
+
+*.user

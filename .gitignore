@@ -3,5 +3,6 @@ x64/
 build/*
 build-debug/*
 build-release/*
+resources/*
 
 *.user

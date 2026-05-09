@@ -1,0 +1,3 @@
+[submodule "DreamhearthEngine"]
+	path = DreamhearthEngine
+	url = https://github.com/LoneReverist/DreamhearthEngine.git

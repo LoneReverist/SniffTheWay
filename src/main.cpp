@@ -10,7 +10,7 @@ import DreamhearthWindow;
 import Input;
 import Scene;
 
-constexpr char const * AppName = "Sniff the Way";
+constexpr char const * AppName = "Sniff the Way - A Tail to Guide You Home";
 
 namespace dh = Dreamhearth;
 

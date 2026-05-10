@@ -3,6 +3,7 @@ x64/
 build/*
 build-debug/*
 build-release/*
-resources/*
+resources/concept/*
+resources/music/*
 
 *.user

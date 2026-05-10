@@ -1,0 +1,112 @@
+// TextPipeline.ixx
+
+module;
+
+#include <expected>
+#include <filesystem>
+#include <iostream>
+#include <optional>
+
+#include <glm/vec4.hpp>
+
+export module TextPipeline;
+
+import Dreamhearth;
+
+import AssetPool;
+import RenderObject;
+import Vertex;
+
+using namespace Dreamhearth;
+
+export class TextPipeline
+{
+public:
+	using VertexT = Texture2dVertex;
+
+	struct ObjectData
+	{
+		float screen_px_range = 1.0f;
+		glm::vec4 bg_color = glm::vec4(0.0f);
+		glm::vec4 text_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+	};
+
+	static std::expected<Pipeline, GraphicsError> CreatePipeline(
+		RenderContext const & render_context,
+		std::filesystem::path const & shaders_path,
+		AssetPool<Texture> const & texture_pool,
+		AssetId texture_id);
+
+	TextPipeline() = default;
+	explicit TextPipeline(AssetId asset_id) : m_asset_id(asset_id) {}
+
+	AssetId GetAssetId() const { return m_asset_id; }
+
+private:
+	AssetId m_asset_id;
+};
+
+std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
+	RenderContext const & render_context,
+	std::filesystem::path const & shaders_path,
+	AssetPool<Texture> const & texture_pool,
+	AssetId texture_id)
+{
+	struct ObjectDataFS
+	{
+		alignas(4) float screen_px_range;
+		alignas(16) glm::vec4 bg_color;
+		alignas(16) glm::vec4 text_color;
+	};
+
+	Texture const * texture = texture_pool.Get(texture_id);
+	if (!texture)
+		return std::unexpected{ GraphicsError{ "TextPipeline::CreatePipeline: invalid texture" } };
+
+	PipelineBuilder builder{ render_context };
+
+	std::expected<void, GraphicsError> load_shaders_result = builder.LoadShaders(
+		shaders_path / "msdf_text.vert",
+		shaders_path / "msdf_text.frag");
+	if (!load_shaders_result.has_value())
+		return std::unexpected{ load_shaders_result.error() };
+
+	builder.SetVertexType<VertexT>();
+	builder.SetObjectDataTypes<std::nullopt_t, ObjectDataFS>();
+	builder.SetTexture(*texture);
+	builder.SetDepthTestOptions(DepthTestOptions{
+		.enable_depth_test = false,
+		.enable_depth_write = false,
+		.depth_compare_op = DepthCompareOp::ALWAYS
+		});
+	builder.SetBlendOptions(BlendOptions{
+		.enable_blend = true,
+		.src_factor = BlendFactor::SRC_ALPHA,
+		.dst_factor = BlendFactor::ONE_MINUS_SRC_ALPHA
+		});
+	builder.SetCullMode(CullMode::BACK);
+
+	builder.SetPerObjectConstantsCallback(
+		[](Pipeline const & pipeline, void const * object_data)
+		{
+			if (!object_data)
+			{
+				std::cout << "TextObjectData is null for TextPipeline" << std::endl;
+				return;
+			}
+
+			// For optimal performance, we assume that the object data is of the correct type.
+			// Use compile-time checks when creating render objects to ensure the data is compatible with the pipeline.
+			auto const * data = static_cast<ObjectData const *>(object_data);
+
+			pipeline.SetObjectData(
+				std::nullopt,
+				ObjectDataFS{
+					.screen_px_range = data->screen_px_range,
+					.bg_color = data->bg_color,
+					.text_color = data->text_color
+				});
+		});
+
+	return builder.CreatePipeline();
+}

@@ -6,7 +6,6 @@ module;
 #include <filesystem>
 #include <iostream>
 #include <memory>
-#include <optional>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -19,7 +18,6 @@ import AssetPool;
 import Camera;
 import FontAtlas;
 import Input;
-import LightsManager;
 import MeshManager;
 import RenderObject;
 import TextMesh;
@@ -79,7 +77,9 @@ private:
 		bool flip_vertically = false,
 		bool use_mip_map = true);
 
-	MeshId<TextureVertex> create_ground_mesh();
+	MeshId<Texture2dVertex> create_bg_mesh();
+	void update_bg_mesh(MeshId<Texture2dVertex> mesh_id);
+
 	std::unique_ptr<TextMesh> create_text_mesh(
 		std::string const & text,
 		FontAtlas const & font_atlas,
@@ -95,7 +95,8 @@ private:
 
 	Renderer m_renderer;
 	Camera m_camera;
-	LightsManager m_lights;
+	int m_view_width = 0;
+	int m_view_height = 0;
 
 	MeshManager m_mesh_manager;
 	AssetPool<Pipeline> m_pipeline_pool;
@@ -104,12 +105,14 @@ private:
 
 	std::vector<PipelineRenderObjects> m_active_render_objects;
 
+	AssetId m_bg_tex_id;
+	MeshId<Texture2dVertex> m_bg_mesh_id;
+
 	std::unique_ptr<FontAtlas> m_arial_font;
 
 	std::unique_ptr<TextMesh> m_fps_mesh;
 	std::unique_ptr<TextMesh> m_title_mesh;
 
-	TexturePipeline::ObjectData m_ground;
 	TextPipeline::ObjectData m_fps_label;
 	TextPipeline::ObjectData m_title_label;
 

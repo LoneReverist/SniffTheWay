@@ -4,8 +4,6 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
-#include <optional>
 
 #include <glm/mat4x4.hpp>
 
@@ -14,33 +12,23 @@ export module TexturePipeline;
 import Dreamhearth;
 
 import AssetPool;
-import Camera;
-import LightsManager;
-import RenderObject;
 import Vertex;
 
 using namespace Dreamhearth;
 
-export class TexturePipeline
+export class Texture2dPipeline
 {
 public:
-	using VertexT = TextureVertex;
-
-	struct ObjectData
-	{
-		glm::mat4 model{ 1.0 };
-	};
+	using VertexT = Texture2dVertex;
 
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera const & camera,
-		LightsManager const & lights,
 		AssetPool<Texture> const & texture_pool,
 		AssetId texture_id);
 
-	TexturePipeline() = default;
-	explicit TexturePipeline(AssetId asset_id) : m_asset_id(asset_id) {}
+	Texture2dPipeline() = default;
+	explicit Texture2dPipeline(AssetId asset_id) : m_asset_id(asset_id) {}
 
 	AssetId GetAssetId() const { return m_asset_id; }
 
@@ -48,11 +36,9 @@ private:
 	AssetId m_asset_id;
 };
 
-std::expected<Pipeline, GraphicsError> TexturePipeline::CreatePipeline(
+std::expected<Pipeline, GraphicsError> Texture2dPipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera const & camera,
-	LightsManager const & lights,
 	AssetPool<Texture> const & texture_pool,
 	AssetId texture_id)
 {
@@ -63,48 +49,20 @@ std::expected<Pipeline, GraphicsError> TexturePipeline::CreatePipeline(
 
 	Texture const * texture = texture_pool.Get(texture_id);
 	if (!texture)
-		return std::unexpected{ GraphicsError{ "TexturePipeline::CreatePipeline: invalid texture" } };
+		return std::unexpected{ GraphicsError{ "Texture2dPipeline::CreatePipeline: invalid texture" } };
 
 	PipelineBuilder builder{ render_context };
 
 	std::expected<void, GraphicsError> load_shaders_result = builder.LoadShaders(
-		shaders_path / "texture.vert",
-		shaders_path / "texture.frag");
+		shaders_path / "texture2d.vert",
+		shaders_path / "texture2d.frag");
 	if (!load_shaders_result.has_value())
 		return std::unexpected{ load_shaders_result.error() };
 
 	builder.SetVertexType<VertexT>();
 	builder.SetObjectDataTypes<ObjectDataVS, std::nullopt_t>();
-	builder.SetVSUniformTypes<ViewProjUniform>();
-	builder.SetFSUniformTypes<LightsUniform>();
 	builder.SetTexture(*texture);
-	builder.SetCullMode(CullMode::BACK);
-
-	builder.SetPerFrameConstantsCallback(
-		[&camera, &lights](Pipeline const & pipeline)
-		{
-			pipeline.SetUniform(0 /*binding*/, camera.GetViewProjUniform());
-			pipeline.SetUniform(1 /*binding*/, lights.GetLightsUniform());
-		});
-	builder.SetPerObjectConstantsCallback(
-		[](Pipeline const & pipeline, void const * object_data)
-		{
-			if (!object_data)
-			{
-				std::cout << "ObjectData is null for TexturePipeline" << std::endl;
-				return;
-			}
-
-			// For optimal performance, we assume that the object data is of the correct type.
-			// Use compile-time checks when creating render objects to ensure the data is compatible with the pipeline.
-			auto const * data = static_cast<ObjectData const *>(object_data);
-
-			pipeline.SetObjectData(
-				ObjectDataVS{
-					.model = data->model
-				},
-				std::nullopt);
-		});
+	builder.SetCullMode(CullMode::NONE);
 
 	return builder.CreatePipeline();
 }

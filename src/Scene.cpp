@@ -2,12 +2,9 @@
 
 module;
 
-#include <algorithm>
-#include <array>
 #include <expected>
 #include <filesystem>
 #include <iostream>
-#include <numbers>
 #include <vector>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -64,27 +61,52 @@ AssetId Scene::create_texture(
 	return ::create_texture(m_texture_pool, m_render_context, filepath, format, flip_vertically, use_mip_map);
 }
 
-MeshId<TextureVertex> Scene::create_ground_mesh()
+MeshId<Texture2dVertex> Scene::create_bg_mesh()
 {
-	float scale = 30.0f;
-
-	std::vector<TextureVertex> verts{
-		{ { -scale,  scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 0.0, 1.0 } },
-		{ {  scale,  scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 1.0, 1.0 } },
-		{ { -scale, -scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 0.0, 0.0 } },
-		{ {  scale, -scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 1.0, 0.0 } } };
-
-	//std::vector<ColorVertex> verts{
-	//	{ { -scale,  scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 1.0, 0.0, 0.0 } },
-	//	{ {  scale,  scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 0.0, 1.0, 0.0 } },
-	//	{ { -scale, -scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 0.0, 0.0, 1.0 } },
-	//	{ {  scale, -scale, 0.0 }, { 0.0, 0.0, 1.0 }, { 0.5, 0.5, 0.5 } } };
+	std::vector<Texture2dVertex> verts{
+		{ { -1.0,  1.0 }, { 0.0, 1.0 } },
+		{ {  1.0,  1.0 }, { 1.0, 1.0 } },
+		{ { -1.0, -1.0 }, { 0.0, 0.0 } },
+		{ {  1.0, -1.0 }, { 1.0, 0.0 } } };
 
 	std::vector<Mesh::IndexT> indices{
 		1, 0, 2,
 		1, 2, 3 };
 
-	return create_mesh<TextureVertex>(verts, indices);
+	return create_mesh<Texture2dVertex>(verts, indices);
+}
+
+void Scene::update_bg_mesh(MeshId<Texture2dVertex> mesh_id)
+{
+	Mesh * mesh = m_mesh_manager.Get(mesh_id);
+	if (!mesh)
+		return;
+
+	Texture const * bg_tex = m_texture_pool.Get(m_bg_tex_id);
+	if (!bg_tex)
+		return;
+
+	float y_size = 2.0f;
+	float y_pos = -1.0f;
+	float x_size = bg_tex->GetWidth()
+	 * (static_cast<float>(m_view_height) / bg_tex->GetHeight())
+	 * (2.0f / m_view_width);
+	float x_pos = -x_size / 2.0f;
+
+	std::vector<Texture2dVertex> verts{
+		{ { x_pos,          y_pos + y_size }, { 0.0, 1.0 } },
+		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 1.0 } },
+		{ { x_pos,          y_pos          }, { 0.0, 0.0 } },
+		{ { x_pos + x_size, y_pos          }, { 1.0, 0.0 } } };
+
+	std::vector<Mesh::IndexT> indices{
+		1, 0, 2,
+		1, 2, 3 };
+
+	*mesh = Mesh{ m_render_context };
+	std::expected<void, GraphicsError> result = mesh->Create(verts, indices);
+	if (!result.has_value())
+		std::cout << "Scene::update_bg_mesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
 }
 
 std::unique_ptr<TextMesh> Scene::create_text_mesh(
@@ -156,16 +178,16 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	const std::filesystem::path textures_path = m_resources_path / "textures";
 	const std::filesystem::path fonts_path = m_resources_path / "fonts";
 
-	AssetId ground_tex_id = create_texture(textures_path / "forest_path.png");
+	m_bg_tex_id = create_texture(textures_path / "forest_path.png");
 
 	AssetId arial_tex_id = create_texture(fonts_path / "ArialAtlas.png", PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, fonts_path / "ArialAtlas.json");
 
-	TexturePipeline ground_pipeline = create_pipeline<TexturePipeline>(m_camera, m_lights, m_texture_pool, ground_tex_id);
+	Texture2dPipeline bg_pipeline = create_pipeline<Texture2dPipeline>(m_texture_pool, m_bg_tex_id);
 	TextPipeline text_pipeline = create_pipeline<TextPipeline>(m_texture_pool, arial_tex_id);
 
-	MeshId<TextureVertex> ground_mesh = create_ground_mesh();
-	create_render_object("ground", ground_mesh, ground_pipeline, m_ground);
+	m_bg_mesh_id = create_bg_mesh();
+	create_render_object("background", m_bg_mesh_id, bg_pipeline);
 
 	m_fps_mesh = create_text_mesh("FPS: ", *m_arial_font, label_font_size, glm::vec2{ -0.9, -0.9 } /*origin*/,
 		0 /*viewport_width*/, 0 /*viewport_height*/);
@@ -185,8 +207,6 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	};
 	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline, m_title_label);
 
-	m_lights.SetAmbientLight(AmbientLight{ glm::vec3{ 1.0, 1.0, 1.0 } });
-
 	glm::vec3 camera_pos{ 0.0f, -10.0f, 5.0f };
 	glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 0.0f, 2.5f } - camera_pos);
 	m_camera.Init(camera_pos, camera_dir);
@@ -194,7 +214,13 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 
 void Scene::OnViewportResized(int width, int height)
 {
+	m_view_width = width;
+	m_view_height = height;
+
 	m_camera.OnViewportResized(width, height);
+
+	update_bg_mesh(m_bg_mesh_id);
+
 	if (m_fps_mesh)
 		m_fps_mesh->OnViewportResized(width, height);
 	if (m_title_mesh)

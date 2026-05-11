@@ -67,39 +67,6 @@ LayoutDesc create_layout()
 	return layout;
 }
 
-export struct PositionVertex
-{
-	glm::vec3 pos;
-
-	static LayoutDesc CreateLayout() { return create_layout<PositionVertex>(); }
-};
-
-export struct NormalVertex
-{
-	glm::vec3 pos;
-	glm::vec3 normal;
-
-	static LayoutDesc CreateLayout() { return create_layout<NormalVertex>(); }
-};
-
-export struct TextureVertex
-{
-	glm::vec3 pos;
-	glm::vec3 normal;
-	glm::vec2 tex_coord;
-
-	static LayoutDesc CreateLayout() { return create_layout<TextureVertex>(); }
-};
-
-export struct ColorVertex
-{
-	glm::vec3 pos;
-	glm::vec3 normal;
-	glm::vec3 color;
-
-	static LayoutDesc CreateLayout() { return create_layout<ColorVertex>(); }
-};
-
 export struct Texture2dVertex
 {
 	glm::vec2 pos;
@@ -110,8 +77,4 @@ export struct Texture2dVertex
 
 export template <typename T>
 concept IsVertex =
-	std::same_as<T, PositionVertex>
-	|| std::same_as<T, NormalVertex>
-	|| std::same_as<T, TextureVertex>
-	|| std::same_as<T, ColorVertex>
-	|| std::same_as<T, Texture2dVertex>;
+	std::same_as<T, Texture2dVertex>;

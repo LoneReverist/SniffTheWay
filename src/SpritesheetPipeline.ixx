@@ -6,6 +6,7 @@ module;
 #include <filesystem>
 #include <iostream>
 
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
 export module SpritesheetPipeline;
@@ -13,6 +14,7 @@ export module SpritesheetPipeline;
 import Dreamhearth;
 
 import AssetPool;
+import Camera;
 import Vertex;
 
 using namespace Dreamhearth;
@@ -25,11 +27,13 @@ public:
 	struct ObjectData
 	{
 		glm::vec4 frame_uvs; // x = min_u, y = max_u, z = min_v, w = max_v
+		glm::vec3 position;
 	};
 
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
+		Camera const & camera,
 		AssetPool<Texture> const & texture_pool,
 		AssetId texture_id);
 
@@ -45,9 +49,14 @@ private:
 std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
+	Camera const & camera,
 	AssetPool<Texture> const & texture_pool,
 	AssetId texture_id)
 {
+	struct ObjectDataVS
+	{
+		alignas(16) glm::vec3 position;
+	};
 	struct ObjectDataFS
 	{
 		alignas(16) glm::vec4 frame_uvs;
@@ -66,13 +75,9 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 		return std::unexpected{ load_shaders_result.error() };
 
 	builder.SetVertexType<VertexT>();
-	builder.SetObjectDataTypes<std::nullopt_t, ObjectDataFS>();
+	builder.SetObjectDataTypes<ObjectDataVS, ObjectDataFS>();
+	builder.SetVSUniformTypes<ViewProjUniform>();
 	builder.SetTexture(*texture);
-	builder.SetDepthTestOptions(DepthTestOptions{
-		.enable_depth_test = false,
-		.enable_depth_write = false,
-		.depth_compare_op = DepthCompareOp::ALWAYS
-		});
 	builder.SetBlendOptions(BlendOptions{
 		.enable_blend = true,
 		.src_factor = BlendFactor::SRC_ALPHA,
@@ -80,19 +85,26 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 		});
 	builder.SetCullMode(CullMode::NONE);
 
+	builder.SetPerFrameConstantsCallback(
+		[&camera](Pipeline const & pipeline)
+		{
+			pipeline.SetUniform(0 /*binding*/, camera.GetViewProjUniform());
+		});
 	builder.SetPerObjectConstantsCallback(
 		[](Pipeline const & pipeline, void const * object_data)
 		{
 			if (!object_data)
 			{
-				std::cout << "SpriteSheet ObjectData is null for SpritesheetPipeline" << std::endl;
+				std::cout << "ObjectData is null for SpritesheetPipeline" << std::endl;
 				return;
 			}
 
 			auto const * data = static_cast<ObjectData const *>(object_data);
 
 			pipeline.SetObjectData(
-				std::nullopt,
+				ObjectDataVS{
+					.position = data->position
+				},
 				ObjectDataFS{
 					.frame_uvs = data->frame_uvs
 				});

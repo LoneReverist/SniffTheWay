@@ -63,6 +63,11 @@ std::expected<Pipeline, GraphicsError> Texture2dPipeline::CreatePipeline(
 	builder.SetObjectDataTypes<ObjectDataVS, std::nullopt_t>();
 	builder.SetTexture(*texture);
 	builder.SetCullMode(CullMode::NONE);
+	builder.SetDepthTestOptions(DepthTestOptions{
+		.enable_depth_test = false,
+		.enable_depth_write = false,
+		.depth_compare_op = DepthCompareOp::ALWAYS
+		});
 
 	return builder.CreatePipeline();
 }

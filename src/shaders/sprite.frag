@@ -1,10 +1,10 @@
 #version 420 core
 
-layout(binding = 0) uniform sampler2D tex_sampler;
+layout(binding = 1) uniform sampler2D tex_sampler;
 
 #ifdef BUILD_VULKAN
 layout(push_constant) uniform ObjectData {
-	vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
+	layout(offset = 16) vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
 } obj_data;
 
 #else // OpenGL

@@ -2,6 +2,8 @@
 
 module;
 
+#include <glm/glm.hpp>
+
 export module Dog;
 
 import AssetPool;
@@ -24,7 +26,7 @@ public:
     AssetId GetRenderObjectId() const { return m_render_object_id; }
     SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
     SpritesheetPipeline::ObjectData const & GetSpriteData() const { return m_sprite_data; }
-
+    
 private:
 	AssetId m_tex_id;
 	MeshId<Texture2dVertex> m_mesh_id;
@@ -35,6 +37,8 @@ private:
 
 	float m_animation_timer = 0.0f;
 	float m_frame_duration = 0.1f; // 100ms per frame = 10 FPS
+	
+	float m_move_speed = 3.0f; // units per second
 };
 
 void Dog::Init(AssetId tex_id, MeshId<Texture2dVertex> mesh_id, AssetId render_object_id)
@@ -52,14 +56,33 @@ void Dog::Init(AssetId tex_id, MeshId<Texture2dVertex> mesh_id, AssetId render_o
     };
 
     m_sprite_data = SpritesheetPipeline::ObjectData{
-		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs()
+		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs(),
+		.position = glm::vec3(0.0f, 0.0f, 0.0f)
 	};
 }
 
-void Dog::Update(float dt, Input const & /*input*/)
+void Dog::Update(float dt, Input const & input)
 {
 	if (m_sprite_sheet.GetFrameCount() == 0)
 		return;
+
+	// Handle WASD input for 3D movement
+	// W - move forward (away from camera, +Y)
+	// S - move backward (toward camera, -Y)
+	// A - move left (-X)
+	// D - move right (+X)
+	glm::vec3 velocity(0.0f);
+	if (input.KeyIsPressed('W'))
+		velocity.y += 1.0f;
+	if (input.KeyIsPressed('S'))
+		velocity.y -= 1.0f;
+	if (input.KeyIsPressed('A'))
+		velocity.x -= 1.0f;
+	if (input.KeyIsPressed('D'))
+		velocity.x += 1.0f;
+
+	if (velocity != glm::vec3(0.0f))
+		m_sprite_data.position += glm::normalize(velocity) * m_move_speed * dt;
 
 	m_animation_timer += dt;
 	if (m_animation_timer >= m_frame_duration)

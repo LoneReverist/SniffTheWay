@@ -16,6 +16,13 @@ import Vertex;
 
 export class Dog
 {
+private:
+	enum class State
+	{
+		Idle,
+		Walking
+	};
+
 public:
     Dog() = default;
 
@@ -39,6 +46,8 @@ private:
 
 	SpriteSheet m_sprite_sheet;
 	SpritesheetPipeline::ObjectData m_sprite_data;
+	State m_state = State::Idle;
+	bool facing_right = true;
 
 	float m_animation_timer = 0.0f;
 	float m_frame_duration = 0.1f; // 100ms per frame = 10 FPS
@@ -86,13 +95,13 @@ void Dog::Update(float dt, Input const & input)
 	// A - move left (-X)
 	// D - move right (+X)
 	glm::vec3 velocity(0.0f);
-	if (input.KeyIsPressed('W'))
+	if (input.KeyIsPressed('W') || input.KeyIsPressed(Input::Key::Up))
 		velocity.y += 1.0f;
-	if (input.KeyIsPressed('S'))
+	if (input.KeyIsPressed('S') || input.KeyIsPressed(Input::Key::Down))
 		velocity.y -= 1.0f;
-	if (input.KeyIsPressed('A'))
+	if (input.KeyIsPressed('A') || input.KeyIsPressed(Input::Key::Left))
 		velocity.x -= 1.0f;
-	if (input.KeyIsPressed('D'))
+	if (input.KeyIsPressed('D') || input.KeyIsPressed(Input::Key::Right))
 		velocity.x += 1.0f;
 
 	if (velocity != glm::vec3(0.0f))
@@ -100,13 +109,36 @@ void Dog::Update(float dt, Input const & input)
 		const glm::vec3 move_vec = glm::normalize(velocity) * m_move_speed * dt;
 		glm::mat4 translation = glm::translate(glm::mat4(1.0f), move_vec);
 		m_sprite_data.model = translation * m_sprite_data.model;
+
+		if (m_state != State::Walking)
+			m_state = State::Walking;
+	}
+	else
+	{
+		if (m_state != State::Idle)
+			m_state = State::Idle;
 	}
 
-	m_animation_timer += dt;
-	if (m_animation_timer >= m_frame_duration)
+	if (velocity.x > 0.0f && !facing_right // moving right, but facing left
+		|| velocity.x < 0.0f && facing_right) // moving left, but facing right
 	{
-		m_animation_timer -= m_frame_duration;
-		m_sprite_sheet.AdvanceFrame();
-		m_sprite_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+		facing_right = !facing_right;
+		// rotate 180 degrees around Z axis to flip the sprite
+		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
+		glm::vec3 current_pos = glm::vec3(m_sprite_data.model[3]); // preserve translation
+		m_sprite_data.model[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		m_sprite_data.model = rotation * m_sprite_data.model;
+		m_sprite_data.model[3] = glm::vec4(current_pos, 1.0f); // restore translation after rotation
+	}
+
+	if (m_state == State::Walking)
+	{
+		m_animation_timer += dt;
+		if (m_animation_timer >= m_frame_duration)
+		{
+			m_animation_timer -= m_frame_duration;
+			m_sprite_sheet.AdvanceFrame();
+			m_sprite_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+		}
 	}
 }

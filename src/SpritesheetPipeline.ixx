@@ -83,7 +83,9 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 		.src_factor = BlendFactor::SRC_ALPHA,
 		.dst_factor = BlendFactor::ONE_MINUS_SRC_ALPHA
 		});
-	builder.SetCullMode(CullMode::BACK);
+	// disable backface culling since these are just flat quads that can be rotated
+	// in any direction, and we don't want them to disappear when viewed from behind
+	builder.SetCullMode(CullMode::NONE);
 
 	builder.SetPerFrameConstantsCallback(
 		[&camera](Pipeline const & pipeline)

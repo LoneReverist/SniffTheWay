@@ -76,7 +76,7 @@ MeshId<Texture2dVertex> Scene::create_bg_mesh()
 	return create_mesh<Texture2dVertex>(verts, indices);
 }
 
-void Scene::update_bg_mesh(MeshId<Texture2dVertex> mesh_id)
+void Scene::resize_bg_mesh(MeshId<Texture2dVertex> mesh_id)
 {
 	Mesh * mesh = m_mesh_manager.Get(mesh_id);
 	if (!mesh)
@@ -86,11 +86,11 @@ void Scene::update_bg_mesh(MeshId<Texture2dVertex> mesh_id)
 	if (!bg_tex)
 		return;
 
+	float world_scale = (static_cast<float>(m_view_height) / bg_tex->GetHeight());
+
 	float y_size = 2.0f;
 	float y_pos = -1.0f;
-	float x_size = bg_tex->GetWidth()
-	 * (static_cast<float>(m_view_height) / bg_tex->GetHeight())
-	 * (2.0f / m_view_width);
+	float x_size = bg_tex->GetWidth() * (2.0f / m_view_width) * world_scale;
 	float x_pos = -x_size / 2.0f;
 
 	std::vector<Texture2dVertex> verts{
@@ -106,7 +106,7 @@ void Scene::update_bg_mesh(MeshId<Texture2dVertex> mesh_id)
 	*mesh = Mesh{ m_render_context };
 	std::expected<void, GraphicsError> result = mesh->Create(verts, indices);
 	if (!result.has_value())
-		std::cout << "Scene::update_bg_mesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
+		std::cout << "Scene::resize_bg_mesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
 }
 
 std::unique_ptr<TextMesh> Scene::create_text_mesh(
@@ -164,6 +164,54 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	return text_mesh;
 }
 
+MeshId<Texture2dVertex> Scene::create_sprite_mesh()
+{
+	std::vector<Texture2dVertex> verts{
+		{ { -1.0,  1.0 }, { 0.0, 1.0 } },
+		{ {  1.0,  1.0 }, { 1.0, 1.0 } },
+		{ { -1.0, -1.0 }, { 0.0, 0.0 } },
+		{ {  1.0, -1.0 }, { 1.0, 0.0 } } };
+
+	std::vector<Mesh::IndexT> indices{
+		1, 0, 2,
+		1, 2, 3 };
+
+	return create_mesh<Texture2dVertex>(verts, indices);
+}
+
+void Scene::resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet const & sprite_sheet)
+{
+	Mesh * mesh = m_mesh_manager.Get(mesh_id);
+	if (!mesh)
+		return;
+
+	Texture const * bg_tex = m_texture_pool.Get(m_bg_tex_id);
+	if (!bg_tex)
+		return;
+
+	float world_scale = (static_cast<float>(m_view_height) / bg_tex->GetHeight());
+
+	float y_size = sprite_sheet.GetFrameHeight() * (2.0f / m_view_height) * world_scale;
+	float y_pos = -y_size / 2.0f;
+	float x_size = sprite_sheet.GetFrameWidth() * (2.0f / m_view_width) * world_scale;
+	float x_pos = -x_size / 2.0f;
+
+	std::vector<Texture2dVertex> verts{
+		{ { x_pos,          y_pos + y_size }, { 0.0, 1.0 } },
+		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 1.0 } },
+		{ { x_pos,          y_pos          }, { 0.0, 0.0 } },
+		{ { x_pos + x_size, y_pos          }, { 1.0, 0.0 } } };
+
+	std::vector<Mesh::IndexT> indices{
+		1, 0, 2,
+		1, 2, 3 };
+
+	*mesh = Mesh{ m_render_context };
+	std::expected<void, GraphicsError> result = mesh->Create(verts, indices);
+	if (!result.has_value())
+		std::cout << "Scene::resize_sprite_mesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
+}
+
 Scene::Scene(RenderContext const & render_context, std::string const & title, float dpi_scale_factor)
 	: m_render_context{ render_context }
 	, m_resources_path{ PlatformUtils::GetExecutableDir() / "resources" }
@@ -207,9 +255,18 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	};
 	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline, m_title_label);
 
+	// Initialize dog sprite animation
+	auto dog_tex_id = create_texture(textures_path / "dog_walk.png", PixelFormat::RGBA_SRGB, false, false);
+	SpritesheetPipeline dog_sprite_pipeline = create_pipeline<SpritesheetPipeline>(m_texture_pool, dog_tex_id);
+	auto dog_mesh_id = create_sprite_mesh();
+	auto dog_render_object_id = create_render_object("dog", dog_mesh_id, dog_sprite_pipeline, m_dog.GetSpriteData());
+	m_dog.Init(dog_tex_id, dog_mesh_id, dog_render_object_id);
+
 	glm::vec3 camera_pos{ 0.0f, -10.0f, 5.0f };
 	glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 0.0f, 2.5f } - camera_pos);
 	m_camera.Init(camera_pos, camera_dir);
+
+	m_renderer.SetClearColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
 }
 
 void Scene::OnViewportResized(int width, int height)
@@ -219,7 +276,8 @@ void Scene::OnViewportResized(int width, int height)
 
 	m_camera.OnViewportResized(width, height);
 
-	update_bg_mesh(m_bg_mesh_id);
+	resize_bg_mesh(m_bg_mesh_id);
+	resize_sprite_mesh(m_dog.GetMeshId(), m_dog.GetSpriteSheet());
 
 	if (m_fps_mesh)
 		m_fps_mesh->OnViewportResized(width, height);
@@ -255,10 +313,9 @@ bool Scene::Update(float dt, Input const & input)
 		m_frame_count = 0;
 	}
 
-	m_camera.Update(dt, input);
+	m_dog.Update(dt, input);
 
-	glm::vec3 bg_color{ 0.0f, 0.0f, 0.0f };
-	m_renderer.SetClearColor(bg_color);
+	m_camera.Update(dt, input);
 
 	return true;
 }

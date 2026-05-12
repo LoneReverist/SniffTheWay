@@ -16,10 +16,13 @@ import Dreamhearth;
 
 import AssetPool;
 import Camera;
+import Dog;
 import FontAtlas;
 import Input;
 import MeshManager;
 import RenderObject;
+import SpriteSheet;
+import SpritesheetPipeline;
 import TextMesh;
 import TextPipeline;
 import TexturePipeline;
@@ -78,7 +81,10 @@ private:
 		bool use_mip_map = true);
 
 	MeshId<Texture2dVertex> create_bg_mesh();
-	void update_bg_mesh(MeshId<Texture2dVertex> mesh_id);
+	void resize_bg_mesh(MeshId<Texture2dVertex> mesh_id);
+
+	MeshId<Texture2dVertex> create_sprite_mesh();
+	void resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet const & sprite_sheet);
 
 	std::unique_ptr<TextMesh> create_text_mesh(
 		std::string const & text,
@@ -115,6 +121,8 @@ private:
 
 	TextPipeline::ObjectData m_fps_label;
 	TextPipeline::ObjectData m_title_label;
+
+	Dog m_dog;
 
 	float m_timer = 0.0f;
 	float m_frame_timer = 0.0f;

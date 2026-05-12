@@ -185,22 +185,17 @@ void Scene::resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet cons
 	if (!mesh)
 		return;
 
-	Texture const * bg_tex = m_texture_pool.Get(m_bg_tex_id);
-	if (!bg_tex)
-		return;
-
-	float world_scale = (static_cast<float>(m_view_height) / bg_tex->GetHeight());
-
-	float y_size = sprite_sheet.GetFrameHeight() * (2.0f / m_view_height) * world_scale;
-	float y_pos = -y_size / 2.0f;
-	float x_size = sprite_sheet.GetFrameWidth() * (2.0f / m_view_width) * world_scale;
+	float aspect_ratio = static_cast<float>(sprite_sheet.GetFrameWidth()) / sprite_sheet.GetFrameHeight();
+	float y_size = 1.0f;
+	float y_pos = 0.0f;
+	float x_size = 1.0f * aspect_ratio;
 	float x_pos = -x_size / 2.0f;
 
 	std::vector<Texture2dVertex> verts{
-		{ { -0.5, 1.0 }, { 0.0, 0.0 } },
-		{ {  0.5, 1.0 }, { 1.0, 0.0 } },
-		{ { -0.5, 0.0 }, { 0.0, 1.0 } },
-		{ {  0.5, 0.0 }, { 1.0, 1.0 } } };
+		{ { x_pos,          y_pos + y_size }, { 0.0, 0.0 } },
+		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 0.0 } },
+		{ { x_pos,          y_pos          }, { 0.0, 1.0 } },
+		{ { x_pos + x_size, y_pos          }, { 1.0, 1.0 } } };
 
 	std::vector<Mesh::IndexT> indices{
 		1, 0, 2,
@@ -220,8 +215,14 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	, m_camera{ render_context.ShouldFlipScreenY() }
 	, m_mesh_manager{ render_context }
 {
-	float label_font_size = 18.0f * dpi_scale_factor;
-	float title_font_size = 32.0f * dpi_scale_factor;
+	m_renderer.SetClearColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
+
+	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
+	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
+	m_camera.Init(camera_pos, camera_dir);
+
+	const float label_font_size = 18.0f * dpi_scale_factor;
+	const float title_font_size = 32.0f * dpi_scale_factor;
 
 	const std::filesystem::path textures_path = m_resources_path / "textures";
 	const std::filesystem::path fonts_path = m_resources_path / "fonts";
@@ -255,18 +256,12 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	};
 	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline, m_title_label);
 
-	auto dog_tex_id = create_texture(textures_path / "dog_walk.png",
+	const auto dog_tex_id = create_texture(textures_path / "dog_walk.png",
 		 PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	SpritesheetPipeline dog_sprite_pipeline = create_pipeline<SpritesheetPipeline>(m_camera, m_texture_pool, dog_tex_id);
-	auto dog_mesh_id = create_sprite_mesh();
-	auto dog_render_object_id = create_render_object("dog", dog_mesh_id, dog_sprite_pipeline, m_dog.GetSpriteData());
-	m_dog.Init(dog_tex_id, dog_mesh_id, dog_render_object_id);
-
-	glm::vec3 camera_pos{ 0.0f, -5.0f, 3.0f };
-	glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 0.0f, 0.5f } - camera_pos);
-	m_camera.Init(camera_pos, camera_dir);
-
-	m_renderer.SetClearColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
+	const auto dog_mesh_id = create_sprite_mesh();
+	const auto dog_render_object_id = create_render_object("dog", dog_mesh_id, dog_sprite_pipeline, m_dog.GetSpriteData());
+	m_dog.Init(dog_tex_id, dog_mesh_id, dog_render_object_id, camera_dir);
 }
 
 void Scene::OnViewportResized(int width, int height)

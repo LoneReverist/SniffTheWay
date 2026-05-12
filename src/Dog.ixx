@@ -3,6 +3,7 @@
 module;
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 export module Dog;
 
@@ -18,7 +19,11 @@ export class Dog
 public:
     Dog() = default;
 
-    void Init(AssetId tex_id, MeshId<Texture2dVertex> mesh_id, AssetId render_object_id);
+    void Init(
+		AssetId tex_id,
+		MeshId<Texture2dVertex> mesh_id,
+		AssetId render_object_id,
+		glm::vec3 const & camera_dir);
     void Update(float dt, Input const & input);
 
     AssetId GetTextureId() const { return m_tex_id; }
@@ -41,7 +46,11 @@ private:
 	float m_move_speed = 3.0f; // units per second
 };
 
-void Dog::Init(AssetId tex_id, MeshId<Texture2dVertex> mesh_id, AssetId render_object_id)
+void Dog::Init(
+	AssetId tex_id,
+	MeshId<Texture2dVertex> mesh_id,
+	AssetId render_object_id,
+	glm::vec3 const & camera_dir)
 {
     m_tex_id = tex_id;
     m_mesh_id = mesh_id;
@@ -55,9 +64,14 @@ void Dog::Init(AssetId tex_id, MeshId<Texture2dVertex> mesh_id, AssetId render_o
 		7       // Frame count: 7 (4 in first row, 3 in second row)
     };
 
+	glm::vec3 up = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 target = -camera_dir;
+	float angle = glm::acos(glm::dot(up, target));
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
+
     m_sprite_data = SpritesheetPipeline::ObjectData{
-		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs(),
-		.position = glm::vec3(0.0f, 0.0f, 0.0f)
+		.model = model,
+		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs()
 	};
 }
 
@@ -82,7 +96,11 @@ void Dog::Update(float dt, Input const & input)
 		velocity.x += 1.0f;
 
 	if (velocity != glm::vec3(0.0f))
-		m_sprite_data.position += glm::normalize(velocity) * m_move_speed * dt;
+	{
+		const glm::vec3 move_vec = glm::normalize(velocity) * m_move_speed * dt;
+		glm::mat4 translation = glm::translate(glm::mat4(1.0f), move_vec);
+		m_sprite_data.model = translation * m_sprite_data.model;
+	}
 
 	m_animation_timer += dt;
 	if (m_animation_timer >= m_frame_duration)

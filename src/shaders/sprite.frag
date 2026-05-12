@@ -4,7 +4,7 @@ layout(binding = 1) uniform sampler2D tex_sampler;
 
 #ifdef BUILD_VULKAN
 layout(push_constant) uniform ObjectData {
-	layout(offset = 16) vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
+	layout(offset = 64) vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
 } obj_data;
 
 #else // OpenGL

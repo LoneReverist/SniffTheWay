@@ -7,12 +7,12 @@ layout(std140, binding = 0) uniform ViewProjUniform {
 
 #ifdef BUILD_VULKAN
 layout(push_constant) uniform ObjectData {
-	vec3 position;
+	mat4 model;
 } obj_data;
 
 #else // OpenGL
 layout(std140, binding = 8) uniform ObjectDataFS {
-	vec3 position;
+	mat4 model;
 } obj_data;
 
 #endif
@@ -26,6 +26,6 @@ void main()
 {
 	out_uv = in_uv;
 
-	vec3 pos_world = vec3(in_pos.x, 0.0, in_pos.y) + obj_data.position;
-	gl_Position = transforms.proj * transforms.view * vec4(pos_world, 1.0);
+	vec4 pos_world = obj_data.model * vec4(in_pos.x, in_pos.y, 0.0, 1.0);
+	gl_Position = transforms.proj * transforms.view * pos_world;
 }

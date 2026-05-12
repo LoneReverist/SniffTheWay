@@ -6,7 +6,7 @@ module;
 #include <filesystem>
 #include <iostream>
 
-#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 
 export module SpritesheetPipeline;
@@ -26,8 +26,8 @@ public:
 
 	struct ObjectData
 	{
+		glm::mat4 model;
 		glm::vec4 frame_uvs; // x = min_u, y = max_u, z = min_v, w = max_v
-		glm::vec3 position;
 	};
 
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
@@ -55,7 +55,7 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 {
 	struct ObjectDataVS
 	{
-		alignas(16) glm::vec3 position;
+		alignas(16) glm::mat4 model;
 	};
 	struct ObjectDataFS
 	{
@@ -83,7 +83,7 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 		.src_factor = BlendFactor::SRC_ALPHA,
 		.dst_factor = BlendFactor::ONE_MINUS_SRC_ALPHA
 		});
-	builder.SetCullMode(CullMode::NONE);
+	builder.SetCullMode(CullMode::BACK);
 
 	builder.SetPerFrameConstantsCallback(
 		[&camera](Pipeline const & pipeline)
@@ -103,7 +103,7 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 
 			pipeline.SetObjectData(
 				ObjectDataVS{
-					.position = data->position
+					.model = data->model
 				},
 				ObjectDataFS{
 					.frame_uvs = data->frame_uvs

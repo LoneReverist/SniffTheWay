@@ -28,20 +28,20 @@ public:
 
     void Init(
 		AssetId tex_id,
-		MeshId<Texture2dVertex> mesh_id,
+		MeshId<TextureVertex2d> mesh_id,
 		AssetId render_object_id,
 		glm::vec3 const & camera_dir);
     void Update(float dt, Input const & input);
 
     AssetId GetTextureId() const { return m_tex_id; }
-    MeshId<Texture2dVertex> GetMeshId() const { return m_mesh_id; }
+    MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
     AssetId GetRenderObjectId() const { return m_render_object_id; }
     SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
     SpritesheetPipeline::ObjectData const & GetSpriteData() const { return m_sprite_data; }
     
 private:
 	AssetId m_tex_id;
-	MeshId<Texture2dVertex> m_mesh_id;
+	MeshId<TextureVertex2d> m_mesh_id;
 	AssetId m_render_object_id;
 
 	SpriteSheet m_sprite_sheet;
@@ -57,7 +57,7 @@ private:
 
 void Dog::Init(
 	AssetId tex_id,
-	MeshId<Texture2dVertex> mesh_id,
+	MeshId<TextureVertex2d> mesh_id,
 	AssetId render_object_id,
 	glm::vec3 const & camera_dir)
 {

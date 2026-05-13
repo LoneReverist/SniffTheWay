@@ -22,7 +22,7 @@ using namespace Dreamhearth;
 export class SpritesheetPipeline
 {
 public:
-	using VertexT = Texture2dVertex;
+	using VertexT = TextureVertex2d;
 
 	struct ObjectData
 	{
@@ -33,7 +33,7 @@ public:
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera const & camera,
+		Camera3d const & camera3d,
 		AssetPool<Texture> const & texture_pool,
 		AssetId texture_id);
 
@@ -49,7 +49,7 @@ private:
 std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera const & camera,
+	Camera3d const & camera3d,
 	AssetPool<Texture> const & texture_pool,
 	AssetId texture_id)
 {
@@ -88,9 +88,9 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 	builder.SetCullMode(CullMode::NONE);
 
 	builder.SetPerFrameConstantsCallback(
-		[&camera](Pipeline const & pipeline)
+		[&camera3d](Pipeline const & pipeline)
 		{
-			pipeline.SetUniform(0 /*binding*/, camera.GetViewProjUniform());
+			pipeline.SetUniform(0 /*binding*/, camera3d.GetViewProjUniform());
 		});
 	builder.SetPerObjectConstantsCallback(
 		[](Pipeline const & pipeline, void const * object_data)

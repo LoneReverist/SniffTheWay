@@ -76,15 +76,15 @@ export struct Vertex2d
 	static LayoutDesc CreateLayout() { return create_layout<Vertex2d>(); }
 };
 
-export struct Texture2dVertex
+export struct TextureVertex2d
 {
 	glm::vec2 pos;
 	glm::vec2 tex_coord;
 
-	static LayoutDesc CreateLayout() { return create_layout<Texture2dVertex>(); }
+	static LayoutDesc CreateLayout() { return create_layout<TextureVertex2d>(); }
 };
 
 export template <typename T>
 concept IsVertex =
 	std::same_as<T, Vertex2d>
-	|| std::same_as<T, Texture2dVertex>;
+	|| std::same_as<T, TextureVertex2d>;

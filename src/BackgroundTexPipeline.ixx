@@ -1,4 +1,4 @@
-// TexturePipeline.ixx
+// BackgroundTexPipeline.ixx
 
 module;
 
@@ -7,28 +7,30 @@ module;
 
 #include <glm/mat4x4.hpp>
 
-export module TexturePipeline;
+export module BackgroundTexPipeline;
 
 import Dreamhearth;
 
 import AssetPool;
+import Camera;
 import Vertex;
 
 using namespace Dreamhearth;
 
-export class Texture2dPipeline
+export class BackgroundTexPipeline
 {
 public:
-	using VertexT = Texture2dVertex;
+	using VertexT = TextureVertex2d;
 
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
+		Camera2d const & camera2d,
 		AssetPool<Texture> const & texture_pool,
 		AssetId texture_id);
 
-	Texture2dPipeline() = default;
-	explicit Texture2dPipeline(AssetId asset_id) : m_asset_id(asset_id) {}
+	BackgroundTexPipeline() = default;
+	explicit BackgroundTexPipeline(AssetId asset_id) : m_asset_id(asset_id) {}
 
 	AssetId GetAssetId() const { return m_asset_id; }
 
@@ -36,9 +38,10 @@ private:
 	AssetId m_asset_id;
 };
 
-std::expected<Pipeline, GraphicsError> Texture2dPipeline::CreatePipeline(
+std::expected<Pipeline, GraphicsError> BackgroundTexPipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
+	Camera2d const & camera2d,
 	AssetPool<Texture> const & texture_pool,
 	AssetId texture_id)
 {
@@ -49,7 +52,7 @@ std::expected<Pipeline, GraphicsError> Texture2dPipeline::CreatePipeline(
 
 	Texture const * texture = texture_pool.Get(texture_id);
 	if (!texture)
-		return std::unexpected{ GraphicsError{ "Texture2dPipeline::CreatePipeline: invalid texture" } };
+		return std::unexpected{ GraphicsError{ "BackgroundTexPipeline::CreatePipeline: invalid texture" } };
 
 	PipelineBuilder builder{ render_context };
 
@@ -60,6 +63,7 @@ std::expected<Pipeline, GraphicsError> Texture2dPipeline::CreatePipeline(
 		return std::unexpected{ load_shaders_result.error() };
 
 	builder.SetVertexType<VertexT>();
+	builder.SetVSUniformTypes<ProjUniform>();
 	builder.SetObjectDataTypes<ObjectDataVS, std::nullopt_t>();
 	builder.SetTexture(*texture);
 	builder.SetCullMode(CullMode::NONE);
@@ -67,6 +71,12 @@ std::expected<Pipeline, GraphicsError> Texture2dPipeline::CreatePipeline(
 		.enable_depth_test = false,
 		.enable_depth_write = false,
 		.depth_compare_op = DepthCompareOp::ALWAYS
+		});
+
+	builder.SetPerFrameConstantsCallback(
+		[&camera2d](Pipeline const & pipeline)
+		{
+			pipeline.SetUniform(0 /*binding*/, camera2d.GetProjUniform());
 		});
 
 	return builder.CreatePipeline();

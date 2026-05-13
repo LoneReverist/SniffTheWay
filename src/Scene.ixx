@@ -22,10 +22,8 @@ import Input;
 import MeshManager;
 import RenderObject;
 import SpriteSheet;
-import SpritesheetPipeline;
 import TextMesh;
 import TextPipeline;
-import TexturePipeline;
 import Vertex;
 
 using namespace Dreamhearth;
@@ -80,11 +78,11 @@ private:
 		bool flip_vertically = false,
 		bool use_mip_map = true);
 
-	MeshId<Texture2dVertex> create_bg_mesh();
-	void resize_bg_mesh(MeshId<Texture2dVertex> mesh_id);
+	MeshId<TextureVertex2d> create_bg_mesh();
+	void resize_bg_mesh(MeshId<TextureVertex2d> mesh_id);
 
-	MeshId<Texture2dVertex> create_sprite_mesh();
-	void resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet const & sprite_sheet);
+	MeshId<TextureVertex2d> create_sprite_mesh();
+	void resize_sprite_mesh(MeshId<TextureVertex2d> mesh_id, SpriteSheet const & sprite_sheet);
 
 	MeshId<Vertex2d> create_grid_mesh();
 
@@ -102,7 +100,8 @@ private:
 	std::string const m_title;
 
 	Renderer m_renderer;
-	Camera m_camera;
+	Camera3d m_camera3d;
+	Camera2d m_camera2d;
 	int m_view_width = 0;
 	int m_view_height = 0;
 
@@ -114,7 +113,7 @@ private:
 	std::vector<PipelineRenderObjects> m_active_render_objects;
 
 	AssetId m_bg_tex_id;
-	MeshId<Texture2dVertex> m_bg_mesh_id;
+	MeshId<TextureVertex2d> m_bg_mesh_id;
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 
@@ -126,7 +125,6 @@ private:
 
 	Dog m_dog;
 
-	float m_timer = 0.0f;
 	float m_frame_timer = 0.0f;
 	int m_frame_count = 0;
 };

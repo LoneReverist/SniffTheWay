@@ -11,8 +11,10 @@ module;
 
 module Scene;
 
+import BackgroundTexPipeline;
 import LinePipeline;
 import PlatformUtils;
+import SpritesheetPipeline;
 import StbImage;
 import TextMesh;
 
@@ -62,22 +64,22 @@ AssetId Scene::create_texture(
 	return ::create_texture(m_texture_pool, m_render_context, filepath, format, flip_vertically, use_mip_map);
 }
 
-MeshId<Texture2dVertex> Scene::create_bg_mesh()
+MeshId<TextureVertex2d> Scene::create_bg_mesh()
 {
-	std::vector<Texture2dVertex> verts{
-		{ { -1.0,  1.0 }, { 0.0, 1.0 } },
-		{ {  1.0,  1.0 }, { 1.0, 1.0 } },
-		{ { -1.0, -1.0 }, { 0.0, 0.0 } },
-		{ {  1.0, -1.0 }, { 1.0, 0.0 } } };
+	std::vector<TextureVertex2d> verts{
+		{ { -1.0,  1.0 }, { 0.0, 0.0 } },
+		{ {  1.0,  1.0 }, { 1.0, 0.0 } },
+		{ { -1.0, -1.0 }, { 0.0, 1.0 } },
+		{ {  1.0, -1.0 }, { 1.0, 1.0 } } };
 
 	std::vector<Mesh::IndexT> indices{
 		1, 0, 2,
 		1, 2, 3 };
 
-	return create_mesh<Texture2dVertex>(verts, indices);
+	return create_mesh<TextureVertex2d>(verts, indices);
 }
 
-void Scene::resize_bg_mesh(MeshId<Texture2dVertex> mesh_id)
+void Scene::resize_bg_mesh(MeshId<TextureVertex2d> mesh_id)
 {
 	Mesh * mesh = m_mesh_manager.Get(mesh_id);
 	if (!mesh)
@@ -94,11 +96,11 @@ void Scene::resize_bg_mesh(MeshId<Texture2dVertex> mesh_id)
 	float x_size = bg_tex->GetWidth() * (2.0f / m_view_width) * world_scale;
 	float x_pos = -x_size / 2.0f;
 
-	std::vector<Texture2dVertex> verts{
-		{ { x_pos,          y_pos + y_size }, { 0.0, 1.0 } },
-		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 1.0 } },
-		{ { x_pos,          y_pos          }, { 0.0, 0.0 } },
-		{ { x_pos + x_size, y_pos          }, { 1.0, 0.0 } } };
+	std::vector<TextureVertex2d> verts{
+		{ { x_pos,          y_pos + y_size }, { 0.0, 0.0 } },
+		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 0.0 } },
+		{ { x_pos,          y_pos          }, { 0.0, 1.0 } },
+		{ { x_pos + x_size, y_pos          }, { 1.0, 1.0 } } };
 
 	std::vector<Mesh::IndexT> indices{
 		1, 0, 2,
@@ -165,22 +167,22 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	return text_mesh;
 }
 
-MeshId<Texture2dVertex> Scene::create_sprite_mesh()
+MeshId<TextureVertex2d> Scene::create_sprite_mesh()
 {
-	std::vector<Texture2dVertex> verts{
-		{ { -1.0,  1.0 }, { 0.0, 1.0 } },
-		{ {  1.0,  1.0 }, { 1.0, 1.0 } },
-		{ { -1.0, -1.0 }, { 0.0, 0.0 } },
-		{ {  1.0, -1.0 }, { 1.0, 0.0 } } };
+	std::vector<TextureVertex2d> verts{
+		{ { -1.0,  1.0 }, { 0.0, 0.0 } },
+		{ {  1.0,  1.0 }, { 1.0, 0.0 } },
+		{ { -1.0, -1.0 }, { 0.0, 1.0 } },
+		{ {  1.0, -1.0 }, { 1.0, 1.0 } } };
 
 	std::vector<Mesh::IndexT> indices{
 		1, 0, 2,
 		1, 2, 3 };
 
-	return create_mesh<Texture2dVertex>(verts, indices);
+	return create_mesh<TextureVertex2d>(verts, indices);
 }
 
-void Scene::resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet const & sprite_sheet)
+void Scene::resize_sprite_mesh(MeshId<TextureVertex2d> mesh_id, SpriteSheet const & sprite_sheet)
 {
 	Mesh * mesh = m_mesh_manager.Get(mesh_id);
 	if (!mesh)
@@ -192,7 +194,7 @@ void Scene::resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet cons
 	float x_size = 1.0f * aspect_ratio;
 	float x_pos = -x_size / 2.0f;
 
-	std::vector<Texture2dVertex> verts{
+	std::vector<TextureVertex2d> verts{
 		{ { x_pos,          y_pos + y_size }, { 0.0, 0.0 } },
 		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 0.0 } },
 		{ { x_pos,          y_pos          }, { 0.0, 1.0 } },
@@ -244,14 +246,15 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	, m_resources_path{ PlatformUtils::GetExecutableDir() / "resources" }
 	, m_title{ title }
 	, m_renderer{ render_context }
-	, m_camera{ render_context.ShouldFlipScreenY() }
+	, m_camera3d{ render_context.ShouldFlipScreenY() }
+	, m_camera2d{ render_context.ShouldFlipScreenY() }
 	, m_mesh_manager{ render_context }
 {
 	m_renderer.SetClearColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
 
 	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
 	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
-	m_camera.Init(camera_pos, camera_dir);
+	m_camera3d.Init(camera_pos, camera_dir);
 
 	const float label_font_size = 18.0f * dpi_scale_factor;
 	const float title_font_size = 32.0f * dpi_scale_factor;
@@ -259,16 +262,17 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	const std::filesystem::path textures_path = m_resources_path / "textures";
 	const std::filesystem::path fonts_path = m_resources_path / "fonts";
 
-	m_bg_tex_id = create_texture(textures_path / "forest_path.png", PixelFormat::RGBA_SRGB, !m_render_context.ShouldFlipScreenY());
+	// background
+	m_bg_tex_id = create_texture(textures_path / "forest_path.png", PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	BackgroundTexPipeline bg_pipeline = create_pipeline<BackgroundTexPipeline>(m_camera2d, m_texture_pool, m_bg_tex_id);
+	m_bg_mesh_id = create_bg_mesh();
+	create_render_object("background", m_bg_mesh_id, bg_pipeline);
 
+	// title and fps
 	AssetId arial_tex_id = create_texture(fonts_path / "ArialAtlas.png", PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, fonts_path / "ArialAtlas.json");
 
-	Texture2dPipeline bg_pipeline = create_pipeline<Texture2dPipeline>(m_texture_pool, m_bg_tex_id);
-	TextPipeline text_pipeline = create_pipeline<TextPipeline>(m_texture_pool, arial_tex_id);
-
-	m_bg_mesh_id = create_bg_mesh();
-	create_render_object("background", m_bg_mesh_id, bg_pipeline);
+	TextPipeline text_pipeline = create_pipeline<TextPipeline>(m_camera2d, m_texture_pool, arial_tex_id);
 
 	m_fps_mesh = create_text_mesh("FPS: ", *m_arial_font, label_font_size, glm::vec2{ -0.9, -0.9 } /*origin*/,
 		0 /*viewport_width*/, 0 /*viewport_height*/);
@@ -288,13 +292,15 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	};
 	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline, m_title_label);
 
-	LinePipeline line_pipeline = create_pipeline<LinePipeline>(m_camera);
+	// debug grid
+	LinePipeline line_pipeline = create_pipeline<LinePipeline>(m_camera3d);
 	const auto grid_mesh_id = create_grid_mesh();
 	create_render_object("grid", grid_mesh_id, line_pipeline);
 
+	// dog
 	const auto dog_tex_id = create_texture(textures_path / "dog_walk.png",
 		 PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	SpritesheetPipeline dog_sprite_pipeline = create_pipeline<SpritesheetPipeline>(m_camera, m_texture_pool, dog_tex_id);
+	SpritesheetPipeline dog_sprite_pipeline = create_pipeline<SpritesheetPipeline>(m_camera3d, m_texture_pool, dog_tex_id);
 	const auto dog_mesh_id = create_sprite_mesh();
 	const auto dog_render_object_id = create_render_object("dog", dog_mesh_id, dog_sprite_pipeline, m_dog.GetSpriteData());
 	m_dog.Init(dog_tex_id, dog_mesh_id, dog_render_object_id, camera_dir);
@@ -305,7 +311,8 @@ void Scene::OnViewportResized(int width, int height)
 	m_view_width = width;
 	m_view_height = height;
 
-	m_camera.OnViewportResized(width, height);
+	m_camera3d.OnViewportResized(width, height);
+	m_camera2d.OnViewportResized(width, height);
 
 	resize_bg_mesh(m_bg_mesh_id);
 	resize_sprite_mesh(m_dog.GetMeshId(), m_dog.GetSpriteSheet());
@@ -332,7 +339,7 @@ bool Scene::Update(float dt, Input const & input)
 	if (input.KeyIsPressed(Input::Key::Esc))
 		return false;
 
-	m_timer += dt;
+	m_camera3d.Update(dt, input);
 
 	m_frame_timer += dt;
 	m_frame_count++;
@@ -345,8 +352,6 @@ bool Scene::Update(float dt, Input const & input)
 	}
 
 	m_dog.Update(dt, input);
-
-	m_camera.Update(dt, input);
 
 	return true;
 }

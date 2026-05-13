@@ -24,7 +24,7 @@ using namespace Dreamhearth;
 export class TextMesh
 {
 public:
-	using VertexT = Texture2dVertex;
+	using VertexT = TextureVertex2d;
 
 	using UpdateMeshCallbackT = std::function<void(AssetId, Mesh)>;
 
@@ -152,14 +152,6 @@ std::expected<Mesh, GraphicsError> TextMesh::CreateMesh() const
 		indices.push_back(static_cast<Mesh::IndexT>(start_vi + 3));
 
 		pen.x += g.advance * width_scale;
-	}
-
-	// Vulkan screen coordinates are different from OpenGL, the y-axis is -1 at the top instead of the bottom of the screen.
-	// We could create a projection matrix that flips the y-axis and pass that into the 2d shaders, but for now we'll do this
-	if (m_render_context.ShouldFlipScreenY())
-	{
-		for (VertexT & v : verts)
-			v.pos.y = -v.pos.y;
 	}
 
 	Mesh mesh{ m_render_context };

@@ -37,7 +37,7 @@ public:
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera const & camera);
+		Camera3d const & camera3d);
 
 	LinePipeline() = default;
 	explicit LinePipeline(AssetId asset_id) : m_asset_id(asset_id) {}
@@ -51,7 +51,7 @@ private:
 std::expected<Pipeline, GraphicsError> LinePipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera const & camera)
+	Camera3d const & camera3d)
 {
 	PipelineBuilder builder{ render_context };
 
@@ -72,10 +72,10 @@ std::expected<Pipeline, GraphicsError> LinePipeline::CreatePipeline(
 	builder.SetCullMode(CullMode::NONE);
 
 	builder.SetPerFrameConstantsCallback(
-		[&camera](Pipeline const & pipeline)
+		[&camera3d](Pipeline const & pipeline)
 		{
-			pipeline.SetUniform(0 /*binding*/, camera.GetViewProjUniform());
-            pipeline.SetUniform(1 /*binding*/, camera.GetViewportUniform());
+			pipeline.SetUniform(0 /*binding*/, camera3d.GetViewProjUniform());
+            pipeline.SetUniform(1 /*binding*/, camera3d.GetViewportUniform());
 		});
 
 	return builder.CreatePipeline();

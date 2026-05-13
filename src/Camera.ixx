@@ -18,9 +18,9 @@ export struct ViewProjUniform
 	alignas(16) glm::mat4 proj;
 };
 
-export struct CameraPosUniform
+export struct ProjUniform
 {
-	alignas(16) glm::vec3 pos;
+	alignas(16) glm::mat4 proj;
 };
 
 export struct ViewportUniform
@@ -28,15 +28,20 @@ export struct ViewportUniform
 	alignas(16) glm::vec2 size;
 };
 
-export class Camera
+export struct CameraPosUniform
+{
+	alignas(16) glm::vec3 pos;
+};
+
+export class Camera3d
 {
 public:
-	explicit Camera(bool flip_proj_y = false) : m_flip_proj_y(flip_proj_y) {}
+	explicit Camera3d(bool flip_proj_y = false) : m_flip_proj_y(flip_proj_y) {}
 
 	void Init(glm::vec3 const & pos, glm::vec3 const & dir);
 	void OnViewportResized(int width, int height);
 
-	void Update(float dt, Input const & input);
+	void Update(float dt, Input const & input) {}
 
 	CameraPosUniform const & GetPosUniform() const { return m_pos_uniform; }
 	glm::vec3 const & GetDir() const { return m_dir; }
@@ -44,10 +49,10 @@ public:
 	ViewportUniform const & GetViewportUniform() const { return m_viewport_uniform; }
 
 private:
-	CameraPosUniform m_pos_uniform{ { 0.0f, 0.0f, 0.0f } };
-	glm::vec3 m_dir{ 0.0f, 0.0f, -1.0f };
 	ViewProjUniform m_view_proj_uniform;
 	ViewportUniform m_viewport_uniform;
+	CameraPosUniform m_pos_uniform{ { 0.0f, 0.0f, 0.0f } };
+	glm::vec3 m_dir{ 0.0f, 0.0f, -1.0f };
 
 	bool m_flip_proj_y = false; // whether to flip the y-axis in the projection matrix
 
@@ -57,14 +62,34 @@ private:
 	static constexpr float FarPlane = 100.0f;
 };
 
-void Camera::Init(glm::vec3 const & pos, glm::vec3 const & dir)
+export class Camera2d
+{
+public:
+	explicit Camera2d(bool flip_proj_y = false) : m_flip_proj_y(flip_proj_y) {}
+
+	void Init() {}
+	void OnViewportResized(int width, int height);
+
+	void Update(float dt, Input const & input) {}
+
+	ProjUniform const & GetProjUniform() const { return m_proj_uniform; }
+	ViewportUniform const & GetViewportUniform() const { return m_viewport_uniform; }
+
+private:
+	ProjUniform m_proj_uniform;
+	ViewportUniform m_viewport_uniform;
+
+	bool m_flip_proj_y = false; // whether to flip the y-axis in the projection matrix
+};
+
+void Camera3d::Init(glm::vec3 const & pos, glm::vec3 const & dir)
 {
 	m_pos_uniform.pos = pos;
 	m_dir = dir;
 	m_view_proj_uniform.view = glm::lookAt(m_pos_uniform.pos, m_pos_uniform.pos + m_dir, UpDir);
 }
 
-void Camera::OnViewportResized(int width, int height)
+void Camera3d::OnViewportResized(int width, int height)
 {
 	if (height == 0)
 		return;
@@ -78,6 +103,15 @@ void Camera::OnViewportResized(int width, int height)
 		m_view_proj_uniform.proj[1][1] *= -1; // account for vulkan having flipped y-axis compared to opengl
 }
 
-void Camera::Update(float dt, Input const & input)
+void Camera2d::OnViewportResized(int width, int height)
 {
+	if (height == 0)
+		return;
+
+	m_viewport_uniform.size = glm::vec2{ static_cast<float>(width), static_cast<float>(height) };
+
+	m_proj_uniform.proj = glm::mat4(1.0f);
+
+	if (m_flip_proj_y)
+		m_proj_uniform.proj[1][1] *= -1; // account for vulkan having flipped y-axis compared to opengl
 }

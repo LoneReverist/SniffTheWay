@@ -1,6 +1,6 @@
 #version 420 core
 
-layout(binding = 0) uniform sampler2D msdf_texture;
+layout(binding = 1) uniform sampler2D msdf_texture;
 
 #ifdef BUILD_VULKAN
 layout(push_constant) uniform ObjectData {

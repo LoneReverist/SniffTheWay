@@ -14,6 +14,7 @@ export module TextPipeline;
 import Dreamhearth;
 
 import AssetPool;
+import Camera;
 import RenderObject;
 import Vertex;
 
@@ -22,7 +23,7 @@ using namespace Dreamhearth;
 export class TextPipeline
 {
 public:
-	using VertexT = Texture2dVertex;
+	using VertexT = TextureVertex2d;
 
 	struct ObjectData
 	{
@@ -34,6 +35,7 @@ public:
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
+		Camera2d const & camera2d,
 		AssetPool<Texture> const & texture_pool,
 		AssetId texture_id);
 
@@ -49,6 +51,7 @@ private:
 std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
+	Camera2d const & camera2d,
 	AssetPool<Texture> const & texture_pool,
 	AssetId texture_id)
 {
@@ -72,6 +75,7 @@ std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 		return std::unexpected{ load_shaders_result.error() };
 
 	builder.SetVertexType<VertexT>();
+	builder.SetVSUniformTypes<ProjUniform>();
 	builder.SetObjectDataTypes<std::nullopt_t, ObjectDataFS>();
 	builder.SetTexture(*texture);
 	builder.SetDepthTestOptions(DepthTestOptions{
@@ -86,6 +90,11 @@ std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 		});
 	builder.SetCullMode(CullMode::BACK);
 
+	builder.SetPerFrameConstantsCallback(
+		[&camera2d](Pipeline const & pipeline)
+		{
+			pipeline.SetUniform(0 /*binding*/, camera2d.GetProjUniform());
+		});
 	builder.SetPerObjectConstantsCallback(
 		[](Pipeline const & pipeline, void const * object_data)
 		{

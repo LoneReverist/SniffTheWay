@@ -20,7 +20,6 @@ find_package(glm CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
 
-# Configure DreamhearthEngine to only build Vulkan support
 set(BUILD_VULKAN ON)
 set(BUILD_OPENGL OFF)
 set(BUILD_DEMOS OFF)
@@ -33,37 +32,47 @@ set_target_properties(SniffTheWay PROPERTIES CXX_SCAN_FOR_MODULES ON)
 set(SHADER_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders)
 file(GLOB SHADER_FILES "${SHADER_SOURCE_DIR}/*")
 
-if(WIN32)
-    set(GLSLANG_VALIDATOR_EXECUTABLE ${CMAKE_SOURCE_DIR}/buildtools/glslangValidator.exe)
-elseif(UNIX)
-    set(GLSLANG_VALIDATOR_EXECUTABLE glslangValidator)
-endif()
+if(BUILD_VULKAN)
+    if(WIN32)
+        set(GLSLANG_VALIDATOR_EXECUTABLE ${CMAKE_SOURCE_DIR}/buildtools/glslangValidator.exe)
+    elseif(UNIX)
+        set(GLSLANG_VALIDATOR_EXECUTABLE glslangValidator)
+    endif()
 
-set(SHADER_BINARY_DIR ${CMAKE_BINARY_DIR}/shaders)
-file(MAKE_DIRECTORY ${SHADER_BINARY_DIR})
+    set(SHADER_BINARY_DIR ${CMAKE_BINARY_DIR}/shaders)
+    file(MAKE_DIRECTORY ${SHADER_BINARY_DIR})
 
-foreach(SHADER ${SHADER_FILES})
-    get_filename_component(FILE_NAME ${SHADER} NAME)
-    set(OUTPUT_FILE ${SHADER_BINARY_DIR}/${FILE_NAME}.spv)
+    foreach(SHADER ${SHADER_FILES})
+        get_filename_component(FILE_NAME ${SHADER} NAME)
+        set(OUTPUT_FILE ${SHADER_BINARY_DIR}/${FILE_NAME}.spv)
 
-    add_custom_command(
-        OUTPUT ${OUTPUT_FILE}
-        COMMAND ${GLSLANG_VALIDATOR_EXECUTABLE} -V ${SHADER} -o ${OUTPUT_FILE} -DBUILD_VULKAN
-        DEPENDS ${SHADER}
-        COMMENT "Compiling ${FILE_NAME} to SPIR-V"
-        VERBATIM
+        add_custom_command(
+            OUTPUT ${OUTPUT_FILE}
+            COMMAND ${GLSLANG_VALIDATOR_EXECUTABLE} -V ${SHADER} -o ${OUTPUT_FILE} -DBUILD_VULKAN
+            DEPENDS ${SHADER}
+            COMMENT "Compiling ${FILE_NAME} to SPIR-V"
+            VERBATIM
+        )
+
+        list(APPEND COMPILED_SHADERS ${OUTPUT_FILE})
+    endforeach()
+
+    add_custom_target(VulkanShaders ALL
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:SniffTheWay>/resources/shaders"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${SHADER_BINARY_DIR}" "$<TARGET_FILE_DIR:SniffTheWay>/resources/shaders"
+        DEPENDS ${COMPILED_SHADERS}
+        COMMENT "Copying Vulkan shaders to resources directory"
     )
-
-    list(APPEND COMPILED_SHADERS ${OUTPUT_FILE})
-endforeach()
-
-add_custom_target(VulkanShaders ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:SniffTheWay>/resources/shaders"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${SHADER_BINARY_DIR}" "$<TARGET_FILE_DIR:SniffTheWay>/resources/shaders"
-    DEPENDS ${COMPILED_SHADERS}
-    COMMENT "Copying Vulkan shaders to resources directory"
-)
-add_dependencies(SniffTheWay VulkanShaders)
+    add_dependencies(SniffTheWay VulkanShaders)
+elseif(BUILD_OPENGL)
+    add_custom_target(OpenGLShaders ALL
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:SniffTheWay>/resources/shaders"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${SHADER_SOURCE_DIR}" "$<TARGET_FILE_DIR:SniffTheWay>/resources/shaders"
+        DEPENDS ${SHADER_FILES}
+        COMMENT "Copying OpenGL shaders to resources directory"
+    )
+    add_dependencies(SniffTheWay OpenGLShaders)
+endif()
 
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
 file(GLOB_RECURSE MODULE_FILES "src/*.ixx")
@@ -81,9 +90,18 @@ source_group("SniffTheWay/Shaders" FILES ${SHADER_FILES})
 target_link_libraries(SniffTheWay PRIVATE
     glm::glm
     nlohmann_json::nlohmann_json
-    VulkanRenderer
-    GlfwVkWindow
 )
+if(BUILD_VULKAN)
+    target_link_libraries(SniffTheWay PRIVATE
+        VulkanRenderer
+        GlfwVkWindow
+    )
+elseif(BUILD_OPENGL)
+    target_link_libraries(SniffTheWay PRIVATE
+        OpenGLRenderer
+        GlfwGLWindow
+    )
+endif()
 
 add_custom_command(TARGET SniffTheWay POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

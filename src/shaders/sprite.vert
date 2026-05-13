@@ -11,7 +11,7 @@ layout(push_constant) uniform ObjectData {
 } obj_data;
 
 #else // OpenGL
-layout(std140, binding = 8) uniform ObjectDataFS {
+layout(std140, binding = 8) uniform ObjectDataVS {
 	mat4 model;
 } obj_data;
 

@@ -18,6 +18,12 @@ layout(location = 4) in vec4 inColor;
 
 layout(location = 0) out vec4 fragColor;
 
+#ifdef BUILD_VULKAN
+#define VERTEX_ID gl_VertexIndex
+#else //BUILD_OPENGL
+#define VERTEX_ID gl_VertexID
+#endif
+
 void main()
 {
     fragColor = inColor;
@@ -74,7 +80,7 @@ void main()
     // 4 = start right
     // 5 = end right
     // ---------------------------------------------------------
-    int v = gl_VertexIndex % 6;
+    int v = VERTEX_ID % 6;
 
     bool useStart = false;
     bool useLeft = false;

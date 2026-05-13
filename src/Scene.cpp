@@ -259,7 +259,7 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	const std::filesystem::path textures_path = m_resources_path / "textures";
 	const std::filesystem::path fonts_path = m_resources_path / "fonts";
 
-	m_bg_tex_id = create_texture(textures_path / "forest_path.png");
+	m_bg_tex_id = create_texture(textures_path / "forest_path.png", PixelFormat::RGBA_SRGB, !m_render_context.ShouldFlipScreenY());
 
 	AssetId arial_tex_id = create_texture(fonts_path / "ArialAtlas.png", PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, fonts_path / "ArialAtlas.json");

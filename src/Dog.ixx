@@ -11,7 +11,7 @@ import AssetPool;
 import Input;
 import MeshManager;
 import SpriteSheet;
-import SpritesheetPipeline;
+import SpritePipeline;
 import Vertex;
 
 export class Dog
@@ -37,7 +37,7 @@ public:
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
     AssetId GetRenderObjectId() const { return m_render_object_id; }
     SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
-    SpritesheetPipeline::ObjectData const & GetSpriteData() const { return m_sprite_data; }
+    SpritePipeline::ObjectData const & GetSpriteData() const { return m_sprite_data; }
     
 private:
 	AssetId m_tex_id;
@@ -45,7 +45,7 @@ private:
 	AssetId m_render_object_id;
 
 	SpriteSheet m_sprite_sheet;
-	SpritesheetPipeline::ObjectData m_sprite_data;
+	SpritePipeline::ObjectData m_sprite_data;
 	State m_state = State::Idle;
 	bool facing_right = true;
 
@@ -78,7 +78,7 @@ void Dog::Init(
 	float angle = glm::acos(glm::dot(up, target));
     glm::mat4 model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    m_sprite_data = SpritesheetPipeline::ObjectData{
+    m_sprite_data = SpritePipeline::ObjectData{
 		.model = model,
 		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs()
 	};

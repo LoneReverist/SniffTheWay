@@ -1,4 +1,4 @@
-// SpritesheetPipeline.ixx
+// SpritePipeline.ixx
 
 module;
 
@@ -9,7 +9,7 @@ module;
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 
-export module SpritesheetPipeline;
+export module SpritePipeline;
 
 import Dreamhearth;
 
@@ -19,7 +19,7 @@ import Vertex;
 
 using namespace Dreamhearth;
 
-export class SpritesheetPipeline
+export class SpritePipeline
 {
 public:
 	using VertexT = TextureVertex2d;
@@ -37,8 +37,8 @@ public:
 		AssetPool<Texture> const & texture_pool,
 		AssetId texture_id);
 
-	SpritesheetPipeline() = default;
-	explicit SpritesheetPipeline(AssetId asset_id) : m_asset_id(asset_id) {}
+	SpritePipeline() = default;
+	explicit SpritePipeline(AssetId asset_id) : m_asset_id(asset_id) {}
 
 	AssetId GetAssetId() const { return m_asset_id; }
 
@@ -46,7 +46,7 @@ private:
 	AssetId m_asset_id;
 };
 
-std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
+std::expected<Pipeline, GraphicsError> SpritePipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera3d const & camera3d,
@@ -64,7 +64,7 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 
 	Texture const * texture = texture_pool.Get(texture_id);
 	if (!texture)
-		return std::unexpected{ GraphicsError{ "SpritesheetPipeline::CreatePipeline: invalid texture" } };
+		return std::unexpected{ GraphicsError{ "SpritePipeline::CreatePipeline: invalid texture" } };
 
 	PipelineBuilder builder{ render_context };
 
@@ -97,7 +97,7 @@ std::expected<Pipeline, GraphicsError> SpritesheetPipeline::CreatePipeline(
 		{
 			if (!object_data)
 			{
-				std::cout << "ObjectData is null for SpritesheetPipeline" << std::endl;
+				std::cout << "ObjectData is null for SpritePipeline" << std::endl;
 				return;
 			}
 

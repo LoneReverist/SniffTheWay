@@ -86,6 +86,8 @@ private:
 	MeshId<Texture2dVertex> create_sprite_mesh();
 	void resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet const & sprite_sheet);
 
+	MeshId<Vertex2d> create_grid_mesh();
+
 	std::unique_ptr<TextMesh> create_text_mesh(
 		std::string const & text,
 		FontAtlas const & font_atlas,

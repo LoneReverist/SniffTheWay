@@ -18,7 +18,9 @@ export template<typename VertexT>
 LayoutDesc create_layout()
 {
     LayoutDesc layout;
+	layout.binding = 0; // vertex uses binding 0, instance uses binding 1
 	layout.stride = sizeof(VertexT);
+	layout.input_rate = InputRate::Vertex;
 
 	std::uint32_t location = 0;
 
@@ -67,6 +69,13 @@ LayoutDesc create_layout()
 	return layout;
 }
 
+export struct Vertex2d
+{
+	glm::vec2 pos;
+
+	static LayoutDesc CreateLayout() { return create_layout<Vertex2d>(); }
+};
+
 export struct Texture2dVertex
 {
 	glm::vec2 pos;
@@ -77,4 +86,5 @@ export struct Texture2dVertex
 
 export template <typename T>
 concept IsVertex =
-	std::same_as<T, Texture2dVertex>;
+	std::same_as<T, Vertex2d>
+	|| std::same_as<T, Texture2dVertex>;

@@ -11,6 +11,7 @@ module;
 
 module Scene;
 
+import LinePipeline;
 import PlatformUtils;
 import StbImage;
 import TextMesh;
@@ -207,6 +208,37 @@ void Scene::resize_sprite_mesh(MeshId<Texture2dVertex> mesh_id, SpriteSheet cons
 		std::cout << "Scene::resize_sprite_mesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
 }
 
+MeshId<Vertex2d> Scene::create_grid_mesh()
+{
+	std::vector<Vertex2d> verts{
+		{ { -1.0,  1.0 } },
+		{ {  1.0,  1.0 } },
+		{ { -1.0, -1.0 } },
+		{ {  1.0, -1.0 } } };
+
+	std::vector<Mesh::IndexT> indices{
+		1, 0, 2,
+		1, 2, 3 };
+
+	std::vector<LineInstance> line_instances(20);
+	for (int y = 0; y < 10; y++)
+	{
+		line_instances[y].p0 = { -4.0f, static_cast<float>(y) - 4.0f, 0.0f };
+		line_instances[y].p1 = { 5.0f, static_cast<float>(y) - 4.0f, 0.0f };
+		line_instances[y].thickness = 4.0f;
+		line_instances[y].color = { 0.0f, 0.0f, 1.0f, 1.0f };
+	}
+	for (int x = 0; x < 10; x++)
+	{
+		line_instances[x + 10].p0 = { static_cast<float>(x) - 4.0f, -4.0f, 0.0f };
+		line_instances[x + 10].p1 = { static_cast<float>(x) - 4.0f, 5.0f, 0.0f };
+		line_instances[x + 10].thickness = 4.0f;
+		line_instances[x + 10].color = { 0.0f, 0.0f, 1.0f, 1.0f };
+	}
+
+	return create_mesh<Vertex2d>(verts, indices, line_instances);
+}
+
 Scene::Scene(RenderContext const & render_context, std::string const & title, float dpi_scale_factor)
 	: m_render_context{ render_context }
 	, m_resources_path{ PlatformUtils::GetExecutableDir() / "resources" }
@@ -255,6 +287,10 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 		.text_color = { 1.0f, 1.0f, 1.0f, 1.0 },
 	};
 	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline, m_title_label);
+
+	LinePipeline line_pipeline = create_pipeline<LinePipeline>(m_camera);
+	const auto grid_mesh_id = create_grid_mesh();
+	create_render_object("grid", grid_mesh_id, line_pipeline);
 
 	const auto dog_tex_id = create_texture(textures_path / "dog_walk.png",
 		 PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);

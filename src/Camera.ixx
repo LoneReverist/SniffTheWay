@@ -23,6 +23,11 @@ export struct CameraPosUniform
 	alignas(16) glm::vec3 pos;
 };
 
+export struct ViewportUniform
+{
+	alignas(16) glm::vec2 size;
+};
+
 export class Camera
 {
 public:
@@ -36,11 +41,13 @@ public:
 	CameraPosUniform const & GetPosUniform() const { return m_pos_uniform; }
 	glm::vec3 const & GetDir() const { return m_dir; }
 	ViewProjUniform const & GetViewProjUniform() const { return m_view_proj_uniform; }
+	ViewportUniform const & GetViewportUniform() const { return m_viewport_uniform; }
 
 private:
 	CameraPosUniform m_pos_uniform{ { 0.0f, 0.0f, 0.0f } };
 	glm::vec3 m_dir{ 0.0f, 0.0f, -1.0f };
 	ViewProjUniform m_view_proj_uniform;
+	ViewportUniform m_viewport_uniform;
 
 	bool m_flip_proj_y = false; // whether to flip the y-axis in the projection matrix
 
@@ -61,6 +68,8 @@ void Camera::OnViewportResized(int width, int height)
 {
 	if (height == 0)
 		return;
+	
+	m_viewport_uniform.size = glm::vec2{ static_cast<float>(width), static_cast<float>(height) };
 
 	const float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
 	m_view_proj_uniform.proj = glm::perspective(FOV, aspect_ratio, NearPlane, FarPlane);

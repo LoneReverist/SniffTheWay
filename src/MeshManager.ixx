@@ -38,6 +38,12 @@ public:
 		std::vector<VertexT> const & vertices,
 		std::vector<Mesh::IndexT> const & indices);
 
+	template<IsVertex VertexT, typename InstanceDataT>
+	std::expected<MeshId<VertexT>, GraphicsError> CreateMesh(
+		std::vector<VertexT> const & vertices,
+		std::vector<Mesh::IndexT> const & indices,
+		std::vector<InstanceDataT> const & instance_data);
+
 	//template<IsVertex VertexT>
 	//std::expected<MeshId<VertexT>, GraphicsError> CreateMesh(
 	//	std::filesystem::path const & file_path);
@@ -69,6 +75,24 @@ std::expected<MeshId<VertexT>, GraphicsError> MeshManager::CreateMesh(
 {
 	Mesh mesh{ m_render_context };
 	std::expected<void, GraphicsError> result = mesh.Create(vertices, indices);
+	if (!result.has_value())
+		return std::unexpected{ result.error().AddToMessage(" MeshManager::CreateMesh: Failed to create mesh.") };
+
+	MeshId<VertexT> mesh_id{ m_mesh_pool.Add(std::move(mesh)) };
+	if (!mesh_id.IsValid())
+		return std::unexpected{ GraphicsError{ "MeshManager::CreateMesh: Failed to add mesh to pool." } };
+
+	return mesh_id;
+}
+
+template<IsVertex VertexT, typename InstanceDataT>
+std::expected<MeshId<VertexT>, GraphicsError> MeshManager::CreateMesh(
+	std::vector<VertexT> const & vertices,
+	std::vector<Mesh::IndexT> const & indices,
+	std::vector<InstanceDataT> const & instance_data)
+{
+	Mesh mesh{ m_render_context };
+	std::expected<void, GraphicsError> result = mesh.Create(vertices, indices, instance_data);
 	if (!result.has_value())
 		return std::unexpected{ result.error().AddToMessage(" MeshManager::CreateMesh: Failed to create mesh.") };
 

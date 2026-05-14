@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Configure Debug",
+      "label": "Configure Debug Linux",
       "type": "shell",
       "command": "cmake",
       "args": [
@@ -29,7 +29,7 @@
       }
     },
     {
-      "label": "Configure Release",
+      "label": "Configure Release Linux",
       "type": "shell",
       "command": "cmake",
       "args": [
@@ -56,29 +56,11 @@
       }
     },
     {
-      "label": "Build Debug",
-      "type": "shell",
-      "command": "cmake",
-      "args": ["--build", "${workspaceFolder}/build-debug"],
-      "dependsOn": "Configure Debug",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$gcc"],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Build SniffTheWay Debug",
+      "label": "Build SniffTheWay Debug Linux",
       "type": "shell",
       "command": "cmake",
       "args": ["--build", "${workspaceFolder}/build-debug", "--target", "SniffTheWay"],
-      "dependsOn": "Configure Debug",
+      "dependsOn": "Configure Debug Linux",
       "group": "build",
       "problemMatcher": ["$gcc"],
       "presentation": {
@@ -89,31 +71,135 @@
       }
     },
     {
-      "label": "Build Release",
-      "type": "shell",
-      "command": "cmake",
-      "args": ["--build", "${workspaceFolder}/build-release"],
-      "dependsOn": "Configure Release",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$gcc"],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Build SniffTheWay Release",
+      "label": "Build SniffTheWay Release Linux",
       "type": "shell",
       "command": "cmake",
       "args": ["--build", "${workspaceFolder}/build-release", "--target", "SniffTheWay"],
-      "dependsOn": "Configure Release",
+      "dependsOn": "Configure Release Linux",
       "group": "build",
       "problemMatcher": ["$gcc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Configure Debug Windows",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-B",
+        "${workspaceFolder}/build-debug",
+        "-S",
+        "${workspaceFolder}",
+        "--preset",
+        "x64-windows-static",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": [
+            "/d", "/c", "call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul 2>&1 &&"
+          ]
+        }
+      },
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Configure Release Windows",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-B",
+        "${workspaceFolder}/build-release",
+        "-S",
+        "${workspaceFolder}",
+        "--preset",
+        "x64-windows-static",
+        "-DCMAKE_BUILD_TYPE=Release"
+      ],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": [
+            "/d", "/c", "call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul 2>&1 &&"
+          ]
+        }
+      },
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Build SniffTheWay Debug Windows",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "${workspaceFolder}/build-debug",
+        "--target",
+        "SniffTheWay"
+      ],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": [
+            "/d", "/c", "call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul 2>&1 &&"
+          ]
+        }
+      },
+      "dependsOn": "Configure Debug Windows",
+      "group": "build",
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Build SniffTheWay Release Windows",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "${workspaceFolder}/build-release",
+        "--target",
+        "SniffTheWay"
+      ],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": [
+            "/d", "/c", "call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul 2>&1 &&"
+          ]
+        }
+      },
+      "dependsOn": "Configure Release Windows",
+      "group": "build",
+      "problemMatcher": [
+        "$msCompile"
+      ],
       "presentation": {
         "echo": true,
         "reveal": "always",

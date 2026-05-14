@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug SniffTheWay",
+            "name": "Debug Linux SniffTheWay",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build SniffTheWay Debug",
+            "preLaunchTask": "Build SniffTheWay Debug Linux",
             "program": "${workspaceFolder}/build-debug/SniffTheWay",
             "args": [],
             "stopAtEntry": false,
@@ -26,16 +26,40 @@
             ]
         },
         {
-            "name": "Release SniffTheWay",
+            "name": "Release Linux SniffTheWay",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build SniffTheWay Release",
+            "preLaunchTask": "Build SniffTheWay Release Linux",
             "program": "${workspaceFolder}/build-release/SniffTheWay",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false
+        },
+        {
+            "name": "Debug Windows SniffTheWay",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "Build SniffTheWay Debug Windows",
+            "program": "${workspaceFolder}/build-debug/SniffTheWay.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
+        },
+        {
+            "name": "Release Windows SniffTheWay",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "Build SniffTheWay Release Windows",
+            "program": "${workspaceFolder}/build-release/SniffTheWay.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "internalConsole"
         }
     ]
 }

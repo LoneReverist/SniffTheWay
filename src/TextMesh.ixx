@@ -14,9 +14,9 @@ export module TextMesh;
 
 import Dreamhearth;
 
+import AssetManager;
 import AssetPool;
 import FontAtlas;
-import MeshManager;
 import Vertex;
 
 using namespace Dreamhearth;

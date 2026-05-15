@@ -43,7 +43,7 @@ public:
 		init_glyphs(json_path);
 	}
 
-	AssetId GetTexture() const { return m_texture_id; }
+	AssetId GetTextureId() const { return m_texture_id; }
 	float GetPxRange() const { return m_px_range; }
 
 	std::optional<std::reference_wrapper<const Glyph>> GetGlyph(std::uint32_t unicode) const

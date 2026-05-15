@@ -13,6 +13,7 @@ export module TextPipeline;
 
 import Dreamhearth;
 
+import AssetManager;
 import AssetPool;
 import Camera;
 import RenderObject;
@@ -36,23 +37,18 @@ public:
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
 		Camera2d const & camera2d,
-		AssetPool<Texture> const & texture_pool,
+		AssetManager const & asset_manager,
 		AssetId texture_id);
 
-	TextPipeline() = default;
-	explicit TextPipeline(AssetId asset_id) : m_asset_id(asset_id) {}
-
-	AssetId GetAssetId() const { return m_asset_id; }
-
 private:
-	AssetId m_asset_id;
+	TextPipeline() = delete;
 };
 
 std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera2d const & camera2d,
-	AssetPool<Texture> const & texture_pool,
+	AssetManager const & asset_manager,
 	AssetId texture_id)
 {
 	struct ObjectDataFS
@@ -62,7 +58,7 @@ std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 		alignas(16) glm::vec4 text_color;
 	};
 
-	Texture const * texture = texture_pool.Get(texture_id);
+	Texture const * texture = asset_manager.GetTexture(texture_id);
 	if (!texture)
 		return std::unexpected{ GraphicsError{ "TextPipeline::CreatePipeline: invalid texture" } };
 

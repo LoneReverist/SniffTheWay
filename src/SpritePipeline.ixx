@@ -13,6 +13,7 @@ export module SpritePipeline;
 
 import Dreamhearth;
 
+import AssetManager;
 import AssetPool;
 import Camera;
 import Vertex;
@@ -34,23 +35,18 @@ public:
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
 		Camera3d const & camera3d,
-		AssetPool<Texture> const & texture_pool,
+		AssetManager const & asset_manager,
 		AssetId texture_id);
 
-	SpritePipeline() = default;
-	explicit SpritePipeline(AssetId asset_id) : m_asset_id(asset_id) {}
-
-	AssetId GetAssetId() const { return m_asset_id; }
-
 private:
-	AssetId m_asset_id;
+	SpritePipeline() = delete;
 };
 
 std::expected<Pipeline, GraphicsError> SpritePipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera3d const & camera3d,
-	AssetPool<Texture> const & texture_pool,
+	AssetManager const & asset_manager,
 	AssetId texture_id)
 {
 	struct ObjectDataVS
@@ -62,7 +58,7 @@ std::expected<Pipeline, GraphicsError> SpritePipeline::CreatePipeline(
 		alignas(16) glm::vec4 frame_uvs;
 	};
 
-	Texture const * texture = texture_pool.Get(texture_id);
+	Texture const * texture = asset_manager.GetTexture(texture_id);
 	if (!texture)
 		return std::unexpected{ GraphicsError{ "SpritePipeline::CreatePipeline: invalid texture" } };
 

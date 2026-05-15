@@ -15,6 +15,7 @@ export module Scene;
 
 import Dreamhearth;
 
+import AssetManager;
 import AssetPool;
 import BackgroundTexPipeline;
 import Camera;
@@ -22,7 +23,6 @@ import Dog;
 import FontAtlas;
 import Input;
 import LinePipeline;
-import MeshManager;
 import PlatformUtils;
 import RenderObject;
 import SpritePipeline;
@@ -33,16 +33,6 @@ import TextPipeline;
 import Vertex;
 
 using namespace Dreamhearth;
-
-template <typename MeshT, typename PipelineT>
-concept MeshIsCompatibleWithPipeline = std::same_as<typename MeshT::VertexT, typename PipelineT::VertexT>;
-
-template <typename PipelineT>
-concept PipelineHasObjectData = requires { typename PipelineT::ObjectData; };
-
-template <typename ObjectDataT, typename PipelineT>
-concept ObjectDataIsCompatibleWithPipeline = std::same_as<ObjectDataT, typename PipelineT::ObjectData>
-|| (!PipelineHasObjectData<PipelineT> && std::same_as<ObjectDataT, std::nullopt_t>);
 
 // Keeps track of which render objects are using the associated pipeline,
 // this allows the render objects to be grouped by pipeline for more efficient rendering
@@ -64,25 +54,13 @@ public:
 	void Render() const;
 
 private:
-	template <IsVertex VertexT, typename... Args>
-	MeshId<VertexT> create_mesh(Args &&... args);
-
-	template <typename PipelineT, typename... Args>
-	PipelineT create_pipeline(Args &&... args);
-
-	template <IsVertex VertexT, typename PipelineT, typename ObjectDataT = std::nullopt_t>
-		requires MeshIsCompatibleWithPipeline<MeshId<VertexT>, PipelineT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineT>
+template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nullopt_t>
+	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
 	AssetId create_render_object(
 		std::string const & name,
-		MeshId<VertexT> const & mesh_id,
-		PipelineT const & pipeline,
+		MeshIdT mesh_id,
+		PipelineIdT pipeline_id,
 		ObjectDataT const & object_data = std::nullopt);
-
-	AssetId create_texture(
-		std::filesystem::path const & filepath,
-		PixelFormat format = PixelFormat::RGBA_SRGB,
-		bool flip_vertically = false,
-		bool use_mip_map = true);
 
 	MeshId<TextureVertex2d> create_bg_mesh();
 	void resize_bg_mesh(MeshId<TextureVertex2d> mesh_id);
@@ -102,7 +80,6 @@ private:
 
 private:
 	RenderContext const & m_render_context;
-	std::filesystem::path const m_resources_path;
 	std::string const m_title;
 
 	Renderer m_renderer;
@@ -111,10 +88,8 @@ private:
 	int m_view_width = 0;
 	int m_view_height = 0;
 
-	MeshManager m_mesh_manager;
-	AssetPool<Pipeline> m_pipeline_pool;
+	AssetManager m_asset_manager;
 	AssetPool<RenderObject> m_render_object_pool;
-	AssetPool<Texture> m_texture_pool;
 
 	std::vector<PipelineRenderObjects> m_active_render_objects;
 
@@ -135,47 +110,12 @@ private:
 	int m_frame_count = 0;
 };
 
-template<IsVertex VertexT, typename... Args>
-MeshId<VertexT> Scene::create_mesh(Args &&... args)
-{
-	std::expected<MeshId<VertexT>, GraphicsError> mesh_id
-		= m_mesh_manager.CreateMesh<VertexT>(std::forward<Args>(args)...);
-	if (!mesh_id.has_value())
-	{
-		std::cout << "Failed to create mesh: " << mesh_id.error().GetMessage() << std::endl;
-		return MeshId<VertexT>{};
-	}
-
-	return mesh_id.value();
-}
-
-template <typename PipelineT, typename... Args>
-PipelineT Scene::create_pipeline(Args &&... args)
-{
-	std::filesystem::path shaders_path = m_resources_path / "shaders";
-
-	std::expected<Pipeline, GraphicsError> pipeline
-		= PipelineT::CreatePipeline(m_render_context, shaders_path, std::forward<Args>(args)...);
-	if (!pipeline.has_value())
-	{
-		std::cout << "Failed to create " << typeid(PipelineT).name()
-			<< " Error: " << pipeline.error().GetMessage() << std::endl;
-		return PipelineT{};
-	}
-
-	AssetId pipeline_id = m_pipeline_pool.Add(std::move(pipeline.value()));
-	if (!pipeline_id.IsValid())
-		std::cout << "Failed to add pipeline to pool." << std::endl;
-
-	return PipelineT{ pipeline_id };
-}
-
-template <IsVertex VertexT, typename PipelineT, typename ObjectDataT /*= std::nullopt_t*/>
-	requires MeshIsCompatibleWithPipeline<MeshId<VertexT>, PipelineT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineT>
+template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT /*= std::nullopt_t*/>
+	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
 AssetId Scene::create_render_object(
 	std::string const & name,
-	MeshId<VertexT> const & mesh_id,
-	PipelineT const & pipeline,
+	MeshIdT mesh_id,
+	PipelineIdT pipeline_id,
 	ObjectDataT const & object_data /*= std::nullopt*/)
 {
 	if (!mesh_id.IsValid())
@@ -183,13 +123,13 @@ AssetId Scene::create_render_object(
 		std::cout << "Scene::create_render_object: invalid mesh id for object: " + name;
 		return AssetId{};
 	}
-	if (!pipeline.GetAssetId().IsValid())
+	if (!pipeline_id.IsValid())
 	{
 		std::cout << "Scene::create_render_object: invalid pipeline id for object: " + name;
 		return AssetId{};
 	}
 
-	RenderObject obj{ name, mesh_id, pipeline.GetAssetId() };
+	RenderObject obj{ name, mesh_id, pipeline_id };
 	if constexpr (!std::same_as<ObjectDataT, std::nullopt_t>)
 		obj.SetObjectData(&object_data);
 
@@ -200,59 +140,13 @@ AssetId Scene::create_render_object(
 		return obj_id;
 	}
 
-	auto iter = std::ranges::find(m_active_render_objects, pipeline.GetAssetId(), &PipelineRenderObjects::pipeline_id);
+	auto iter = std::ranges::find(m_active_render_objects, pipeline_id, &PipelineRenderObjects::pipeline_id);
 	if (iter != m_active_render_objects.end())
 		iter->render_object_ids.push_back(obj_id);
 	else
-		m_active_render_objects.push_back(PipelineRenderObjects{ pipeline.GetAssetId(), { obj_id } });
+		m_active_render_objects.push_back(PipelineRenderObjects{ pipeline_id, { obj_id } });
 
 	return obj_id;
-}
-
-AssetId create_texture(
-	AssetPool<Texture> & texture_pool,
-	RenderContext const & render_context,
-	std::filesystem::path const & filepath,
-	PixelFormat format = PixelFormat::RGBA_SRGB,
-	bool flip_vertically = false,
-	bool use_mip_map = true)
-{
-	StbImage image(filepath, GetPixelSize(format) /*req_comp*/, flip_vertically);
-	if (!image.IsValid())
-	{
-		std::cout << "Failed to load image: " << filepath << std::endl;
-		return AssetId{};
-	}
-
-	Texture texture;
-	std::expected<void, GraphicsError> result = texture.Create(
-		render_context,
-		ImageData{
-			.data = image.GetData(),
-			.format = format,
-			.width = static_cast<std::uint32_t>(image.GetWidth()),
-			.height = static_cast<std::uint32_t>(image.GetHeight())
-		});
-	if (!result.has_value() || !texture.IsValid())
-	{
-		std::cout << "Failed to create texture from image: " << filepath << std::endl;
-		return AssetId{};
-	}
-
-	AssetId texture_id = texture_pool.Add(std::move(texture));
-	if (!texture_id.IsValid())
-		std::cout << "Failed to add texture to pool." << std::endl;
-
-	return texture_id;
-}
-
-AssetId Scene::create_texture(
-	std::filesystem::path const & filepath,
-	PixelFormat format /*= PixelFormat::RGBA_SRGB*/,
-	bool flip_vertically /*= false*/,
-	bool use_mip_map /*= true*/)
-{
-	return ::create_texture(m_texture_pool, m_render_context, filepath, format, flip_vertically, use_mip_map);
 }
 
 MeshId<TextureVertex2d> Scene::create_bg_mesh()
@@ -267,16 +161,16 @@ MeshId<TextureVertex2d> Scene::create_bg_mesh()
 		1, 0, 2,
 		1, 2, 3 };
 
-	return create_mesh<TextureVertex2d>(verts, indices);
+	return m_asset_manager.AddMesh(verts, indices);
 }
 
 void Scene::resize_bg_mesh(MeshId<TextureVertex2d> mesh_id)
 {
-	Mesh * mesh = m_mesh_manager.Get(mesh_id);
+	Mesh * mesh = m_asset_manager.GetMesh(mesh_id);
 	if (!mesh)
 		return;
 
-	Texture const * bg_tex = m_texture_pool.Get(m_bg_tex_id);
+	Texture const * bg_tex = m_asset_manager.GetTexture(m_bg_tex_id);
 	if (!bg_tex)
 		return;
 
@@ -312,7 +206,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	int viewport_height)
 {
 	std::uint32_t font_tex_width = 0, font_tex_height = 0;
-	Texture const * font_tex = m_texture_pool.Get(font_atlas.GetTexture());
+	Texture const * font_tex = m_asset_manager.GetTexture(font_atlas.GetTextureId());
 	if (font_tex)
 	{
 		font_tex_width = font_tex->GetWidth();
@@ -321,7 +215,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 
 	auto text_mesh = std::make_unique<TextMesh>(m_render_context, text,
 		font_atlas, font_tex_width, font_tex_height, font_size, origin, viewport_width, viewport_height);
-	text_mesh->SetUpdateMeshCallback([&mesh_manager = m_mesh_manager](AssetId id, Mesh new_mesh)
+	text_mesh->SetUpdateMeshCallback([&asset_manager = m_asset_manager](AssetId id, Mesh new_mesh)
 		{
 			if (!id.IsValid())
 			{
@@ -329,7 +223,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 				return;
 			}
 
-			Mesh * mesh = mesh_manager.Get(id);
+			Mesh * mesh = asset_manager.GetMesh(id);
 			if (!mesh)
 			{
 				std::cout << "Scene::create_text_mesh: No mesh found in pool for AssetId: " << id.GetIndex() << std::endl;
@@ -347,14 +241,8 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 		return text_mesh;
 	}
 
-	std::expected<MeshId<TextMesh::VertexT>, GraphicsError> mesh_id = m_mesh_manager.AddMesh<TextMesh::VertexT>(std::move(mesh.value()));
-	if (!mesh_id.has_value() || !mesh_id.value().IsValid())
-	{
-		std::cout << "Failed to add text mesh to mesh manager: " << mesh_id.error().GetMessage() << std::endl;
-		return text_mesh;
-	}
-
-	text_mesh->SetMeshId(mesh_id.value());
+	MeshId<TextMesh::VertexT> mesh_id = m_asset_manager.AddMesh<TextMesh::VertexT>(std::move(mesh.value()));
+	text_mesh->SetMeshId(mesh_id);
 	return text_mesh;
 }
 
@@ -370,12 +258,12 @@ MeshId<TextureVertex2d> Scene::create_sprite_mesh()
 		1, 0, 2,
 		1, 2, 3 };
 
-	return create_mesh<TextureVertex2d>(verts, indices);
+	return m_asset_manager.AddMesh(verts, indices);
 }
 
 void Scene::resize_sprite_mesh(MeshId<TextureVertex2d> mesh_id, SpriteSheet const & sprite_sheet)
 {
-	Mesh * mesh = m_mesh_manager.Get(mesh_id);
+	Mesh * mesh = m_asset_manager.GetMesh(mesh_id);
 	if (!mesh)
 		return;
 
@@ -429,17 +317,16 @@ MeshId<Vertex2d> Scene::create_grid_mesh()
 		line_instances[x + 10].color = { 0.0f, 0.0f, 1.0f, 1.0f };
 	}
 
-	return create_mesh<Vertex2d>(verts, indices, line_instances);
+	return m_asset_manager.AddMesh(verts, indices, line_instances);
 }
 
 Scene::Scene(RenderContext const & render_context, std::string const & title, float dpi_scale_factor)
 	: m_render_context{ render_context }
-	, m_resources_path{ PlatformUtils::GetExecutableDir() / "resources" }
 	, m_title{ title }
 	, m_renderer{ render_context }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
-	, m_mesh_manager{ render_context }
+	, m_asset_manager{ render_context }
 {
 	m_renderer.SetClearColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
 
@@ -450,20 +337,19 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	const float label_font_size = 18.0f * dpi_scale_factor;
 	const float title_font_size = 32.0f * dpi_scale_factor;
 
-	const std::filesystem::path textures_path = m_resources_path / "textures";
-	const std::filesystem::path fonts_path = m_resources_path / "fonts";
-
 	// background
-	m_bg_tex_id = create_texture(textures_path / "forest_path.png", PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	BackgroundTexPipeline bg_pipeline = create_pipeline<BackgroundTexPipeline>(m_camera2d, m_texture_pool, m_bg_tex_id);
+	m_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturePath() / "forest_path.png",
+		PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, m_bg_tex_id);
 	m_bg_mesh_id = create_bg_mesh();
-	create_render_object("background", m_bg_mesh_id, bg_pipeline);
+	create_render_object("background", m_bg_mesh_id, bg_pipeline_id);
 
 	// title and fps
-	AssetId arial_tex_id = create_texture(fonts_path / "ArialAtlas.png", PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
-	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, fonts_path / "ArialAtlas.json");
+	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontPath() / "ArialAtlas.png",
+		PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
+	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontPath() / "ArialAtlas.json");
 
-	TextPipeline text_pipeline = create_pipeline<TextPipeline>(m_camera2d, m_texture_pool, arial_tex_id);
+	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);
 
 	m_fps_mesh = create_text_mesh("FPS: ", *m_arial_font, label_font_size, glm::vec2{ -0.9, -0.9 } /*origin*/,
 		0 /*viewport_width*/, 0 /*viewport_height*/);
@@ -472,7 +358,7 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 		.bg_color = { 0.0f, 0.0f, 0.0f, 0.0f },
 		.text_color = { 1.0f, 1.0f, 0.0f, 1.0 },
 	};
-	create_render_object("fps label", m_fps_mesh->GetMeshId(), text_pipeline, m_fps_label);
+	create_render_object("fps label", m_fps_mesh->GetMeshId(), text_pipeline_id, m_fps_label);
 
 	m_title_mesh = create_text_mesh(m_title, *m_arial_font, title_font_size, glm::vec2{ -0.9, 0.8 } /*origin*/,
 		0 /*viewport_width*/, 0 /*viewport_height*/);
@@ -481,19 +367,19 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 		.bg_color = { 0.0f, 0.0f, 0.0f, 0.0f },
 		.text_color = { 1.0f, 1.0f, 1.0f, 1.0 },
 	};
-	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline, m_title_label);
+	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline_id, m_title_label);
 
 	// debug grid
-	LinePipeline line_pipeline = create_pipeline<LinePipeline>(m_camera3d);
+	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
 	const auto grid_mesh_id = create_grid_mesh();
-	create_render_object("grid", grid_mesh_id, line_pipeline);
+	create_render_object("grid", grid_mesh_id, line_pipeline_id);
 
 	// dog
-	const auto dog_tex_id = create_texture(textures_path / "dog_walk.png",
+	const auto dog_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturePath() / "dog_walk.png",
 		 PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	SpritePipeline dog_sprite_pipeline = create_pipeline<SpritePipeline>(m_camera3d, m_texture_pool, dog_tex_id);
+	const auto dog_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, dog_tex_id);
 	const auto dog_mesh_id = create_sprite_mesh();
-	const auto dog_render_object_id = create_render_object("dog", dog_mesh_id, dog_sprite_pipeline, m_dog.GetSpriteData());
+	const auto dog_render_object_id = create_render_object("dog", dog_mesh_id, dog_sprite_pipeline_id, m_dog.GetSpriteData());
 	m_dog.Init(dog_tex_id, dog_mesh_id, dog_render_object_id, camera_dir);
 }
 
@@ -553,7 +439,7 @@ void Scene::Render() const
 
 	for (PipelineRenderObjects const & pipeline_r_objs : m_active_render_objects)
 	{
-		Pipeline const * pipeline = m_pipeline_pool.Get(pipeline_r_objs.pipeline_id);
+		Pipeline const * pipeline = m_asset_manager.GetPipeline(pipeline_r_objs.pipeline_id);
 		if (!pipeline)
 		{
 			std::cout << "Scene::Render: No pipeline found in pool for pipeline ID: " << pipeline_r_objs.pipeline_id.GetIndex() << std::endl;
@@ -572,7 +458,7 @@ void Scene::Render() const
 				continue;
 			}
 
-			Mesh const * mesh = m_mesh_manager.Get(obj->GetMeshId());
+			Mesh const * mesh = m_asset_manager.GetMesh(obj->GetMeshId());
 			if (!mesh)
 			{
 				std::cout << "Scene::Render: No mesh found in pool for AssetId: " << obj->GetMeshId().GetIndex() << std::endl;

@@ -7,9 +7,9 @@ module;
 
 export module Dog;
 
+import AssetManager;
 import AssetPool;
 import Input;
-import MeshManager;
 import SpriteSheet;
 import SpritePipeline;
 import Vertex;

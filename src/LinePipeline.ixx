@@ -13,7 +13,6 @@ export module LinePipeline;
 
 import Dreamhearth;
 
-import AssetPool;
 import Camera;
 import Vertex;
 
@@ -39,13 +38,8 @@ public:
 		std::filesystem::path const & shaders_path,
 		Camera3d const & camera3d);
 
-	LinePipeline() = default;
-	explicit LinePipeline(AssetId asset_id) : m_asset_id(asset_id) {}
-
-	AssetId GetAssetId() const { return m_asset_id; }
-
 private:
-	AssetId m_asset_id;
+	LinePipeline() = delete;
 };
 
 std::expected<Pipeline, GraphicsError> LinePipeline::CreatePipeline(

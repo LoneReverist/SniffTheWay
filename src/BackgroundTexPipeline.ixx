@@ -11,6 +11,7 @@ export module BackgroundTexPipeline;
 
 import Dreamhearth;
 
+import AssetManager;
 import AssetPool;
 import Camera;
 import Vertex;
@@ -26,23 +27,18 @@ public:
 		RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
 		Camera2d const & camera2d,
-		AssetPool<Texture> const & texture_pool,
+		AssetManager const & asset_manager,
 		AssetId texture_id);
 
-	BackgroundTexPipeline() = default;
-	explicit BackgroundTexPipeline(AssetId asset_id) : m_asset_id(asset_id) {}
-
-	AssetId GetAssetId() const { return m_asset_id; }
-
 private:
-	AssetId m_asset_id;
+	BackgroundTexPipeline() = delete;
 };
 
 std::expected<Pipeline, GraphicsError> BackgroundTexPipeline::CreatePipeline(
 	RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera2d const & camera2d,
-	AssetPool<Texture> const & texture_pool,
+	AssetManager const & asset_manager,
 	AssetId texture_id)
 {
 	struct ObjectDataVS
@@ -50,7 +46,7 @@ std::expected<Pipeline, GraphicsError> BackgroundTexPipeline::CreatePipeline(
 		alignas(16) glm::mat4 model;
 	};
 
-	Texture const * texture = texture_pool.Get(texture_id);
+	Texture const * texture = asset_manager.GetTexture(texture_id);
 	if (!texture)
 		return std::unexpected{ GraphicsError{ "BackgroundTexPipeline::CreatePipeline: invalid texture" } };
 

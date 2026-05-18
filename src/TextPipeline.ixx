@@ -12,14 +12,13 @@ module;
 export module TextPipeline;
 
 import Dreamhearth;
+using namespace Dreamhearth;
 
 import AssetManager;
 import AssetPool;
 import Camera;
 import RenderObject;
 import Vertex;
-
-using namespace Dreamhearth;
 
 export class TextPipeline
 {

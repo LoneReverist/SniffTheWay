@@ -19,11 +19,10 @@ module;
 export module FontAtlas;
 
 import Dreamhearth;
+using namespace Dreamhearth;
 
 import AssetPool;
 import StbImage;
-
-using namespace Dreamhearth;
 
 export class FontAtlas
 {

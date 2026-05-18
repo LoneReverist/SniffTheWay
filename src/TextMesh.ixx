@@ -13,13 +13,12 @@ module;
 export module TextMesh;
 
 import Dreamhearth;
+using namespace Dreamhearth;
 
 import AssetManager;
 import AssetPool;
 import FontAtlas;
 import Vertex;
-
-using namespace Dreamhearth;
 
 export class TextMesh
 {

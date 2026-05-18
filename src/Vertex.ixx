@@ -11,7 +11,6 @@ module;
 export module Vertex;
 
 import Dreamhearth;
-
 using namespace Dreamhearth;
 
 export template<typename VertexT>

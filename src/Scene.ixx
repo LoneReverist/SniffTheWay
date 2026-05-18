@@ -14,6 +14,7 @@ module;
 export module Scene;
 
 import Dreamhearth;
+using namespace Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -31,8 +32,6 @@ import StbImage;
 import TextMesh;
 import TextPipeline;
 import Vertex;
-
-using namespace Dreamhearth;
 
 // Keeps track of which render objects are using the associated pipeline,
 // this allows the render objects to be grouped by pipeline for more efficient rendering
@@ -246,49 +245,6 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	return text_mesh;
 }
 
-MeshId<TextureVertex2d> Scene::create_sprite_mesh()
-{
-	std::vector<TextureVertex2d> verts{
-		{ { -1.0,  1.0 }, { 0.0, 0.0 } },
-		{ {  1.0,  1.0 }, { 1.0, 0.0 } },
-		{ { -1.0, -1.0 }, { 0.0, 1.0 } },
-		{ {  1.0, -1.0 }, { 1.0, 1.0 } } };
-
-	std::vector<Mesh::IndexT> indices{
-		1, 0, 2,
-		1, 2, 3 };
-
-	return m_asset_manager.AddMesh(verts, indices);
-}
-
-void Scene::resize_sprite_mesh(MeshId<TextureVertex2d> mesh_id, SpriteSheet const & sprite_sheet)
-{
-	Mesh * mesh = m_asset_manager.GetMesh(mesh_id);
-	if (!mesh)
-		return;
-
-	float aspect_ratio = static_cast<float>(sprite_sheet.GetFrameWidth()) / sprite_sheet.GetFrameHeight();
-	float y_size = 1.0f;
-	float y_pos = 0.0f;
-	float x_size = 1.0f * aspect_ratio;
-	float x_pos = -x_size / 2.0f;
-
-	std::vector<TextureVertex2d> verts{
-		{ { x_pos,          y_pos + y_size }, { 0.0, 0.0 } },
-		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 0.0 } },
-		{ { x_pos,          y_pos          }, { 0.0, 1.0 } },
-		{ { x_pos + x_size, y_pos          }, { 1.0, 1.0 } } };
-
-	std::vector<Mesh::IndexT> indices{
-		1, 0, 2,
-		1, 2, 3 };
-
-	*mesh = Mesh{ m_render_context };
-	std::expected<void, GraphicsError> result = mesh->Create(verts, indices);
-	if (!result.has_value())
-		std::cout << "Scene::resize_sprite_mesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
-}
-
 MeshId<Vertex2d> Scene::create_grid_mesh()
 {
 	std::vector<Vertex2d> verts{
@@ -338,16 +294,16 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	const float title_font_size = 32.0f * dpi_scale_factor;
 
 	// background
-	m_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturePath() / "forest_path.png",
+	m_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_path.png",
 		PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, m_bg_tex_id);
 	m_bg_mesh_id = create_bg_mesh();
 	create_render_object("background", m_bg_mesh_id, bg_pipeline_id);
 
 	// title and fps
-	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontPath() / "ArialAtlas.png",
+	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
 		PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
-	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontPath() / "ArialAtlas.json");
+	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);
 
@@ -375,12 +331,10 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	create_render_object("grid", grid_mesh_id, line_pipeline_id);
 
 	// dog
-	const auto dog_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturePath() / "dog_walk.png",
-		 PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	const auto dog_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, dog_tex_id);
-	const auto dog_mesh_id = create_sprite_mesh();
-	const auto dog_render_object_id = create_render_object("dog", dog_mesh_id, dog_sprite_pipeline_id, m_dog.GetSpriteData());
-	m_dog.Init(dog_tex_id, dog_mesh_id, dog_render_object_id, camera_dir);
+	m_dog.Init(m_asset_manager, camera_dir);
+	// at some point, we should allow changing the pipeline's texture so we can reuse this for other sprites
+	const auto dog_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_dog.GetTextureId());
+	create_render_object("dog", m_dog.GetMeshId(), dog_sprite_pipeline_id, m_dog.GetSpriteData());
 }
 
 void Scene::OnViewportResized(int width, int height)
@@ -392,7 +346,6 @@ void Scene::OnViewportResized(int width, int height)
 	m_camera2d.OnViewportResized(width, height);
 
 	resize_bg_mesh(m_bg_mesh_id);
-	resize_sprite_mesh(m_dog.GetMeshId(), m_dog.GetSpriteSheet());
 
 	if (m_fps_mesh)
 		m_fps_mesh->OnViewportResized(width, height);

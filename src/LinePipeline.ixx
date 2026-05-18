@@ -12,11 +12,10 @@ module;
 export module LinePipeline;
 
 import Dreamhearth;
+using namespace Dreamhearth;
 
 import Camera;
 import Vertex;
-
-using namespace Dreamhearth;
 
 export struct LineInstance
 {

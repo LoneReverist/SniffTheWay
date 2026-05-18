@@ -12,13 +12,12 @@ module;
 export module SpritePipeline;
 
 import Dreamhearth;
+using namespace Dreamhearth;
 
 import AssetManager;
 import AssetPool;
 import Camera;
 import Vertex;
-
-using namespace Dreamhearth;
 
 export class SpritePipeline
 {

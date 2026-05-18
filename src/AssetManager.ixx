@@ -10,13 +10,12 @@ module;
 export module AssetManager;
 
 import Dreamhearth;
+using namespace Dreamhearth;
 
 import AssetPool;
 import PlatformUtils;
 import StbImage;
 import Vertex;
-
-using namespace Dreamhearth;
 
 export template<IsVertex T>
 class MeshId : public AssetId
@@ -83,9 +82,9 @@ public:
 	Texture const * GetTexture(AssetId id) const { return m_texture_pool.Get(id); }
 
 	std::filesystem::path const & GetResourcesPath() const { return m_resources_path; }
-	std::filesystem::path GetShaderPath() const { return m_resources_path / "shaders"; }
-	std::filesystem::path GetTexturePath() const { return m_resources_path / "textures"; }
-	std::filesystem::path GetFontPath() const { return m_resources_path / "fonts"; }
+	std::filesystem::path GetShadersPath() const { return m_resources_path / "shaders"; }
+	std::filesystem::path GetTexturesPath() const { return m_resources_path / "textures"; }
+	std::filesystem::path GetFontsPath() const { return m_resources_path / "fonts"; }
 
 private:
 	RenderContext const & m_render_context;

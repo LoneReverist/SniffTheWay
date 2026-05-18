@@ -7,6 +7,9 @@ module;
 
 export module Dog;
 
+import Dreamhearth;
+using namespace Dreamhearth;
+
 import AssetManager;
 import AssetPool;
 import Input;
@@ -27,9 +30,7 @@ public:
     Dog() = default;
 
     void Init(
-		AssetId tex_id,
-		MeshId<TextureVertex2d> mesh_id,
-		AssetId render_object_id,
+		AssetManager & asset_manager,
 		glm::vec3 const & camera_dir);
     void Update(float dt, Input const & input);
 
@@ -42,7 +43,6 @@ public:
 private:
 	AssetId m_tex_id;
 	MeshId<TextureVertex2d> m_mesh_id;
-	AssetId m_render_object_id;
 
 	SpriteSheet m_sprite_sheet;
 	SpritePipeline::ObjectData m_sprite_data;
@@ -56,22 +56,21 @@ private:
 };
 
 void Dog::Init(
-	AssetId tex_id,
-	MeshId<TextureVertex2d> mesh_id,
-	AssetId render_object_id,
+	AssetManager & asset_manager,
 	glm::vec3 const & camera_dir)
 {
-    m_tex_id = tex_id;
-    m_mesh_id = mesh_id;
-    m_render_object_id = render_object_id;
+	m_tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "dog_walk.png",
+		 PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 
     m_sprite_sheet = SpriteSheet{
+		m_tex_id,
 		1200,   // Texture width: 4 frames * 300px
 		700,    // Texture height: 2 rows * 350px
 		300,    // Frame width
 		350,    // Frame height
 		7       // Frame count: 7 (4 in first row, 3 in second row)
     };
+	m_mesh_id = m_sprite_sheet.CreateQuadMesh(asset_manager);
 
 	glm::vec3 up = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 target = -camera_dir;

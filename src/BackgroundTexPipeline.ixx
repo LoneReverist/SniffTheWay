@@ -42,7 +42,7 @@ std::expected<Pipeline, GraphicsError> BackgroundTexPipeline::CreatePipeline(
 {
 	struct ObjectDataVS
 	{
-		alignas(16) glm::mat4 model;
+		alignas(16) glm::mat4 model{ 1.0f };
 	};
 
 	Texture const * texture = asset_manager.GetTexture(texture_id);

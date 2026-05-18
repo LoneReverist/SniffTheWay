@@ -70,15 +70,15 @@ LayoutDesc create_layout()
 
 export struct Vertex2d
 {
-	glm::vec2 pos;
+	glm::vec2 pos{ 0.0f };
 
 	static LayoutDesc CreateLayout() { return create_layout<Vertex2d>(); }
 };
 
 export struct TextureVertex2d
 {
-	glm::vec2 pos;
-	glm::vec2 tex_coord;
+	glm::vec2 pos{ 0.0f };
+	glm::vec2 tex_coord{ 0.0f };
 
 	static LayoutDesc CreateLayout() { return create_layout<TextureVertex2d>(); }
 };

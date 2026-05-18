@@ -52,9 +52,9 @@ std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 {
 	struct ObjectDataFS
 	{
-		alignas(4) float screen_px_range;
-		alignas(16) glm::vec4 bg_color;
-		alignas(16) glm::vec4 text_color;
+		alignas(4) float screen_px_range = 0.0f;
+		alignas(16) glm::vec4 bg_color{ 0.0f };
+		alignas(16) glm::vec4 text_color{ 0.0f };
 	};
 
 	Texture const * texture = asset_manager.GetTexture(texture_id);

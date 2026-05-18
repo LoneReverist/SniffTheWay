@@ -63,7 +63,7 @@ private:
 	std::uint32_t m_font_tex_height = 0;
 	float m_font_size = 0.0f;
 	float m_screen_px_range = 0.0f;
-	glm::vec2 m_origin;
+	glm::vec2 m_origin{ 0.0f };
 
 	int m_viewport_width = 0;
 	int m_viewport_height = 0;

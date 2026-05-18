@@ -19,10 +19,10 @@ import Vertex;
 
 export struct LineInstance
 {
-    glm::vec3 p0;
-    glm::vec3 p1;
-    float thickness;
-    glm::vec4 color;
+    glm::vec3 p0{ 0.0f };
+    glm::vec3 p1{ 0.0f };
+    float thickness = 0.0f;
+    glm::vec4 color{ 0.0f };
 
     static LayoutDesc CreateLayout();
 };

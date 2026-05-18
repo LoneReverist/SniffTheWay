@@ -26,8 +26,8 @@ public:
 
 	struct ObjectData
 	{
-		glm::mat4 model;
-		glm::vec4 frame_uvs; // x = min_u, y = max_u, z = min_v, w = max_v
+		glm::mat4 model{ 1.0f };
+		glm::vec4 frame_uvs{ 0.0f }; // x = min_u, y = max_u, z = min_v, w = max_v
 	};
 
 	static std::expected<Pipeline, GraphicsError> CreatePipeline(
@@ -50,11 +50,11 @@ std::expected<Pipeline, GraphicsError> SpritePipeline::CreatePipeline(
 {
 	struct ObjectDataVS
 	{
-		alignas(16) glm::mat4 model;
+		alignas(16) glm::mat4 model{ 1.0f };
 	};
 	struct ObjectDataFS
 	{
-		alignas(16) glm::vec4 frame_uvs;
+		alignas(16) glm::vec4 frame_uvs{ 0.0f };
 	};
 
 	Texture const * texture = asset_manager.GetTexture(texture_id);

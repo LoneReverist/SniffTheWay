@@ -25,4 +25,6 @@ void main()
 	float v = mix(obj_data.frame_uvs.z, obj_data.frame_uvs.w, in_uv.y);
 	
 	out_frag_color = texture(tex_sampler, vec2(u, v));
+	if (out_frag_color.a == 0.0)
+		discard;
 }

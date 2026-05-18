@@ -18,6 +18,7 @@ using namespace Dreamhearth;
 
 import AssetManager;
 import AssetPool;
+import Baby;
 import BackgroundTexPipeline;
 import Camera;
 import Dog;
@@ -104,6 +105,7 @@ private:
 	TextPipeline::ObjectData m_title_label;
 
 	Dog m_dog;
+	Baby m_baby;
 
 	float m_frame_timer = 0.0f;
 	int m_frame_count = 0;
@@ -335,6 +337,11 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	// at some point, we should allow changing the pipeline's texture so we can reuse this for other sprites
 	const auto dog_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_dog.GetTextureId());
 	create_render_object("dog", m_dog.GetMeshId(), dog_sprite_pipeline_id, m_dog.GetSpriteData());
+
+	// baby
+	m_baby.Init(m_asset_manager, camera_dir);
+	const auto baby_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_baby.GetTextureId());
+	create_render_object("baby", m_baby.GetMeshId(), baby_sprite_pipeline_id, m_baby.GetSpriteData());
 }
 
 void Scene::OnViewportResized(int width, int height)
@@ -382,6 +389,7 @@ bool Scene::Update(float dt, Input const & input)
 	}
 
 	m_dog.Update(dt, input);
+	m_baby.Update(dt, &m_dog);
 
 	return true;
 }

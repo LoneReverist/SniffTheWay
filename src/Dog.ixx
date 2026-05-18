@@ -36,7 +36,6 @@ public:
 
     AssetId GetTextureId() const { return m_tex_id; }
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
-    AssetId GetRenderObjectId() const { return m_render_object_id; }
     SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
     SpritePipeline::ObjectData const & GetSpriteData() const { return m_sprite_data; }
     
@@ -70,11 +69,13 @@ void Dog::Init(
 		350,    // Frame height
 		7       // Frame count: 7 (4 in first row, 3 in second row)
     };
+
+	// this creates a quad on the xy axes, we have to rotate it up to face the camera with the model matrix
 	m_mesh_id = m_sprite_sheet.CreateQuadMesh(asset_manager);
 
-	glm::vec3 up = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 target = -camera_dir;
-	float angle = glm::acos(glm::dot(up, target));
+	glm::vec3 up_dir = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 target_dir = -camera_dir;
+	float angle = glm::acos(glm::dot(up_dir, target_dir));
     glm::mat4 model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
 
     m_sprite_data = SpritePipeline::ObjectData{
@@ -89,24 +90,21 @@ void Dog::Update(float dt, Input const & input)
 		return;
 
 	// Handle WASD input for 3D movement
-	// W - move forward (away from camera, +Y)
-	// S - move backward (toward camera, -Y)
-	// A - move left (-X)
-	// D - move right (+X)
-	glm::vec3 velocity(0.0f);
+	glm::vec3 move_dir(0.0f);
 	if (input.KeyIsPressed('W') || input.KeyIsPressed(Input::Key::Up))
-		velocity.y += 1.0f;
+		move_dir.y += 1.0f;
 	if (input.KeyIsPressed('S') || input.KeyIsPressed(Input::Key::Down))
-		velocity.y -= 1.0f;
+		move_dir.y -= 1.0f;
 	if (input.KeyIsPressed('A') || input.KeyIsPressed(Input::Key::Left))
-		velocity.x -= 1.0f;
+		move_dir.x -= 1.0f;
 	if (input.KeyIsPressed('D') || input.KeyIsPressed(Input::Key::Right))
-		velocity.x += 1.0f;
+		move_dir.x += 1.0f;
 
-	if (velocity != glm::vec3(0.0f))
+	glm::vec3 velocity(0.0f);
+	if (move_dir != glm::vec3(0.0f))
 	{
-		const glm::vec3 move_vec = glm::normalize(velocity) * m_move_speed * dt;
-		glm::mat4 translation = glm::translate(glm::mat4(1.0f), move_vec);
+		velocity = glm::normalize(move_dir) * m_move_speed;
+		glm::mat4 translation = glm::translate(glm::mat4(1.0f), velocity * dt);
 		m_sprite_data.model = translation * m_sprite_data.model;
 
 		if (m_state != State::Walking)

@@ -14,23 +14,23 @@ import Input;
 
 export struct ViewProjUniform
 {
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
+	alignas(16) glm::mat4 view{ 1.0f };
+	alignas(16) glm::mat4 proj{ 1.0f };
 };
 
 export struct ProjUniform
 {
-	alignas(16) glm::mat4 proj;
+	alignas(16) glm::mat4 proj{ 1.0f };
 };
 
 export struct ViewportUniform
 {
-	alignas(16) glm::vec2 size;
+	alignas(16) glm::vec2 size{ 0.0f };
 };
 
 export struct CameraPosUniform
 {
-	alignas(16) glm::vec3 pos;
+	alignas(16) glm::vec3 pos{ 0.0f };
 };
 
 export class Camera3d

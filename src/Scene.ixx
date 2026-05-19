@@ -28,6 +28,7 @@ import FontAtlas;
 import Input;
 import LinePipeline;
 import PlatformUtils;
+import Polygon2d;
 import RenderObject;
 import SpritePipeline;
 import SpriteSheet;
@@ -56,7 +57,7 @@ public:
 	void Render() const;
 
 private:
-template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nullopt_t>
+	template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nullopt_t>
 	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
 	AssetId create_render_object(
 		std::string const & name,
@@ -97,6 +98,7 @@ private:
 	TextPipeline::ObjectData m_title_label;
 
 	Background m_background;
+	Polygon2d m_bounds;
 	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
@@ -217,6 +219,13 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, bg_tex_id);
 	create_render_object("background", m_background.GetMeshId(), bg_pipeline_id);
 
+	m_bounds.SetVertices({
+		{-0.5f, -4.0f},
+		{0.5f, -4.0f},
+		{1.0f, 3.0f},
+		{-1.0f, 3.0f},
+	});
+
 	// title and fps
 	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
 		PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
@@ -301,7 +310,7 @@ bool Scene::Update(float dt, Input const & input)
 	}
 
 	m_grid.Update(input, m_render_object_pool);
-	m_dog.Update(dt, input);
+	m_dog.Update(dt, input, m_bounds);
 	m_baby.Update(dt, &m_dog);
 
 	return true;

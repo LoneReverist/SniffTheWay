@@ -13,6 +13,7 @@ using namespace Dreamhearth;
 import AssetManager;
 import AssetPool;
 import Input;
+import Polygon2d;
 import SpriteSheet;
 import SpritePipeline;
 import Vertex;
@@ -32,7 +33,7 @@ public:
     void Init(
 		AssetManager & asset_manager,
 		glm::vec3 const & camera_dir);
-    void Update(float dt, Input const & input);
+    void Update(float dt, Input const & input, Polygon2d const & bounds);
 
     AssetId GetTextureId() const { return m_tex_id; }
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
@@ -84,13 +85,13 @@ void Dog::Init(
 	};
 }
 
-void Dog::Update(float dt, Input const & input)
+void Dog::Update(float dt, Input const & input, Polygon2d const & bounds)
 {
 	if (m_sprite_sheet.GetFrameCount() == 0)
 		return;
 
 	// Handle WASD input for 3D movement
-	glm::vec3 move_dir(0.0f);
+	glm::vec2 move_dir(0.0f);
 	if (input.KeyIsDown('W') || input.KeyIsDown(Input::Key::Up))
 		move_dir.y += 1.0f;
 	if (input.KeyIsDown('S') || input.KeyIsDown(Input::Key::Down))
@@ -100,20 +101,20 @@ void Dog::Update(float dt, Input const & input)
 	if (input.KeyIsDown('D') || input.KeyIsDown(Input::Key::Right))
 		move_dir.x += 1.0f;
 
-	glm::vec3 velocity(0.0f);
-	if (move_dir != glm::vec3(0.0f))
+	glm::vec2 velocity(0.0f);
+	if (move_dir != glm::vec2(0.0f))
 	{
+		glm::vec2 pos = glm::vec2(m_sprite_data.model[3]);
 		velocity = glm::normalize(move_dir) * m_move_speed;
-		glm::mat4 translation = glm::translate(glm::mat4(1.0f), velocity * dt);
-		m_sprite_data.model = translation * m_sprite_data.model;
+		glm::vec2 desired_pos = pos + velocity * dt;
+		glm::vec2 new_pos = bounds.SlideAlongBoundary(pos, desired_pos);
+		m_sprite_data.model[3] = glm::vec4(new_pos, 0.0f, 1.0f);
 
-		if (m_state != State::Walking)
-			m_state = State::Walking;
+		m_state = State::Walking;
 	}
 	else
 	{
-		if (m_state != State::Idle)
-			m_state = State::Idle;
+		m_state = State::Idle;
 	}
 
 	if (velocity.x > 0.0f && !facing_right // moving right, but facing left

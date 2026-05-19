@@ -25,6 +25,9 @@ public:
 	AssetId GetPipelineId() const { return m_pipeline_id; }
 	void const * GetObjectData() const { return m_object_data; }
 
+	void Show(bool show) { m_show = show; }
+	bool IsShown() const { return m_show; }
+
 private:
 	std::string m_name; // for debugging
 
@@ -33,4 +36,6 @@ private:
 
 	// Pointer to per-object data that gets passed into shaders, expected to be of type Pipeline::ObjectData
 	void const * m_object_data = nullptr;
+
+	bool m_show = true;
 };

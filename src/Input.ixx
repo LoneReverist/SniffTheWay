@@ -2,8 +2,9 @@
 
 module;
 
+#include <cstdint>
 #include <mutex>
-#include <unordered_set>
+#include <unordered_map>
 
 export module Input;
 
@@ -33,27 +34,83 @@ public:
 		Alt     = 0x4, // GLFW_MOD_ALT
 	};
 
-	void SetKey(int key, bool pressed)
-	{
-		std::lock_guard lock(m_key_state_mutex);
-		if (pressed)
-			m_key_state.insert(key);
-		else
-			m_key_state.erase(key);
-	}
+	void SetKey(int key, bool pressed);
+	void NewFrame();
 
-	bool KeyIsPressed(int key) const
-	{
-		std::lock_guard lock(m_key_state_mutex);
-		return m_key_state.contains(key);
-	}
-
-	bool KeyIsPressed(Key key) const
-	{
-		return KeyIsPressed(static_cast<int>(key));
-	}
+	bool KeyIsDown(int key) const;
+	bool KeyIsDown(Key key) const;
+	bool KeyJustPressed(int key) const;
+	bool KeyJustPressed(Key key) const;
+	bool KeyJustReleased(int key) const;
+	bool KeyJustReleased(Key key) const;
 
 private:
-	mutable std::mutex m_key_state_mutex;
-	std::unordered_set<int> m_key_state;
+	static constexpr std::uint8_t StatePressed  = 0x1; // Pressed this frame
+	static constexpr std::uint8_t StateDown     = 0x2; // Down for 1 or more frames
+	static constexpr std::uint8_t StateReleased = 0x4; // Released this frame
+
+private:
+	mutable std::mutex m_pending_mutex;
+	std::unordered_map<int, std::uint8_t> m_pending_state;
+	std::unordered_map<int, std::uint8_t> m_key_state;
 };
+
+void Input::SetKey(int key, bool pressed)
+{
+	std::lock_guard lock(m_pending_mutex);
+	if (pressed)
+		m_pending_state[key] |= StatePressed;
+	else
+		m_pending_state[key] |= StateReleased;
+}
+
+void Input::NewFrame()
+{
+	std::erase_if(m_key_state, [](auto const & pair) { return pair.second & StateReleased; });
+	for (auto & [key, state] : m_key_state)
+		state = state & ~StatePressed;
+
+	std::lock_guard lock(m_pending_mutex);
+	for (auto const & [key, pending_state] : m_pending_state)
+	{
+		std::uint8_t & state = m_key_state[key];
+		if (pending_state & StatePressed)
+			state = StatePressed | StateDown;
+		if (pending_state & StateReleased)
+			state = (state | StateReleased) & ~StateDown;
+	}
+	m_pending_state.clear();
+}
+
+bool Input::KeyIsDown(int key) const
+{
+	auto iter = m_key_state.find(key);
+	return iter != m_key_state.end() && iter->second & StateDown;
+}
+
+bool Input::KeyIsDown(Key key) const
+{
+	return KeyIsDown(static_cast<int>(key));
+}
+
+bool Input::KeyJustPressed(int key) const
+{
+	auto iter = m_key_state.find(key);
+	return iter != m_key_state.end() && iter->second & StatePressed;
+}
+
+bool Input::KeyJustPressed(Key key) const
+{
+	return KeyJustPressed(static_cast<int>(key));
+}
+
+bool Input::KeyJustReleased(int key) const
+{
+	auto iter = m_key_state.find(key);
+	return iter != m_key_state.end() && iter->second & StateReleased;
+}
+
+bool Input::KeyJustReleased(Key key) const
+{
+	return KeyJustReleased(static_cast<int>(key));
+}

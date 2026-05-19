@@ -69,6 +69,7 @@ int main()
 				float dt = std::chrono::duration<float>(cur_time - last_update_time).count(); // seconds
 				last_update_time = cur_time;
 
+				input.NewFrame();
 				if (!scene.Update(dt, input))
 					break;
 

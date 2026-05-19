@@ -41,7 +41,7 @@ import Vertex;
 struct PipelineRenderObjects
 {
 	AssetId pipeline_id;
-	std::vector<AssetId> render_object_ids;
+	std::vector<AssetId> ro_ids;
 };
 
 export class Scene
@@ -86,7 +86,7 @@ private:
 	AssetManager m_asset_manager;
 	AssetPool<RenderObject> m_render_object_pool;
 
-	std::vector<PipelineRenderObjects> m_active_render_objects;
+	std::vector<PipelineRenderObjects> m_ordered_ros;
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 
@@ -124,24 +124,24 @@ AssetId Scene::create_render_object(
 		return AssetId{};
 	}
 
-	RenderObject obj{ name, mesh_id, pipeline_id };
+	RenderObject ro{ name, mesh_id, pipeline_id };
 	if constexpr (!std::same_as<ObjectDataT, std::nullopt_t>)
-		obj.SetObjectData(&object_data);
+		ro.SetObjectData(&object_data);
 
-	AssetId obj_id = m_render_object_pool.Add(std::move(obj));
-	if (!obj_id.IsValid())
+	AssetId ro_id = m_render_object_pool.Add(std::move(ro));
+	if (!ro_id.IsValid())
 	{
 		std::cout << "Failed to add render object to pool for object: " + name;
-		return obj_id;
+		return ro_id;
 	}
 
-	auto iter = std::ranges::find(m_active_render_objects, pipeline_id, &PipelineRenderObjects::pipeline_id);
-	if (iter != m_active_render_objects.end())
-		iter->render_object_ids.push_back(obj_id);
+	auto iter = std::ranges::find(m_ordered_ros, pipeline_id, &PipelineRenderObjects::pipeline_id);
+	if (iter != m_ordered_ros.end())
+		iter->ro_ids.push_back(ro_id);
 	else
-		m_active_render_objects.push_back(PipelineRenderObjects{ pipeline_id, { obj_id } });
+		m_ordered_ros.push_back(PipelineRenderObjects{ pipeline_id, { ro_id } });
 
-	return obj_id;
+	return ro_id;
 }
 
 std::unique_ptr<TextMesh> Scene::create_text_mesh(
@@ -245,7 +245,7 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	// editor grid
 	m_grid.Init(m_asset_manager);
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
-	create_render_object("grid", m_grid.GetMeshId(), line_pipeline_id);
+	m_grid.SetRO(create_render_object("grid", m_grid.GetMeshId(), line_pipeline_id));
 
 	// dog
 	m_dog.Init(m_asset_manager, camera_dir);
@@ -285,7 +285,7 @@ void Scene::OnDPIScalingFactorChanged(float dpi_scale_factor)
 
 bool Scene::Update(float dt, Input const & input)
 {
-	if (input.KeyIsPressed(Input::Key::Esc))
+	if (input.KeyJustPressed(Input::Key::Esc))
 		return false;
 
 	m_camera3d.Update(dt, input);
@@ -300,6 +300,7 @@ bool Scene::Update(float dt, Input const & input)
 		m_frame_count = 0;
 	}
 
+	m_grid.Update(input, m_render_object_pool);
 	m_dog.Update(dt, input);
 	m_baby.Update(dt, &m_dog);
 
@@ -310,19 +311,19 @@ void Scene::Render() const
 {
 	m_renderer.BeginDraw();
 
-	for (PipelineRenderObjects const & pipeline_r_objs : m_active_render_objects)
+	for (PipelineRenderObjects const & pipeline_ros : m_ordered_ros)
 	{
-		Pipeline const * pipeline = m_asset_manager.GetPipeline(pipeline_r_objs.pipeline_id);
+		Pipeline const * pipeline = m_asset_manager.GetPipeline(pipeline_ros.pipeline_id);
 		if (!pipeline)
 		{
-			std::cout << "Scene::Render: No pipeline found in pool for pipeline ID: " << pipeline_r_objs.pipeline_id.GetIndex() << std::endl;
+			std::cout << "Scene::Render: No pipeline found in pool for pipeline ID: " << pipeline_ros.pipeline_id.GetIndex() << std::endl;
 			continue;
 		}
 
 		pipeline->Activate();
 		pipeline->UpdatePerFrameConstants();
 
-		for (AssetId obj_id : pipeline_r_objs.render_object_ids)
+		for (AssetId obj_id : pipeline_ros.ro_ids)
 		{
 			RenderObject const * obj = m_render_object_pool.Get(obj_id);
 			if (!obj)
@@ -330,6 +331,9 @@ void Scene::Render() const
 				std::cout << "Scene::Render: No render object found in pool for AssetId: " << obj_id.GetIndex() << std::endl;
 				continue;
 			}
+
+			if (!obj->IsShown())
+				continue;
 
 			Mesh const * mesh = m_asset_manager.GetMesh(obj->GetMeshId());
 			if (!mesh)

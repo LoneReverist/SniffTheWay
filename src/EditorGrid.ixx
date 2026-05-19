@@ -10,26 +10,45 @@ import Dreamhearth;
 using namespace Dreamhearth;
 
 import AssetManager;
+import AssetPool;
+import Input;
 import LinePipeline;
+import RenderObject;
 import Vertex;
 
 export class EditorGrid
 {
 public:
 	void Init(AssetManager & asset_manager);
+	void Update(Input const & input, AssetPool<RenderObject> & ro_pool);
 
-	MeshId<Vertex2d> GetMeshId() const { return mesh_id; }
+	void SetRO(AssetId ro_id) { m_ro_id = ro_id; }
+
+	MeshId<Vertex2d> GetMeshId() const { return m_mesh_id; }
 
 private:
 	MeshId<Vertex2d> create_grid_mesh(AssetManager & asset_manager);
 
 private:
-	MeshId<Vertex2d> mesh_id;
+	MeshId<Vertex2d> m_mesh_id;
+	AssetId m_ro_id;
 };
 
 void EditorGrid::Init(AssetManager & asset_manager)
 {
-	mesh_id = create_grid_mesh(asset_manager);
+	m_mesh_id = create_grid_mesh(asset_manager);
+}
+
+void EditorGrid::Update(Input const & input, AssetPool<RenderObject> & ro_pool)
+{
+	if (input.KeyJustPressed('G'))
+	{
+		RenderObject * ro = ro_pool.Get(m_ro_id);
+		if (!ro)
+			return;
+
+		ro->Show(!ro->IsShown());
+	}
 }
 
 MeshId<Vertex2d> EditorGrid::create_grid_mesh(AssetManager & asset_manager)

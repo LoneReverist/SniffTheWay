@@ -91,13 +91,13 @@ void Dog::Update(float dt, Input const & input)
 
 	// Handle WASD input for 3D movement
 	glm::vec3 move_dir(0.0f);
-	if (input.KeyIsPressed('W') || input.KeyIsPressed(Input::Key::Up))
+	if (input.KeyIsDown('W') || input.KeyIsDown(Input::Key::Up))
 		move_dir.y += 1.0f;
-	if (input.KeyIsPressed('S') || input.KeyIsPressed(Input::Key::Down))
+	if (input.KeyIsDown('S') || input.KeyIsDown(Input::Key::Down))
 		move_dir.y -= 1.0f;
-	if (input.KeyIsPressed('A') || input.KeyIsPressed(Input::Key::Left))
+	if (input.KeyIsDown('A') || input.KeyIsDown(Input::Key::Left))
 		move_dir.x -= 1.0f;
-	if (input.KeyIsPressed('D') || input.KeyIsPressed(Input::Key::Right))
+	if (input.KeyIsDown('D') || input.KeyIsDown(Input::Key::Right))
 		move_dir.x += 1.0f;
 
 	glm::vec3 velocity(0.0f);

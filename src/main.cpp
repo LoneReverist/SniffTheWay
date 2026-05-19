@@ -42,9 +42,9 @@ int main()
 		});
 	window.SetOnKeyEvent([&input](int key, int /*scan_code*/, int action, int /*mods*/)
 		{
-			if (static_cast<Input::Action>(action) == Input::Action::Press)
+			if (action == static_cast<int>(Input::Action::Press))
 				input.SetKey(key, true /*pressed*/);
-			else if (static_cast<Input::Action>(action) == Input::Action::Release)
+			else if (action == static_cast<int>(Input::Action::Release))
 				input.SetKey(key, false /*pressed*/);
 		});
 

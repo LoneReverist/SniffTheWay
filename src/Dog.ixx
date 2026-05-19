@@ -107,7 +107,11 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds)
 		glm::vec2 pos = glm::vec2(m_sprite_data.model[3]);
 		velocity = glm::normalize(move_dir) * m_move_speed;
 		glm::vec2 desired_pos = pos + velocity * dt;
-		glm::vec2 new_pos = bounds.SlideAlongBoundary(pos, desired_pos);
+		
+		glm::vec2 new_pos = desired_pos;
+		if (bounds.IsValid())
+			new_pos = bounds.SlideAlongBoundary(pos, desired_pos);
+
 		m_sprite_data.model[3] = glm::vec4(new_pos, 0.0f, 1.0f);
 
 		m_state = State::Walking;

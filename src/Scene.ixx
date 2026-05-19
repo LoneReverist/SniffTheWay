@@ -222,8 +222,8 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	m_bounds.SetVertices({
 		{-0.5f, -4.0f},
 		{0.5f, -4.0f},
-		{1.0f, 3.0f},
-		{-1.0f, 3.0f},
+		{1.0f, 10.0f},
+		{-1.0f, 10.0f},
 	});
 
 	// title and fps

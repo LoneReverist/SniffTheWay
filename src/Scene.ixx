@@ -19,9 +19,11 @@ using namespace Dreamhearth;
 import AssetManager;
 import AssetPool;
 import Baby;
+import Background;
 import BackgroundTexPipeline;
 import Camera;
 import Dog;
+import EditorGrid;
 import FontAtlas;
 import Input;
 import LinePipeline;
@@ -62,13 +64,8 @@ template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nu
 		PipelineIdT pipeline_id,
 		ObjectDataT const & object_data = std::nullopt);
 
-	MeshId<TextureVertex2d> create_bg_mesh();
-	void resize_bg_mesh(MeshId<TextureVertex2d> mesh_id);
-
 	MeshId<TextureVertex2d> create_sprite_mesh();
 	void resize_sprite_mesh(MeshId<TextureVertex2d> mesh_id, SpriteSheet const & sprite_sheet);
-
-	MeshId<Vertex2d> create_grid_mesh();
 
 	std::unique_ptr<TextMesh> create_text_mesh(
 		std::string const & text,
@@ -85,16 +82,11 @@ private:
 	Renderer m_renderer;
 	Camera3d m_camera3d;
 	Camera2d m_camera2d;
-	int m_view_width = 0;
-	int m_view_height = 0;
 
 	AssetManager m_asset_manager;
 	AssetPool<RenderObject> m_render_object_pool;
 
 	std::vector<PipelineRenderObjects> m_active_render_objects;
-
-	AssetId m_bg_tex_id;
-	MeshId<TextureVertex2d> m_bg_mesh_id;
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 
@@ -104,6 +96,8 @@ private:
 	TextPipeline::ObjectData m_fps_label;
 	TextPipeline::ObjectData m_title_label;
 
+	Background m_background;
+	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
 
@@ -148,54 +142,6 @@ AssetId Scene::create_render_object(
 		m_active_render_objects.push_back(PipelineRenderObjects{ pipeline_id, { obj_id } });
 
 	return obj_id;
-}
-
-MeshId<TextureVertex2d> Scene::create_bg_mesh()
-{
-	std::vector<TextureVertex2d> verts{
-		{ { -1.0,  1.0 }, { 0.0, 0.0 } },
-		{ {  1.0,  1.0 }, { 1.0, 0.0 } },
-		{ { -1.0, -1.0 }, { 0.0, 1.0 } },
-		{ {  1.0, -1.0 }, { 1.0, 1.0 } } };
-
-	std::vector<Mesh::IndexT> indices{
-		1, 0, 2,
-		1, 2, 3 };
-
-	return m_asset_manager.AddMesh(verts, indices);
-}
-
-void Scene::resize_bg_mesh(MeshId<TextureVertex2d> mesh_id)
-{
-	Mesh * mesh = m_asset_manager.GetMesh(mesh_id);
-	if (!mesh)
-		return;
-
-	Texture const * bg_tex = m_asset_manager.GetTexture(m_bg_tex_id);
-	if (!bg_tex)
-		return;
-
-	float world_scale = (static_cast<float>(m_view_height) / bg_tex->GetHeight());
-
-	float y_size = 2.0f;
-	float y_pos = -1.0f;
-	float x_size = bg_tex->GetWidth() * (2.0f / m_view_width) * world_scale;
-	float x_pos = -x_size / 2.0f;
-
-	std::vector<TextureVertex2d> verts{
-		{ { x_pos,          y_pos + y_size }, { 0.0, 0.0 } },
-		{ { x_pos + x_size, y_pos + y_size }, { 1.0, 0.0 } },
-		{ { x_pos,          y_pos          }, { 0.0, 1.0 } },
-		{ { x_pos + x_size, y_pos          }, { 1.0, 1.0 } } };
-
-	std::vector<Mesh::IndexT> indices{
-		1, 0, 2,
-		1, 2, 3 };
-
-	*mesh = Mesh{ m_render_context };
-	std::expected<void, GraphicsError> result = mesh->Create(verts, indices);
-	if (!result.has_value())
-		std::cout << "Scene::resize_bg_mesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
 }
 
 std::unique_ptr<TextMesh> Scene::create_text_mesh(
@@ -247,37 +193,6 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	return text_mesh;
 }
 
-MeshId<Vertex2d> Scene::create_grid_mesh()
-{
-	std::vector<Vertex2d> verts{
-		{ { -1.0,  1.0 } },
-		{ {  1.0,  1.0 } },
-		{ { -1.0, -1.0 } },
-		{ {  1.0, -1.0 } } };
-
-	std::vector<Mesh::IndexT> indices{
-		1, 0, 2,
-		1, 2, 3 };
-
-	std::vector<LineInstance> line_instances(20);
-	for (int y = 0; y < 10; y++)
-	{
-		line_instances[y].p0 = { -4.0f, static_cast<float>(y) - 4.0f, 0.0f };
-		line_instances[y].p1 = { 5.0f, static_cast<float>(y) - 4.0f, 0.0f };
-		line_instances[y].thickness = 4.0f;
-		line_instances[y].color = { 0.0f, 0.0f, 1.0f, 1.0f };
-	}
-	for (int x = 0; x < 10; x++)
-	{
-		line_instances[x + 10].p0 = { static_cast<float>(x) - 4.0f, -4.0f, 0.0f };
-		line_instances[x + 10].p1 = { static_cast<float>(x) - 4.0f, 5.0f, 0.0f };
-		line_instances[x + 10].thickness = 4.0f;
-		line_instances[x + 10].color = { 0.0f, 0.0f, 1.0f, 1.0f };
-	}
-
-	return m_asset_manager.AddMesh(verts, indices, line_instances);
-}
-
 Scene::Scene(RenderContext const & render_context, std::string const & title, float dpi_scale_factor)
 	: m_render_context{ render_context }
 	, m_title{ title }
@@ -296,11 +211,11 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	const float title_font_size = 32.0f * dpi_scale_factor;
 
 	// background
-	m_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_path.png",
+	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_path.png",
 		PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, m_bg_tex_id);
-	m_bg_mesh_id = create_bg_mesh();
-	create_render_object("background", m_bg_mesh_id, bg_pipeline_id);
+	m_background.Init(m_asset_manager, bg_tex_id);
+	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, bg_tex_id);
+	create_render_object("background", m_background.GetMeshId(), bg_pipeline_id);
 
 	// title and fps
 	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
@@ -327,10 +242,10 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 	};
 	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline_id, m_title_label);
 
-	// debug grid
+	// editor grid
+	m_grid.Init(m_asset_manager);
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
-	const auto grid_mesh_id = create_grid_mesh();
-	create_render_object("grid", grid_mesh_id, line_pipeline_id);
+	create_render_object("grid", m_grid.GetMeshId(), line_pipeline_id);
 
 	// dog
 	m_dog.Init(m_asset_manager, camera_dir);
@@ -346,14 +261,11 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 
 void Scene::OnViewportResized(int width, int height)
 {
-	m_view_width = width;
-	m_view_height = height;
-
 	m_camera3d.OnViewportResized(width, height);
 	m_camera2d.OnViewportResized(width, height);
 
-	resize_bg_mesh(m_bg_mesh_id);
-
+	// keep UI elements proportional to the height of the view
+	m_background.OnViewportResized(width, height, m_asset_manager);
 	if (m_fps_mesh)
 		m_fps_mesh->OnViewportResized(width, height);
 	if (m_title_mesh)

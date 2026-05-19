@@ -5,6 +5,7 @@ module;
 #include <expected>
 #include <filesystem>
 #include <iostream>
+#include <string>
 #include <vector>
 
 export module AssetManager;
@@ -63,6 +64,12 @@ public:
 		std::vector<Mesh::IndexT> const & indices,
 		std::vector<InstanceDataT> const & instance_data);
 
+	template<IsVertex VertexT>
+	void UpdateMesh(
+		MeshId<VertexT> mesh_id,
+		std::vector<VertexT> const & vertices,
+		std::vector<Mesh::IndexT> const & indices);
+
 	template <typename PipelineT, typename... Args>
 	PipelineId<PipelineT> AddPipeline(Args &&... args);
 
@@ -114,7 +121,7 @@ MeshId<VertexT> AssetManager::AddMesh(
 	std::expected<void, GraphicsError> result = mesh.Create(vertices, indices);
 	if (!result.has_value())
 	{
-		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage() << std::endl;
+		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str() << std::endl;
 		return MeshId<VertexT>{};
 	}
 
@@ -131,11 +138,27 @@ MeshId<VertexT> AssetManager::AddMesh(
 	std::expected<void, GraphicsError> result = mesh.Create(vertices, indices, instance_data);
 	if (!result.has_value())
 	{
-		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage() << std::endl;
+		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str() << std::endl;
 		return MeshId<VertexT>{};
 	}
 
 	return AddMesh<VertexT>(std::move(mesh));
+}
+
+template<IsVertex VertexT>
+void AssetManager::UpdateMesh(
+	MeshId<VertexT> mesh_id,
+	std::vector<VertexT> const & vertices,
+	std::vector<Mesh::IndexT> const & indices)
+{
+	Mesh * mesh = GetMesh(mesh_id);
+	if (!mesh)
+		return;
+
+	*mesh = Mesh{ m_render_context };
+	std::expected<void, GraphicsError> result = mesh->Create(vertices, indices);
+	if (!result.has_value())
+		std::cout << "Background::OnViewportResized: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
 }
 
 template <typename PipelineT, typename... Args>
@@ -147,7 +170,7 @@ PipelineId<PipelineT> AssetManager::AddPipeline(Args &&... args)
 		= PipelineT::CreatePipeline(m_render_context, shaders_path, std::forward<Args>(args)...);
 	if (!pipeline.has_value())
 	{
-		std::cout << "AssetManager::AddPipeline: Failed to create pipeline: " << pipeline.error().GetMessage() << std::endl;
+		std::cout << "AssetManager::AddPipeline: Failed to create pipeline: " << pipeline.error().GetMessage().c_str() << std::endl;
 		return PipelineId<PipelineT>{};
 	}
 

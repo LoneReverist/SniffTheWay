@@ -1,4 +1,4 @@
-// Scene.ixx
+// SceneForestIntersection.ixx
 
 module;
 
@@ -8,7 +8,7 @@ module;
 
 #include <glm/glm.hpp>
 
-export module Scene;
+export module SceneForestIntersection;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
@@ -26,17 +26,16 @@ import Input;
 import IScene;
 import LinePipeline;
 import Polygon2d;
-import SceneForestIntersection;
 import SceneRenderer;
 import SpritePipeline;
 import TextPipeline;
 import UILabel;
 import Vertex;
 
-export class Scene : public IScene
+export class SceneForestIntersection : public IScene
 {
 public:
-	explicit Scene(dh::RenderContext const & render_context, std::string const & title);
+	explicit SceneForestIntersection(dh::RenderContext const & render_context);
 
 	void OnViewportResized(int width, int height) override;
 	void OnDPIScaleFactorChanged(float dpi_scale_factor) override;
@@ -56,7 +55,6 @@ private:
 	std::unique_ptr<FontAtlas> m_arial_font;
 
 	std::unique_ptr<UILabel> m_fps_label;
-	std::unique_ptr<UILabel> m_title_label;
 
 	Background m_background;
 	Polygon2d m_bounds;
@@ -68,9 +66,8 @@ private:
 	int m_frame_count = 0;
 };
 
-Scene::Scene(dh::RenderContext const & render_context, std::string const & title)
+SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & render_context)
 	: m_render_context{ render_context }
-	, m_title{ title }
 	, m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
@@ -81,7 +78,7 @@ Scene::Scene(dh::RenderContext const & render_context, std::string const & title
 	m_camera3d.Init(camera_pos, camera_dir);
 
 	// background
-	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_path.png",
+	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_intersection.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, bg_tex_id);
@@ -108,9 +105,6 @@ Scene::Scene(dh::RenderContext const & render_context, std::string const & title
 	m_fps_label = std::make_unique<UILabel>(m_asset_manager, "FPS: ", *m_arial_font, label_font_size, glm::vec2{ -0.9, -0.9 } /*origin*/, story_text_color);
 	m_renderer.CreateRenderObject("fps label", m_fps_label->GetMeshId(), text_pipeline_id, m_fps_label->GetLabelData());
 
-	m_title_label = std::make_unique<UILabel>(m_asset_manager, m_title, *m_arial_font, title_font_size, glm::vec2{ -0.9, 0.8 } /*origin*/, story_text_color);
-	m_renderer.CreateRenderObject("title", m_title_label->GetMeshId(), text_pipeline_id, m_title_label->GetLabelData());
-
 	// editor grid
 	m_grid.Init(m_asset_manager);
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
@@ -129,7 +123,7 @@ Scene::Scene(dh::RenderContext const & render_context, std::string const & title
 }
 
 // override
-void Scene::OnViewportResized(int width, int height)
+void SceneForestIntersection::OnViewportResized(int width, int height)
 {
 	m_camera3d.OnViewportResized(width, height);
 	m_camera2d.OnViewportResized(width, height);
@@ -138,24 +132,20 @@ void Scene::OnViewportResized(int width, int height)
 	m_background.OnViewportResized(width, height, m_asset_manager);
 	if (m_fps_label)
 		m_fps_label->OnViewportResized(width, height);
-	if (m_title_label)
-		m_title_label->OnViewportResized(width, height);
 }
 
 // override
-void Scene::OnDPIScaleFactorChanged(float dpi_scale_factor)
+void SceneForestIntersection::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	float label_font_size = 18.0f * dpi_scale_factor;
 	float title_font_size = 32.0f * dpi_scale_factor;
 
 	if (m_fps_label)
 		m_fps_label->SetFontSize(label_font_size);
-	if (m_title_label)
-		m_title_label->SetFontSize(title_font_size);
 }
 
 // override
-std::optional<SceneTransition> Scene::Update(float dt, Input const & input)
+std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{}; // empty scene transition closes application
@@ -176,14 +166,11 @@ std::optional<SceneTransition> Scene::Update(float dt, Input const & input)
 	m_dog.Update(dt, input, m_bounds);
 	m_baby.Update(dt, &m_dog);
 
-	if (m_dog.GetSpriteData().model[3].y < -3.75)
-		return SceneTransition{ [](dh::RenderContext const & ctx) { return std::make_unique<SceneForestIntersection>(ctx); } };
-
 	return std::nullopt;
 }
 
 // override
-void Scene::Render() const
+void SceneForestIntersection::Render() const
 {
 	m_renderer.Render();
 }

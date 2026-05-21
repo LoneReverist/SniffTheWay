@@ -1,4 +1,4 @@
-// TextMesh.ixx
+// UILabel.ixx
 
 module;
 
@@ -10,7 +10,7 @@ module;
 
 #include <glm/glm.hpp>
 
-export module TextMesh;
+export module UILabel;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
@@ -18,87 +18,126 @@ namespace dh = Dreamhearth;
 import AssetManager;
 import AssetPool;
 import FontAtlas;
+import TextPipeline;
 import Vertex;
 
-export class TextMesh
+export class UILabel
 {
 public:
 	using VertexT = TextureVertex2d;
 
-	using UpdateMeshCallbackT = std::function<void(AssetId, dh::Mesh)>;
-
-	explicit TextMesh(
-		dh::RenderContext const & render_context,
+	explicit UILabel(
+		AssetManager & asset_manager,
 		std::string const & text,
 		FontAtlas const & font_atlas,
-		std::uint32_t font_tex_width,
-		std::uint32_t font_tex_height,
 		float font_size,
 		glm::vec2 origin,
-		int viewport_width,
-		int viewport_height);
-
-	std::expected<dh::Mesh, dh::GraphicsError> CreateMesh() const;
+		glm::vec4 color);
 
 	void OnViewportResized(int width, int height);
 
 	void SetText(std::string const & text);
 	void SetFontSize(float font_size);
 
-	void SetUpdateMeshCallback(UpdateMeshCallbackT const & callback) { m_update_mesh_callback = callback; }
-
-	void SetMeshId(MeshId<VertexT> mesh_id) { m_mesh_id = mesh_id; }
 	MeshId<VertexT> GetMeshId() const { return m_mesh_id; }
-
-	float GetScreenPxRange() const { return m_screen_px_range; }
+    TextPipeline::ObjectData const & GetLabelData() const { return m_label_data; }
 
 private:
-	dh::RenderContext const & m_render_context;
+	std::expected<dh::Mesh, dh::GraphicsError> create_mesh() const;
+	void update_mesh() const;
+
+private:
+	AssetManager & m_asset_manager;
 	MeshId<VertexT> m_mesh_id;
-	UpdateMeshCallbackT m_update_mesh_callback;
 
 	std::string m_text;
 	FontAtlas const & m_font_atlas;
 	std::uint32_t m_font_tex_width = 0;
 	std::uint32_t m_font_tex_height = 0;
 	float m_font_size = 0.0f;
-	float m_screen_px_range = 0.0f;
 	glm::vec2 m_origin{ 0.0f };
+	TextPipeline::ObjectData m_label_data;
 
 	int m_viewport_width = 0;
 	int m_viewport_height = 0;
 };
 
-TextMesh::TextMesh(
-	dh::RenderContext const & render_context,
+UILabel::UILabel(
+	AssetManager & asset_manager,
 	std::string const & text,
 	FontAtlas const & font_atlas,
-	std::uint32_t font_tex_width,
-	std::uint32_t font_tex_height,
 	float font_size,
 	glm::vec2 origin,
-	int viewport_width,
-	int viewport_height)
-	: m_render_context(render_context)
+	glm::vec4 color)
+	: m_asset_manager(asset_manager)
 	, m_text(text)
 	, m_font_atlas(font_atlas)
-	, m_font_tex_width(font_tex_width)
-	, m_font_tex_height(font_tex_height)
 	, m_font_size(font_size)
-	, m_screen_px_range(font_size * font_atlas.GetPxRange())
 	, m_origin(origin)
-	, m_viewport_width(viewport_width)
-	, m_viewport_height(viewport_height)
 {
+	std::uint32_t font_tex_width = 0, font_tex_height = 0;
+	dh::Texture const * font_tex = m_asset_manager.GetTexture(font_atlas.GetTextureId());
+	if (font_tex)
+	{
+		m_font_tex_width = font_tex->GetWidth();
+		m_font_tex_height = font_tex->GetHeight();
+	}
+
+	m_label_data = TextPipeline::ObjectData{
+		.screen_px_range = font_size * font_atlas.GetPxRange(),
+		.bg_color = { 0.0f, 0.0f, 0.0f, 0.0f },
+		.text_color = color,
+	};
+
+	std::expected<dh::Mesh, dh::GraphicsError> mesh = create_mesh();
+	if (!mesh.has_value())
+	{
+		std::cout << "UILabel::UILabel: Failed to create mesh. Error: " << mesh.error().GetMessage() << std::endl;
+		return;
+	}
+
+	m_mesh_id = m_asset_manager.AddMesh<VertexT>(std::move(mesh.value()));
 }
 
-std::expected<dh::Mesh, dh::GraphicsError> TextMesh::CreateMesh() const
+void UILabel::OnViewportResized(int width, int height)
+{
+	if (width == m_viewport_width && height == m_viewport_height)
+		return; // no change
+
+	m_viewport_width = width;
+	m_viewport_height = height;
+
+	update_mesh();
+}
+
+void UILabel::SetText(std::string const & text)
+{
+	if (m_text == text)
+		return; // no change
+
+	m_text = text;
+
+	update_mesh();
+}
+
+void UILabel::SetFontSize(float font_size)
+{
+	if (m_font_size == font_size)
+		return; // no change
+
+	m_font_size = font_size;
+	m_label_data.screen_px_range = m_font_size * m_font_atlas.GetPxRange();
+
+	update_mesh();
+}
+
+std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 {
 	if (m_font_tex_width == 0 || m_font_tex_height == 0
 		|| m_viewport_width == 0 || m_viewport_height == 0
 		|| m_text.empty())
 	{
-		return dh::Mesh{ m_render_context }; // an empty mesh is an expected result here
+		return dh::Mesh{ m_asset_manager.GetRenderContext() }; // an empty mesh is an expected result here
 	}
 
 	std::vector<VertexT> verts;
@@ -153,72 +192,35 @@ std::expected<dh::Mesh, dh::GraphicsError> TextMesh::CreateMesh() const
 		pen.x += g.advance * width_scale;
 	}
 
-	dh::Mesh mesh{ m_render_context };
+	dh::Mesh mesh{ m_asset_manager.GetRenderContext() };
 	std::expected<void, dh::GraphicsError> result = mesh.Create(verts, indices);
 	if (!result.has_value())
-		return std::unexpected{ result.error().AddToMessage(" TextMesh::CreateMesh: Failed to create mesh.") };
+		return std::unexpected{ result.error().AddToMessage(" UILabel::CreateMesh: Failed to create mesh.") };
 
 	return mesh;
 }
 
-void TextMesh::OnViewportResized(int width, int height)
+void UILabel::update_mesh() const
 {
-	if (width == m_viewport_width && height == m_viewport_height)
-		return; // no change
-
-	m_viewport_width = width;
-	m_viewport_height = height;
-
-	if (m_update_mesh_callback)
+	if (!m_mesh_id.IsValid())
 	{
-		std::expected<dh::Mesh, dh::GraphicsError> mesh = CreateMesh();
-		if (!mesh.has_value())
-		{
-			std::cout << "TextMesh::OnViewportResized: Failed to create mesh: " << mesh.error().GetMessage() << std::endl;
-			return;
-		}
-
-		m_update_mesh_callback(m_mesh_id, std::move(mesh.value()));
+		std::cout << "UILabel::update_mesh: Invalid AssetId for updating mesh" << std::endl;
+		return;
 	}
-}
 
-void TextMesh::SetText(std::string const & text)
-{
-	if (m_text == text)
-		return; // no change
-
-	m_text = text;
-
-	if (m_update_mesh_callback)
+	dh::Mesh *mesh = m_asset_manager.GetMesh(m_mesh_id);
+	if (!mesh)
 	{
-		std::expected<dh::Mesh, dh::GraphicsError> mesh = CreateMesh();
-		if (!mesh.has_value())
-		{
-			std::cout << "TextMesh::SetText: Failed to create mesh: " << mesh.error().GetMessage() << std::endl;
-			return;
-		}
-
-		m_update_mesh_callback(m_mesh_id, std::move(mesh.value()));
+		std::cout << "UILabel::update_mesh: No mesh found in pool for AssetId: " << m_mesh_id.GetIndex() << std::endl;
+		return;
 	}
-}
 
-void TextMesh::SetFontSize(float font_size)
-{
-	if (m_font_size == font_size)
-		return; // no change
-
-	m_font_size = font_size;
-	m_screen_px_range = m_font_size * m_font_atlas.GetPxRange();
-
-	if (m_update_mesh_callback)
+	std::expected<dh::Mesh, dh::GraphicsError> new_mesh = create_mesh();
+	if (!new_mesh.has_value())
 	{
-		std::expected<dh::Mesh, dh::GraphicsError> mesh = CreateMesh();
-		if (!mesh.has_value())
-		{
-			std::cout << "TextMesh::SetFontSize: Failed to create mesh: " << mesh.error().GetMessage() << std::endl;
-			return;
-		}
-
-		m_update_mesh_callback(m_mesh_id, std::move(mesh.value()));
+		std::cout << "UILabel::update_mesh: Failed to create mesh: " << new_mesh.error().GetMessage() << std::endl;
+		return;
 	}
+
+	*mesh = std::move(new_mesh.value());
 }

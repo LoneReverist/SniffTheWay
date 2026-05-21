@@ -29,7 +29,7 @@ public:
 	{
 		float screen_px_range = 1.0f;
 		glm::vec4 bg_color = glm::vec4(0.0f);
-		glm::vec4 text_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+		glm::vec4 text_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	};
 
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(

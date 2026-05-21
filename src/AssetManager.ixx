@@ -93,6 +93,8 @@ public:
 	std::filesystem::path GetTexturesPath() const { return m_resources_path / "textures"; }
 	std::filesystem::path GetFontsPath() const { return m_resources_path / "fonts"; }
 
+	dh::RenderContext const & GetRenderContext() const { return m_render_context; }
+
 private:
 	dh::RenderContext const & m_render_context;
 	std::filesystem::path m_resources_path;

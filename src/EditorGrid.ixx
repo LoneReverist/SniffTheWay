@@ -7,7 +7,7 @@ module;
 export module EditorGrid;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -54,7 +54,7 @@ MeshId<Vertex2d> EditorGrid::create_grid_mesh(AssetManager & asset_manager)
 		{ { -1.0, -1.0 } },
 		{ {  1.0, -1.0 } } };
 
-	std::vector<Mesh::IndexT> indices{
+	std::vector<dh::Mesh::IndexT> indices{
 		1, 0, 2,
 		1, 2, 3 };
 

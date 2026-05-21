@@ -10,7 +10,7 @@ module;
 export module BackgroundTexPipeline;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -22,8 +22,8 @@ export class BackgroundTexPipeline
 public:
 	using VertexT = TextureVertex2d;
 
-	static std::expected<Pipeline, GraphicsError> CreatePipeline(
-		RenderContext const & render_context,
+	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
+		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
 		Camera2d const & camera2d,
 		AssetManager const & asset_manager,
@@ -33,8 +33,8 @@ private:
 	BackgroundTexPipeline() = delete;
 };
 
-std::expected<Pipeline, GraphicsError> BackgroundTexPipeline::CreatePipeline(
-	RenderContext const & render_context,
+std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipeline(
+	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera2d const & camera2d,
 	AssetManager const & asset_manager,
@@ -45,13 +45,13 @@ std::expected<Pipeline, GraphicsError> BackgroundTexPipeline::CreatePipeline(
 		alignas(16) glm::mat4 model{ 1.0f };
 	};
 
-	Texture const * texture = asset_manager.GetTexture(texture_id);
+	dh::Texture const * texture = asset_manager.GetTexture(texture_id);
 	if (!texture)
-		return std::unexpected{ GraphicsError{ "BackgroundTexPipeline::CreatePipeline: invalid texture" } };
+		return std::unexpected{ dh::GraphicsError{ "BackgroundTexPipeline::CreatePipeline: invalid texture" } };
 
-	PipelineBuilder builder{ render_context };
+	dh::PipelineBuilder builder{ render_context };
 
-	std::expected<void, GraphicsError> load_shaders_result = builder.LoadShaders(
+	std::expected<void, dh::GraphicsError> load_shaders_result = builder.LoadShaders(
 		shaders_path / "texture2d.vert",
 		shaders_path / "texture2d.frag");
 	if (!load_shaders_result.has_value())
@@ -61,15 +61,15 @@ std::expected<Pipeline, GraphicsError> BackgroundTexPipeline::CreatePipeline(
 	builder.SetVSUniformTypes<ProjUniform>();
 	builder.SetObjectDataTypes<ObjectDataVS, std::nullopt_t>();
 	builder.SetTexture(*texture);
-	builder.SetCullMode(CullMode::NONE);
-	builder.SetDepthTestOptions(DepthTestOptions{
+	builder.SetCullMode(dh::CullMode::NONE);
+	builder.SetDepthTestOptions(dh::DepthTestOptions{
 		.enable_depth_test = false,
 		.enable_depth_write = false,
-		.depth_compare_op = DepthCompareOp::ALWAYS
+		.depth_compare_op = dh::DepthCompareOp::ALWAYS
 		});
 
 	builder.SetPerFrameConstantsCallback(
-		[&camera2d](Pipeline const & pipeline)
+		[&camera2d](dh::Pipeline const & pipeline)
 		{
 			pipeline.SetUniform(0 /*binding*/, camera2d.GetProjUniform());
 		});

@@ -8,7 +8,7 @@ module;
 export module Dog;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -60,7 +60,7 @@ void Dog::Init(
 	glm::vec3 const & camera_dir)
 {
 	m_tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "dog_walk.png",
-		 PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 
     m_sprite_sheet = SpriteSheet{
 		m_tex_id,

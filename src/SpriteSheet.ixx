@@ -11,7 +11,7 @@ module;
 export module SpriteSheet;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetPool;
 import AssetManager;
@@ -126,7 +126,7 @@ MeshId<TextureVertex2d> SpriteSheet::CreateQuadMesh(AssetManager & asset_manager
 		{ { x_pos,          y_pos          }, { 0.0, 1.0 } },
 		{ { x_pos + x_size, y_pos          }, { 1.0, 1.0 } } };
 
-	std::vector<Mesh::IndexT> indices{
+	std::vector<dh::Mesh::IndexT> indices{
 		1, 0, 2,
 		1, 2, 3 };
 

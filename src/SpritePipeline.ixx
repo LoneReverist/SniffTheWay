@@ -12,7 +12,7 @@ module;
 export module SpritePipeline;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -30,8 +30,8 @@ public:
 		glm::vec4 frame_uvs{ 0.0f }; // x = min_u, y = max_u, z = min_v, w = max_v
 	};
 
-	static std::expected<Pipeline, GraphicsError> CreatePipeline(
-		RenderContext const & render_context,
+	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
+		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
 		Camera3d const & camera3d,
 		AssetManager const & asset_manager,
@@ -41,8 +41,8 @@ private:
 	SpritePipeline() = delete;
 };
 
-std::expected<Pipeline, GraphicsError> SpritePipeline::CreatePipeline(
-	RenderContext const & render_context,
+std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
+	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera3d const & camera3d,
 	AssetManager const & asset_manager,
@@ -57,13 +57,13 @@ std::expected<Pipeline, GraphicsError> SpritePipeline::CreatePipeline(
 		alignas(16) glm::vec4 frame_uvs{ 0.0f };
 	};
 
-	Texture const * texture = asset_manager.GetTexture(texture_id);
+	dh::Texture const * texture = asset_manager.GetTexture(texture_id);
 	if (!texture)
-		return std::unexpected{ GraphicsError{ "SpritePipeline::CreatePipeline: invalid texture" } };
+		return std::unexpected{ dh::GraphicsError{ "SpritePipeline::CreatePipeline: invalid texture" } };
 
-	PipelineBuilder builder{ render_context };
+	dh::PipelineBuilder builder{ render_context };
 
-	std::expected<void, GraphicsError> load_shaders_result = builder.LoadShaders(
+	std::expected<void, dh::GraphicsError> load_shaders_result = builder.LoadShaders(
 		shaders_path / "sprite.vert",
 		shaders_path / "sprite.frag");
 	if (!load_shaders_result.has_value())
@@ -73,22 +73,22 @@ std::expected<Pipeline, GraphicsError> SpritePipeline::CreatePipeline(
 	builder.SetObjectDataTypes<ObjectDataVS, ObjectDataFS>();
 	builder.SetVSUniformTypes<ViewProjUniform>();
 	builder.SetTexture(*texture);
-	builder.SetBlendOptions(BlendOptions{
+	builder.SetBlendOptions(dh::BlendOptions{
 		.enable_blend = true,
-		.src_factor = BlendFactor::SRC_ALPHA,
-		.dst_factor = BlendFactor::ONE_MINUS_SRC_ALPHA
+		.src_factor = dh::BlendFactor::SRC_ALPHA,
+		.dst_factor = dh::BlendFactor::ONE_MINUS_SRC_ALPHA
 		});
 	// disable backface culling since these are just flat quads that can be rotated
 	// in any direction, and we don't want them to disappear when viewed from behind
-	builder.SetCullMode(CullMode::NONE);
+	builder.SetCullMode(dh::CullMode::NONE);
 
 	builder.SetPerFrameConstantsCallback(
-		[&camera3d](Pipeline const & pipeline)
+		[&camera3d](dh::Pipeline const & pipeline)
 		{
 			pipeline.SetUniform(0 /*binding*/, camera3d.GetViewProjUniform());
 		});
 	builder.SetPerObjectConstantsCallback(
-		[](Pipeline const & pipeline, void const * object_data)
+		[](dh::Pipeline const & pipeline, void const * object_data)
 		{
 			if (!object_data)
 			{

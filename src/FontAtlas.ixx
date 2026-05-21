@@ -18,11 +18,7 @@ module;
 
 export module FontAtlas;
 
-import Dreamhearth;
-using namespace Dreamhearth;
-
 import AssetPool;
-import StbImage;
 
 export class FontAtlas
 {

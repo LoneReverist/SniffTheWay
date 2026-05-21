@@ -14,7 +14,7 @@ module;
 export module Scene;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -37,7 +37,7 @@ import Vertex;
 export class Scene
 {
 public:
-	explicit Scene(RenderContext const & render_context, std::string const & title, float dpi_scale_factor);
+	explicit Scene(dh::RenderContext const & render_context, std::string const & title, float dpi_scale_factor);
 
 	void OnViewportResized(int width, int height);
 	void OnDPIScalingFactorChanged(float dpi_scale_factor);
@@ -55,7 +55,7 @@ private:
 		int viewport_height);
 
 private:
-	RenderContext const & m_render_context;
+	dh::RenderContext const & m_render_context;
 	std::string const m_title;
 
 	AssetManager m_asset_manager;
@@ -90,7 +90,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	int viewport_height)
 {
 	std::uint32_t font_tex_width = 0, font_tex_height = 0;
-	Texture const * font_tex = m_asset_manager.GetTexture(font_atlas.GetTextureId());
+	dh::Texture const * font_tex = m_asset_manager.GetTexture(font_atlas.GetTextureId());
 	if (font_tex)
 	{
 		font_tex_width = font_tex->GetWidth();
@@ -99,7 +99,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 
 	auto text_mesh = std::make_unique<TextMesh>(m_render_context, text,
 		font_atlas, font_tex_width, font_tex_height, font_size, origin, viewport_width, viewport_height);
-	text_mesh->SetUpdateMeshCallback([&asset_manager = m_asset_manager](AssetId id, Mesh new_mesh)
+	text_mesh->SetUpdateMeshCallback([&asset_manager = m_asset_manager](AssetId id, dh::Mesh new_mesh)
 		{
 			if (!id.IsValid())
 			{
@@ -107,7 +107,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 				return;
 			}
 
-			Mesh * mesh = asset_manager.GetMesh(id);
+			dh::Mesh * mesh = asset_manager.GetMesh(id);
 			if (!mesh)
 			{
 				std::cout << "Scene::create_text_mesh: No mesh found in pool for AssetId: " << id.GetIndex() << std::endl;
@@ -117,7 +117,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 			*mesh = std::move(new_mesh);
 		});
 
-	std::expected<Mesh, GraphicsError> mesh = text_mesh->CreateMesh();
+	std::expected<dh::Mesh, dh::GraphicsError> mesh = text_mesh->CreateMesh();
 	if (!mesh.has_value())
 	{
 		std::cout << "Scene::create_text_mesh: Failed to create mesh. Error: "
@@ -130,7 +130,7 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	return text_mesh;
 }
 
-Scene::Scene(RenderContext const & render_context, std::string const & title, float dpi_scale_factor)
+Scene::Scene(dh::RenderContext const & render_context, std::string const & title, float dpi_scale_factor)
 	: m_render_context{ render_context }
 	, m_title{ title }
 	, m_asset_manager{ render_context }
@@ -147,7 +147,7 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 
 	// background
 	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_path.png",
-		PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, bg_tex_id);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id);
@@ -161,7 +161,7 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 
 	// title and fps
 	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
-		PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
+		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);

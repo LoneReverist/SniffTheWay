@@ -12,7 +12,7 @@ module;
 export module TextPipeline;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -32,8 +32,8 @@ public:
 		glm::vec4 text_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
 	};
 
-	static std::expected<Pipeline, GraphicsError> CreatePipeline(
-		RenderContext const & render_context,
+	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
+		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
 		Camera2d const & camera2d,
 		AssetManager const & asset_manager,
@@ -43,8 +43,8 @@ private:
 	TextPipeline() = delete;
 };
 
-std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
-	RenderContext const & render_context,
+std::expected<dh::Pipeline, dh::GraphicsError> TextPipeline::CreatePipeline(
+	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera2d const & camera2d,
 	AssetManager const & asset_manager,
@@ -57,13 +57,13 @@ std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 		alignas(16) glm::vec4 text_color{ 0.0f };
 	};
 
-	Texture const * texture = asset_manager.GetTexture(texture_id);
+	dh::Texture const * texture = asset_manager.GetTexture(texture_id);
 	if (!texture)
-		return std::unexpected{ GraphicsError{ "TextPipeline::CreatePipeline: invalid texture" } };
+		return std::unexpected{ dh::GraphicsError{ "TextPipeline::CreatePipeline: invalid texture" } };
 
-	PipelineBuilder builder{ render_context };
+	dh::PipelineBuilder builder{ render_context };
 
-	std::expected<void, GraphicsError> load_shaders_result = builder.LoadShaders(
+	std::expected<void, dh::GraphicsError> load_shaders_result = builder.LoadShaders(
 		shaders_path / "msdf_text.vert",
 		shaders_path / "msdf_text.frag");
 	if (!load_shaders_result.has_value())
@@ -73,25 +73,25 @@ std::expected<Pipeline, GraphicsError> TextPipeline::CreatePipeline(
 	builder.SetVSUniformTypes<ProjUniform>();
 	builder.SetObjectDataTypes<std::nullopt_t, ObjectDataFS>();
 	builder.SetTexture(*texture);
-	builder.SetDepthTestOptions(DepthTestOptions{
+	builder.SetDepthTestOptions(dh::DepthTestOptions{
 		.enable_depth_test = false,
 		.enable_depth_write = false,
-		.depth_compare_op = DepthCompareOp::ALWAYS
+		.depth_compare_op = dh::DepthCompareOp::ALWAYS
 		});
-	builder.SetBlendOptions(BlendOptions{
+	builder.SetBlendOptions(dh::BlendOptions{
 		.enable_blend = true,
-		.src_factor = BlendFactor::SRC_ALPHA,
-		.dst_factor = BlendFactor::ONE_MINUS_SRC_ALPHA
+		.src_factor = dh::BlendFactor::SRC_ALPHA,
+		.dst_factor = dh::BlendFactor::ONE_MINUS_SRC_ALPHA
 		});
-	builder.SetCullMode(CullMode::BACK);
+	builder.SetCullMode(dh::CullMode::BACK);
 
 	builder.SetPerFrameConstantsCallback(
-		[&camera2d](Pipeline const & pipeline)
+		[&camera2d](dh::Pipeline const & pipeline)
 		{
 			pipeline.SetUniform(0 /*binding*/, camera2d.GetProjUniform());
 		});
 	builder.SetPerObjectConstantsCallback(
-		[](Pipeline const & pipeline, void const * object_data)
+		[](dh::Pipeline const & pipeline, void const * object_data)
 		{
 			if (!object_data)
 			{

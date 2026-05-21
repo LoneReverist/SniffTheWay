@@ -11,7 +11,7 @@ module;
 export module AssetManager;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetPool;
 import PlatformUtils;
@@ -45,37 +45,37 @@ concept ObjectDataIsCompatibleWithPipeline = std::same_as<ObjectDataT, typename 
 export class AssetManager
 {
 public:
-	AssetManager(RenderContext const & render_context)
+	AssetManager(dh::RenderContext const & render_context)
 		: m_render_context{ render_context }
 		, m_resources_path{ PlatformUtils::GetExecutableDir() / "resources" }
 	{}
 
 	template<IsVertex VertexT>
-	MeshId<VertexT> AddMesh(Mesh mesh);
+	MeshId<VertexT> AddMesh(dh::Mesh mesh);
 
 	template<IsVertex VertexT>
 	MeshId<VertexT> AddMesh(
 		std::vector<VertexT> const & vertices,
-		std::vector<Mesh::IndexT> const & indices);
+		std::vector<dh::Mesh::IndexT> const & indices);
 
 	template<IsVertex VertexT, typename InstanceDataT>
 	MeshId<VertexT> AddMesh(
 		std::vector<VertexT> const & vertices,
-		std::vector<Mesh::IndexT> const & indices,
+		std::vector<dh::Mesh::IndexT> const & indices,
 		std::vector<InstanceDataT> const & instance_data);
 
 	template<IsVertex VertexT>
 	void UpdateMesh(
 		MeshId<VertexT> mesh_id,
 		std::vector<VertexT> const & vertices,
-		std::vector<Mesh::IndexT> const & indices);
+		std::vector<dh::Mesh::IndexT> const & indices);
 
 	template <typename PipelineT, typename... Args>
 	PipelineId<PipelineT> AddPipeline(Args &&... args);
 
 	AssetId AddTexture(
 		std::filesystem::path const & filepath,
-		PixelFormat format = PixelFormat::RGBA_SRGB,
+		dh::PixelFormat format = dh::PixelFormat::RGBA_SRGB,
 		bool flip_vertically = false,
 		bool use_mip_map = true);
 
@@ -83,10 +83,10 @@ public:
 	void RemovePipeline(AssetId id) { m_pipeline_pool.Remove(id); }
 	void RemoveTexture(AssetId id) { m_texture_pool.Remove(id); }
 
-	Mesh * GetMesh(AssetId id) { return m_mesh_pool.Get(id); }
-	Mesh const * GetMesh(AssetId id) const { return m_mesh_pool.Get(id); }
-	Pipeline const * GetPipeline(AssetId id) const { return m_pipeline_pool.Get(id); }
-	Texture const * GetTexture(AssetId id) const { return m_texture_pool.Get(id); }
+	dh::Mesh * GetMesh(AssetId id) { return m_mesh_pool.Get(id); }
+	dh::Mesh const * GetMesh(AssetId id) const { return m_mesh_pool.Get(id); }
+	dh::Pipeline const * GetPipeline(AssetId id) const { return m_pipeline_pool.Get(id); }
+	dh::Texture const * GetTexture(AssetId id) const { return m_texture_pool.Get(id); }
 
 	std::filesystem::path const & GetResourcesPath() const { return m_resources_path; }
 	std::filesystem::path GetShadersPath() const { return m_resources_path / "shaders"; }
@@ -94,16 +94,16 @@ public:
 	std::filesystem::path GetFontsPath() const { return m_resources_path / "fonts"; }
 
 private:
-	RenderContext const & m_render_context;
+	dh::RenderContext const & m_render_context;
 	std::filesystem::path m_resources_path;
 
-	AssetPool<Mesh> m_mesh_pool;
-	AssetPool<Pipeline> m_pipeline_pool;
-	AssetPool<Texture> m_texture_pool;
+	AssetPool<dh::Mesh> m_mesh_pool;
+	AssetPool<dh::Pipeline> m_pipeline_pool;
+	AssetPool<dh::Texture> m_texture_pool;
 };
 
 template<IsVertex VertexT>
-MeshId<VertexT> AssetManager::AddMesh(Mesh mesh)
+MeshId<VertexT> AssetManager::AddMesh(dh::Mesh mesh)
 {
 	MeshId<VertexT> mesh_id{ m_mesh_pool.Add(std::move(mesh)) };
 	if (!mesh_id.IsValid())
@@ -115,10 +115,10 @@ MeshId<VertexT> AssetManager::AddMesh(Mesh mesh)
 template<IsVertex VertexT>
 MeshId<VertexT> AssetManager::AddMesh(
 	std::vector<VertexT> const & vertices,
-	std::vector<Mesh::IndexT> const & indices)
+	std::vector<dh::Mesh::IndexT> const & indices)
 {
-	Mesh mesh{ m_render_context };
-	std::expected<void, GraphicsError> result = mesh.Create(vertices, indices);
+	dh::Mesh mesh{ m_render_context };
+	std::expected<void, dh::GraphicsError> result = mesh.Create(vertices, indices);
 	if (!result.has_value())
 	{
 		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str() << std::endl;
@@ -131,11 +131,11 @@ MeshId<VertexT> AssetManager::AddMesh(
 template<IsVertex VertexT, typename InstanceDataT>
 MeshId<VertexT> AssetManager::AddMesh(
 	std::vector<VertexT> const & vertices,
-	std::vector<Mesh::IndexT> const & indices,
+	std::vector<dh::Mesh::IndexT> const & indices,
 	std::vector<InstanceDataT> const & instance_data)
 {
-	Mesh mesh{ m_render_context };
-	std::expected<void, GraphicsError> result = mesh.Create(vertices, indices, instance_data);
+	dh::Mesh mesh{ m_render_context };
+	std::expected<void, dh::GraphicsError> result = mesh.Create(vertices, indices, instance_data);
 	if (!result.has_value())
 	{
 		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str() << std::endl;
@@ -149,14 +149,14 @@ template<IsVertex VertexT>
 void AssetManager::UpdateMesh(
 	MeshId<VertexT> mesh_id,
 	std::vector<VertexT> const & vertices,
-	std::vector<Mesh::IndexT> const & indices)
+	std::vector<dh::Mesh::IndexT> const & indices)
 {
-	Mesh * mesh = GetMesh(mesh_id);
+	dh::Mesh * mesh = GetMesh(mesh_id);
 	if (!mesh)
 		return;
 
-	*mesh = Mesh{ m_render_context };
-	std::expected<void, GraphicsError> result = mesh->Create(vertices, indices);
+	*mesh = dh::Mesh{ m_render_context };
+	std::expected<void, dh::GraphicsError> result = mesh->Create(vertices, indices);
 	if (!result.has_value())
 		std::cout << "Background::OnViewportResized: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
 }
@@ -166,7 +166,7 @@ PipelineId<PipelineT> AssetManager::AddPipeline(Args &&... args)
 {
 	std::filesystem::path shaders_path = m_resources_path / "shaders";
 
-	std::expected<Pipeline, GraphicsError> pipeline
+	std::expected<dh::Pipeline, dh::GraphicsError> pipeline
 		= PipelineT::CreatePipeline(m_render_context, shaders_path, std::forward<Args>(args)...);
 	if (!pipeline.has_value())
 	{
@@ -183,7 +183,7 @@ PipelineId<PipelineT> AssetManager::AddPipeline(Args &&... args)
 
 AssetId AssetManager::AddTexture(
 	std::filesystem::path const & filepath,
-	PixelFormat format /*= PixelFormat::RGBA_SRGB*/,
+	dh::PixelFormat format /*= dh::PixelFormat::RGBA_SRGB*/,
 	bool flip_vertically /*= false*/,
 	bool use_mip_map /*= true*/)
 {
@@ -194,10 +194,10 @@ AssetId AssetManager::AddTexture(
 		return AssetId{};
 	}
 
-	Texture texture;
-	std::expected<void, GraphicsError> result = texture.Create(
+	dh::Texture texture;
+	std::expected<void, dh::GraphicsError> result = texture.Create(
 		m_render_context,
-		ImageData{
+		dh::ImageData{
 			.data = image.GetData(),
 			.format = format,
 			.width = static_cast<std::uint32_t>(image.GetWidth()),

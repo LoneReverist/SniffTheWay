@@ -8,7 +8,7 @@ module;
 export module Background;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -41,7 +41,7 @@ void Background::OnViewportResized(int width, int height, AssetManager & asset_m
 	if (width == 0 || height == 0)
 		return;
 
-	Texture const * bg_tex = asset_manager.GetTexture(m_tex_id);
+	dh::Texture const * bg_tex = asset_manager.GetTexture(m_tex_id);
 	if (!bg_tex)
 		return;
 
@@ -58,7 +58,7 @@ void Background::OnViewportResized(int width, int height, AssetManager & asset_m
 		{ { x_pos,          y_pos          }, { 0.0, 1.0 } },
 		{ { x_pos + x_size, y_pos          }, { 1.0, 1.0 } } };
 
-	std::vector<Mesh::IndexT> indices{
+	std::vector<dh::Mesh::IndexT> indices{
 		1, 0, 2,
 		1, 2, 3 };
 
@@ -73,7 +73,7 @@ MeshId<TextureVertex2d> Background::create_bg_mesh(AssetManager & asset_manager)
 		{ { -1.0, -1.0 }, { 0.0, 1.0 } },
 		{ {  1.0, -1.0 }, { 1.0, 1.0 } } };
 
-	std::vector<Mesh::IndexT> indices{
+	std::vector<dh::Mesh::IndexT> indices{
 		1, 0, 2,
 		1, 2, 3 };
 

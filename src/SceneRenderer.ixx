@@ -11,7 +11,7 @@ module;
 export module SceneRenderer;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 import AssetPool;
 import AssetManager;
@@ -20,7 +20,7 @@ import RenderObject;
 export class SceneRenderer
 {
 public:
-	explicit SceneRenderer(RenderContext const & render_context, AssetManager const & asset_manager);
+	explicit SceneRenderer(dh::RenderContext const & render_context, AssetManager const & asset_manager);
 
 	template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nullopt_t>
 	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
@@ -43,13 +43,13 @@ private:
 	};
 
 private:
-	Renderer m_renderer;
+	dh::Renderer m_renderer;
 	AssetManager const & m_asset_manager;
 	AssetPool<RenderObject> m_render_object_pool;
 	std::vector<RenderBatch> m_render_batches;
 };
 
-SceneRenderer::SceneRenderer(RenderContext const & render_context, AssetManager const & asset_manager)
+SceneRenderer::SceneRenderer(dh::RenderContext const & render_context, AssetManager const & asset_manager)
 	: m_renderer(render_context)
 	, m_asset_manager(asset_manager)
 {
@@ -116,7 +116,7 @@ void SceneRenderer::Render() const
 
 	for (RenderBatch const & batch : m_render_batches)
 	{
-		Pipeline const * pipeline = m_asset_manager.GetPipeline(batch.pipeline_id);
+		dh::Pipeline const * pipeline = m_asset_manager.GetPipeline(batch.pipeline_id);
 		if (!pipeline)
 		{
 			std::cout << "Scene::Render: No pipeline found in pool for pipeline ID: " << batch.pipeline_id.GetIndex() << std::endl;
@@ -138,7 +138,7 @@ void SceneRenderer::Render() const
 			if (!ro->IsShown())
 				continue;
 
-			Mesh const * mesh = m_asset_manager.GetMesh(ro->GetMeshId());
+			dh::Mesh const * mesh = m_asset_manager.GetMesh(ro->GetMeshId());
 			if (!mesh)
 			{
 				std::cout << "Scene::Render: No mesh found in pool for AssetId: " << ro->GetMeshId().GetIndex() << std::endl;

@@ -11,28 +11,28 @@ module;
 export module Vertex;
 
 import Dreamhearth;
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 export template<typename VertexT>
-LayoutDesc create_layout()
+dh::LayoutDesc create_layout()
 {
-    LayoutDesc layout;
+    dh::LayoutDesc layout;
 	layout.binding = 0; // vertex uses binding 0, instance uses binding 1
 	layout.stride = sizeof(VertexT);
-	layout.input_rate = InputRate::Vertex;
+	layout.input_rate = dh::InputRate::Vertex;
 
 	std::uint32_t location = 0;
 
 	// All vertex types must have a position attribute.
-	AttributeType pos_type = AttributeType::Float;
+	dh::AttributeType pos_type = dh::AttributeType::Float;
 	if constexpr (std::same_as<glm::vec3, decltype(VertexT::pos)>)
-		pos_type = AttributeType::Float3;
+		pos_type = dh::AttributeType::Float3;
 	else if constexpr (std::same_as<glm::vec2, decltype(VertexT::pos)>)
-		pos_type = AttributeType::Float2;
+		pos_type = dh::AttributeType::Float2;
 	else
 		static_assert(!std::same_as<VertexT, VertexT>, "Unsupported position format in VertexT");
 
-	layout.attributes.push_back(AttributeDesc{
+	layout.attributes.push_back(dh::AttributeDesc{
 		.type = pos_type,
 		.offset = offsetof(VertexT, pos),
 		.location = location++
@@ -40,8 +40,8 @@ LayoutDesc create_layout()
 
 	if constexpr (requires(VertexT v) { v.normal; })
 	{
-		layout.attributes.push_back(AttributeDesc{
-			.type = AttributeType::Float3,
+		layout.attributes.push_back(dh::AttributeDesc{
+			.type = dh::AttributeType::Float3,
 			.offset = offsetof(VertexT, normal),
 			.location = location++
 			});
@@ -49,8 +49,8 @@ LayoutDesc create_layout()
 
 	if constexpr (requires(VertexT v) { v.tex_coord; })
 	{
-		layout.attributes.push_back(AttributeDesc{
-			.type = AttributeType::Float2,
+		layout.attributes.push_back(dh::AttributeDesc{
+			.type = dh::AttributeType::Float2,
 			.offset = offsetof(VertexT, tex_coord),
 			.location = location++
 			});
@@ -58,8 +58,8 @@ LayoutDesc create_layout()
 
 	if constexpr (requires(VertexT v) { v.color; })
 	{
-		layout.attributes.push_back(AttributeDesc{
-			.type = AttributeType::Float3,
+		layout.attributes.push_back(dh::AttributeDesc{
+			.type = dh::AttributeType::Float3,
 			.offset = offsetof(VertexT, color),
 			.location = location++
 			});
@@ -72,7 +72,7 @@ export struct Vertex2d
 {
 	glm::vec2 pos{ 0.0f };
 
-	static LayoutDesc CreateLayout() { return create_layout<Vertex2d>(); }
+	static dh::LayoutDesc CreateLayout() { return create_layout<Vertex2d>(); }
 };
 
 export struct TextureVertex2d
@@ -80,7 +80,7 @@ export struct TextureVertex2d
 	glm::vec2 pos{ 0.0f };
 	glm::vec2 tex_coord{ 0.0f };
 
-	static LayoutDesc CreateLayout() { return create_layout<TextureVertex2d>(); }
+	static dh::LayoutDesc CreateLayout() { return create_layout<TextureVertex2d>(); }
 };
 
 export template <typename T>

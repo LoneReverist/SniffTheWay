@@ -27,23 +27,12 @@ import EditorGrid;
 import FontAtlas;
 import Input;
 import LinePipeline;
-import PlatformUtils;
 import Polygon2d;
-import RenderObject;
+import SceneRenderer;
 import SpritePipeline;
-import SpriteSheet;
-import StbImage;
 import TextMesh;
 import TextPipeline;
 import Vertex;
-
-// Keeps track of which render objects are using the associated pipeline,
-// this allows the render objects to be grouped by pipeline for more efficient rendering
-struct PipelineRenderObjects
-{
-	AssetId pipeline_id;
-	std::vector<AssetId> ro_ids;
-};
 
 export class Scene
 {
@@ -57,17 +46,6 @@ public:
 	void Render() const;
 
 private:
-	template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nullopt_t>
-	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
-	AssetId create_render_object(
-		std::string const & name,
-		MeshIdT mesh_id,
-		PipelineIdT pipeline_id,
-		ObjectDataT const & object_data = std::nullopt);
-
-	MeshId<TextureVertex2d> create_sprite_mesh();
-	void resize_sprite_mesh(MeshId<TextureVertex2d> mesh_id, SpriteSheet const & sprite_sheet);
-
 	std::unique_ptr<TextMesh> create_text_mesh(
 		std::string const & text,
 		FontAtlas const & font_atlas,
@@ -80,14 +58,10 @@ private:
 	RenderContext const & m_render_context;
 	std::string const m_title;
 
-	Renderer m_renderer;
+	AssetManager m_asset_manager;
+	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
 	Camera2d m_camera2d;
-
-	AssetManager m_asset_manager;
-	AssetPool<RenderObject> m_render_object_pool;
-
-	std::vector<PipelineRenderObjects> m_ordered_ros;
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 
@@ -106,45 +80,6 @@ private:
 	float m_frame_timer = 0.0f;
 	int m_frame_count = 0;
 };
-
-template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT /*= std::nullopt_t*/>
-	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
-AssetId Scene::create_render_object(
-	std::string const & name,
-	MeshIdT mesh_id,
-	PipelineIdT pipeline_id,
-	ObjectDataT const & object_data /*= std::nullopt*/)
-{
-	if (!mesh_id.IsValid())
-	{
-		std::cout << "Scene::create_render_object: invalid mesh id for object: " + name;
-		return AssetId{};
-	}
-	if (!pipeline_id.IsValid())
-	{
-		std::cout << "Scene::create_render_object: invalid pipeline id for object: " + name;
-		return AssetId{};
-	}
-
-	RenderObject ro{ name, mesh_id, pipeline_id };
-	if constexpr (!std::same_as<ObjectDataT, std::nullopt_t>)
-		ro.SetObjectData(&object_data);
-
-	AssetId ro_id = m_render_object_pool.Add(std::move(ro));
-	if (!ro_id.IsValid())
-	{
-		std::cout << "Failed to add render object to pool for object: " + name;
-		return ro_id;
-	}
-
-	auto iter = std::ranges::find(m_ordered_ros, pipeline_id, &PipelineRenderObjects::pipeline_id);
-	if (iter != m_ordered_ros.end())
-		iter->ro_ids.push_back(ro_id);
-	else
-		m_ordered_ros.push_back(PipelineRenderObjects{ pipeline_id, { ro_id } });
-
-	return ro_id;
-}
 
 std::unique_ptr<TextMesh> Scene::create_text_mesh(
 	std::string const & text,
@@ -198,13 +133,11 @@ std::unique_ptr<TextMesh> Scene::create_text_mesh(
 Scene::Scene(RenderContext const & render_context, std::string const & title, float dpi_scale_factor)
 	: m_render_context{ render_context }
 	, m_title{ title }
-	, m_renderer{ render_context }
+	, m_asset_manager{ render_context }
+	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
-	, m_asset_manager{ render_context }
 {
-	m_renderer.SetClearColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
-
 	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
 	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
 	m_camera3d.Init(camera_pos, camera_dir);
@@ -217,7 +150,7 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 		PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, bg_tex_id);
-	create_render_object("background", m_background.GetMeshId(), bg_pipeline_id);
+	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id);
 
 	m_bounds.SetVertices({
 		{-0.5f, -4.0f},
@@ -240,7 +173,7 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 		.bg_color = { 0.0f, 0.0f, 0.0f, 0.0f },
 		.text_color = { 1.0f, 1.0f, 0.0f, 1.0 },
 	};
-	create_render_object("fps label", m_fps_mesh->GetMeshId(), text_pipeline_id, m_fps_label);
+	m_renderer.CreateRenderObject("fps label", m_fps_mesh->GetMeshId(), text_pipeline_id, m_fps_label);
 
 	m_title_mesh = create_text_mesh(m_title, *m_arial_font, title_font_size, glm::vec2{ -0.9, 0.8 } /*origin*/,
 		0 /*viewport_width*/, 0 /*viewport_height*/);
@@ -249,23 +182,23 @@ Scene::Scene(RenderContext const & render_context, std::string const & title, fl
 		.bg_color = { 0.0f, 0.0f, 0.0f, 0.0f },
 		.text_color = { 1.0f, 1.0f, 1.0f, 1.0 },
 	};
-	create_render_object("title", m_title_mesh->GetMeshId(), text_pipeline_id, m_title_label);
+	m_renderer.CreateRenderObject("title", m_title_mesh->GetMeshId(), text_pipeline_id, m_title_label);
 
 	// editor grid
 	m_grid.Init(m_asset_manager);
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
-	m_grid.SetRO(create_render_object("grid", m_grid.GetMeshId(), line_pipeline_id));
+	m_grid.SetRO(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
 
 	// dog
 	m_dog.Init(m_asset_manager, camera_dir);
 	// at some point, we should allow changing the pipeline's texture so we can reuse this for other sprites
 	const auto dog_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_dog.GetTextureId());
-	create_render_object("dog", m_dog.GetMeshId(), dog_sprite_pipeline_id, m_dog.GetSpriteData());
+	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), dog_sprite_pipeline_id, m_dog.GetSpriteData());
 
 	// baby
 	m_baby.Init(m_asset_manager, camera_dir);
 	const auto baby_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_baby.GetTextureId());
-	create_render_object("baby", m_baby.GetMeshId(), baby_sprite_pipeline_id, m_baby.GetSpriteData());
+	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), baby_sprite_pipeline_id, m_baby.GetSpriteData());
 }
 
 void Scene::OnViewportResized(int width, int height)
@@ -309,7 +242,7 @@ bool Scene::Update(float dt, Input const & input)
 		m_frame_count = 0;
 	}
 
-	m_grid.Update(input, m_render_object_pool);
+	m_grid.Update(input, m_renderer);
 	m_dog.Update(dt, input, m_bounds);
 	m_baby.Update(dt, &m_dog);
 
@@ -318,43 +251,5 @@ bool Scene::Update(float dt, Input const & input)
 
 void Scene::Render() const
 {
-	m_renderer.BeginDraw();
-
-	for (PipelineRenderObjects const & pipeline_ros : m_ordered_ros)
-	{
-		Pipeline const * pipeline = m_asset_manager.GetPipeline(pipeline_ros.pipeline_id);
-		if (!pipeline)
-		{
-			std::cout << "Scene::Render: No pipeline found in pool for pipeline ID: " << pipeline_ros.pipeline_id.GetIndex() << std::endl;
-			continue;
-		}
-
-		pipeline->Activate();
-		pipeline->UpdatePerFrameConstants();
-
-		for (AssetId obj_id : pipeline_ros.ro_ids)
-		{
-			RenderObject const * obj = m_render_object_pool.Get(obj_id);
-			if (!obj)
-			{
-				std::cout << "Scene::Render: No render object found in pool for AssetId: " << obj_id.GetIndex() << std::endl;
-				continue;
-			}
-
-			if (!obj->IsShown())
-				continue;
-
-			Mesh const * mesh = m_asset_manager.GetMesh(obj->GetMeshId());
-			if (!mesh)
-			{
-				std::cout << "Scene::Render: No mesh found in pool for AssetId: " << obj->GetMeshId().GetIndex() << std::endl;
-				continue;
-			}
-
-			pipeline->UpdatePerObjectConstants(obj->GetObjectData());
-			mesh->Render();
-		}
-	}
-
-	m_renderer.EndDraw();
+	m_renderer.Render();
 }

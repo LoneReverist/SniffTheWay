@@ -14,13 +14,14 @@ import AssetPool;
 import Input;
 import LinePipeline;
 import RenderObject;
+import SceneRenderer;
 import Vertex;
 
 export class EditorGrid
 {
 public:
 	void Init(AssetManager & asset_manager);
-	void Update(Input const & input, AssetPool<RenderObject> & ro_pool);
+	void Update(Input const & input, SceneRenderer & renderer);
 
 	void SetRO(AssetId ro_id) { m_ro_id = ro_id; }
 
@@ -39,16 +40,10 @@ void EditorGrid::Init(AssetManager & asset_manager)
 	m_mesh_id = create_grid_mesh(asset_manager);
 }
 
-void EditorGrid::Update(Input const & input, AssetPool<RenderObject> & ro_pool)
+void EditorGrid::Update(Input const & input, SceneRenderer & renderer)
 {
 	if (input.KeyJustPressed('G'))
-	{
-		RenderObject * ro = ro_pool.Get(m_ro_id);
-		if (!ro)
-			return;
-
-		ro->Show(!ro->IsShown());
-	}
+		renderer.Show(m_ro_id, !renderer.IsShown(m_ro_id));
 }
 
 MeshId<Vertex2d> EditorGrid::create_grid_mesh(AssetManager & asset_manager)

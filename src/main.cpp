@@ -8,7 +8,7 @@ import Dreamhearth;
 import DreamhearthWindow;
 
 import Input;
-import Scene;
+import SceneForestPath;
 import SceneManager;
 
 constexpr char const * AppName = "Sniff the Way - A Tail to Guide You Home";
@@ -59,7 +59,7 @@ int main()
 
 			dh::RenderContext render_context = window.CreateRenderContext(size);
 
-			auto initial_scene = std::make_unique<Scene>(render_context, AppName);
+			auto initial_scene = std::make_unique<SceneForestPath>(render_context, AppName);
 			SceneManager scene_manager{ render_context, std::move(initial_scene) };
 			scene_manager.OnDPIScaleFactorChanged(scale_factor);
 			scene_manager.OnViewportResized(size.width, size.height);

@@ -1,4 +1,4 @@
-// Scene.ixx
+// SceneForestPath.ixx
 
 module;
 
@@ -8,7 +8,7 @@ module;
 
 #include <glm/glm.hpp>
 
-export module Scene;
+export module SceneForestPath;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
@@ -33,10 +33,10 @@ import TextPipeline;
 import UILabel;
 import Vertex;
 
-export class Scene : public IScene
+export class SceneForestPath : public IScene
 {
 public:
-	explicit Scene(dh::RenderContext const & render_context, std::string const & title);
+	explicit SceneForestPath(dh::RenderContext const & render_context, std::string const & title);
 
 	void OnViewportResized(int width, int height) override;
 	void OnDPIScaleFactorChanged(float dpi_scale_factor) override;
@@ -68,7 +68,7 @@ private:
 	int m_frame_count = 0;
 };
 
-Scene::Scene(dh::RenderContext const & render_context, std::string const & title)
+SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::string const & title)
 	: m_render_context{ render_context }
 	, m_title{ title }
 	, m_asset_manager{ render_context }
@@ -129,7 +129,7 @@ Scene::Scene(dh::RenderContext const & render_context, std::string const & title
 }
 
 // override
-void Scene::OnViewportResized(int width, int height)
+void SceneForestPath::OnViewportResized(int width, int height)
 {
 	m_camera3d.OnViewportResized(width, height);
 	m_camera2d.OnViewportResized(width, height);
@@ -143,7 +143,7 @@ void Scene::OnViewportResized(int width, int height)
 }
 
 // override
-void Scene::OnDPIScaleFactorChanged(float dpi_scale_factor)
+void SceneForestPath::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	float label_font_size = 18.0f * dpi_scale_factor;
 	float title_font_size = 32.0f * dpi_scale_factor;
@@ -155,7 +155,7 @@ void Scene::OnDPIScaleFactorChanged(float dpi_scale_factor)
 }
 
 // override
-std::optional<SceneTransition> Scene::Update(float dt, Input const & input)
+std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{}; // empty scene transition closes application
@@ -183,7 +183,7 @@ std::optional<SceneTransition> Scene::Update(float dt, Input const & input)
 }
 
 // override
-void Scene::Render() const
+void SceneForestPath::Render() const
 {
 	m_renderer.Render();
 }

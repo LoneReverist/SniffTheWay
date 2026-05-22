@@ -35,7 +35,7 @@ private:
 void FPSLabel::Init(AssetManager & asset_manager, FontAtlas const & font_atlas)
 {
 	m_ui_label = std::make_unique<UILabel>(asset_manager, "FPS: ", font_atlas,
-		SniffTheWay::LabelFontSize, glm::vec2{ -0.9, -0.9 } /*origin*/, SniffTheWay::StoryTextColor);
+		SniffTheWay::LabelFontSize, glm::vec2{ -0.9, -0.9 } /*origin*/, UILabel::Align::Left, SniffTheWay::StoryTextColor);
 }
 
 void FPSLabel::Update(float dt)

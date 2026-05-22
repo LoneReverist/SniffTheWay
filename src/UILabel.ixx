@@ -26,12 +26,20 @@ export class UILabel
 public:
 	using VertexT = TextureVertex2d;
 
+	enum class Align {
+		Left,
+		Right,
+		Center,
+	};
+
+public:
 	explicit UILabel(
 		AssetManager & asset_manager,
 		std::string const & text,
 		FontAtlas const & font_atlas,
 		float font_size,
 		glm::vec2 origin,
+		Align align,
 		glm::vec4 color);
 
 	void OnViewportResized(int width, int height);
@@ -56,6 +64,7 @@ private:
 	std::uint32_t m_font_tex_height = 0;
 	float m_font_size = 0.0f;
 	glm::vec2 m_origin{ 0.0f };
+	Align m_align = Align::Left;
 	TextPipeline::ObjectData m_label_data;
 
 	int m_viewport_width = 0;
@@ -68,12 +77,14 @@ UILabel::UILabel(
 	FontAtlas const & font_atlas,
 	float font_size,
 	glm::vec2 origin,
+	Align align,
 	glm::vec4 color)
 	: m_asset_manager(asset_manager)
 	, m_text(text)
 	, m_font_atlas(font_atlas)
 	, m_font_size(font_size)
 	, m_origin(origin)
+	, m_align(align)
 {
 	std::uint32_t font_tex_width = 0, font_tex_height = 0;
 	dh::Texture const * font_tex = m_asset_manager.GetTexture(font_atlas.GetTextureId());
@@ -190,6 +201,19 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 		indices.push_back(static_cast<dh::Mesh::IndexT>(start_vi + 3));
 
 		pen.x += g.advance * width_scale;
+	}
+
+	// alignment
+	float x_offset = 0.0f;
+	if (m_align == Align::Right)
+		x_offset = m_origin.x - pen.x;
+	else if (m_align == Align::Center)
+		x_offset = (m_origin.x - pen.x) * 0.5;
+
+	if (x_offset != 0.0f)
+	{
+		for (VertexT & vert : verts)
+			vert.pos.x += x_offset;
 	}
 
 	dh::Mesh mesh{ m_asset_manager.GetRenderContext() };

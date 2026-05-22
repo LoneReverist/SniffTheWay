@@ -103,7 +103,7 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
-		SniffTheWay::LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, SniffTheWay::StoryTextColor);
+		SniffTheWay::LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, SniffTheWay::StoryTextColor);
 	m_story_label_ro = m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData());
 
 	// editor grid

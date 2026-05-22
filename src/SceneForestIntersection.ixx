@@ -34,6 +34,8 @@ import TextPipeline;
 import UILabel;
 import Vertex;
 
+using namespace SniffTheWay;
+
 export class SceneForestIntersection : public IScene
 {
 public:
@@ -103,7 +105,7 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
-		SniffTheWay::LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, SniffTheWay::StoryTextColor);
+		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_story_label_ro = m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData());
 
 	// editor grid
@@ -143,14 +145,14 @@ void SceneForestIntersection::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
 	if (m_story_label)
-		m_story_label->SetFontSize(SniffTheWay::LabelFontSize * dpi_scale_factor);
+		m_story_label->SetFontSize(LabelFontSize * dpi_scale_factor);
 }
 
 // override
 std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{}; // empty scene transition closes application
+		return SceneTransition{ SceneId::Exit };
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 	{
@@ -163,6 +165,9 @@ std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input c
 	m_grid.Update(input, m_renderer, m_scene_state);
 	m_dog.Update(dt, input, m_bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
+
+	if (m_scene_state == SceneState::Gameplay && m_dog.GetSpriteData().model[3].y > 9.75)
+		return SceneTransition{ SceneId::ForestPath };
 
 	return std::nullopt;
 }

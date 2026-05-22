@@ -13,11 +13,13 @@ namespace dh = Dreamhearth;
 import AssetManager;
 import AssetPool;
 import Input;
-import IScene;
 import Polygon2d;
+import SniffTheWayConstants;
 import SpriteSheet;
 import SpritePipeline;
 import Vertex;
+
+using namespace SniffTheWay;
 
 export class Dog
 {

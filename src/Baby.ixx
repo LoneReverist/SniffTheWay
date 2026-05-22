@@ -14,10 +14,12 @@ import AssetManager;
 import AssetPool;
 import Dog;
 import Input;
-import IScene;
+import SniffTheWayConstants;
 import SpriteSheet;
 import SpritePipeline;
 import Vertex;
+
+using namespace SniffTheWay;
 
 export class Baby
 {

@@ -27,7 +27,6 @@ import Input;
 import IScene;
 import LinePipeline;
 import Polygon2d;
-import SceneForestIntersection;
 import SceneRenderer;
 import SniffTheWayConstants;
 import SpritePipeline;
@@ -35,10 +34,12 @@ import TextPipeline;
 import UILabel;
 import Vertex;
 
+using namespace SniffTheWay;
+
 export class SceneForestPath : public IScene
 {
 public:
-	explicit SceneForestPath(dh::RenderContext const & render_context, std::string const & title);
+	explicit SceneForestPath(dh::RenderContext const & render_context);
 
 	void OnViewportResized(int width, int height) override;
 	void OnDPIScaleFactorChanged(float dpi_scale_factor) override;
@@ -58,7 +59,6 @@ private:
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 	FPSLabel m_fps_label;
-	std::string const m_title;
 	std::unique_ptr<UILabel> m_title_label;
 	std::unique_ptr<UILabel> m_story_label;
 	AssetId m_story_label_ro;
@@ -70,9 +70,8 @@ private:
 	Baby m_baby;
 };
 
-SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::string const & title)
+SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
 	: m_render_context{ render_context }
-	, m_title{ title }
 	, m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
@@ -106,12 +105,12 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
 	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
 
-	m_title_label = std::make_unique<UILabel>(m_asset_manager, m_title, *m_arial_font,
-		SniffTheWay::TitleFontSize, glm::vec2{ -0.9, 0.8 } /*origin*/, UILabel::Align::Left, SniffTheWay::StoryTextColor);
+	m_title_label = std::make_unique<UILabel>(m_asset_manager, ShortTitle, *m_arial_font,
+		TitleFontSize, glm::vec2{ -0.9, 0.8 } /*origin*/, UILabel::Align::Left, StoryTextColor);
 	m_renderer.CreateRenderObject("title", m_title_label->GetMeshId(), text_pipeline_id, m_title_label->GetLabelData());
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
-		SniffTheWay::LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, SniffTheWay::StoryTextColor);
+		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_story_label_ro = m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData());
 
 	// editor grid
@@ -153,16 +152,16 @@ void SceneForestPath::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
 	if (m_title_label)
-		m_title_label->SetFontSize(SniffTheWay::TitleFontSize * dpi_scale_factor);
+		m_title_label->SetFontSize(TitleFontSize * dpi_scale_factor);
 	if (m_story_label)
-		m_story_label->SetFontSize(SniffTheWay::LabelFontSize * dpi_scale_factor);
+		m_story_label->SetFontSize(LabelFontSize * dpi_scale_factor);
 }
 
 // override
 std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{}; // empty scene transition closes application
+		return SceneTransition{ SceneId::Exit };
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 	{
@@ -177,7 +176,7 @@ std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & i
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
 	if (m_scene_state == SceneState::Gameplay && m_dog.GetSpriteData().model[3].y < -3.75)
-		return SceneTransition{ [](dh::RenderContext const & ctx) { return std::make_unique<SceneForestIntersection>(ctx); } };
+		return SceneTransition{ SceneId::ForestIntersection };
 
 	return std::nullopt;
 }

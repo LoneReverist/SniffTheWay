@@ -2,25 +2,16 @@
 
 module;
 
-#include <cstdint>
-#include <functional>
-#include <memory>
 #include <optional>
 
 export module IScene;
 
-import Dreamhearth;
-namespace dh = Dreamhearth;
-
 import Input;
+import SniffTheWayConstants;
 
-struct SceneTransition;
-
-export enum class SceneState : std::uint8_t
+export struct SceneTransition
 {
-	Story,
-	Gameplay,
-	Paused,
+	SniffTheWay::SceneId next_scene_id;
 };
 
 export class IScene
@@ -37,14 +28,4 @@ public:
     virtual std::optional<SceneTransition> Update(float dt, Input const & input) = 0;
 
     virtual void Render() const = 0;
-};
-
-export struct SceneTransition
-{
-    // A factory that constructs the next scene.
-    // Storing a factory (not the scene itself) means the old scene's GPU
-    // resources are still alive when this struct is created — safe.
-    using CreateSceneFn = std::function<std::unique_ptr<IScene>(dh::RenderContext const &)>;
-
-    CreateSceneFn create_scene_fn; // null == exit application
 };

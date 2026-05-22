@@ -202,19 +202,6 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 
 void UILabel::update_mesh() const
 {
-	if (!m_mesh_id.IsValid())
-	{
-		std::cout << "UILabel::update_mesh: Invalid AssetId for updating mesh" << std::endl;
-		return;
-	}
-
-	dh::Mesh *mesh = m_asset_manager.GetMesh(m_mesh_id);
-	if (!mesh)
-	{
-		std::cout << "UILabel::update_mesh: No mesh found in pool for AssetId: " << m_mesh_id.GetIndex() << std::endl;
-		return;
-	}
-
 	std::expected<dh::Mesh, dh::GraphicsError> new_mesh = create_mesh();
 	if (!new_mesh.has_value())
 	{
@@ -222,5 +209,5 @@ void UILabel::update_mesh() const
 		return;
 	}
 
-	*mesh = std::move(new_mesh.value());
+	m_asset_manager.UpdateMesh(m_mesh_id, std::move(new_mesh.value()));
 }

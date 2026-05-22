@@ -48,6 +48,8 @@ SceneManager::SceneManager(dh::RenderContext const & ctx, std::unique_ptr<IScene
 
 void SceneManager::OnViewportResized(int w, int h)
 {
+	m_render_context.WaitForLastFrame(); // GPU drains before recreating meshes
+	
 	m_viewport_w = w;
 	m_viewport_h = h;
 	if (m_cur_scene)
@@ -56,6 +58,8 @@ void SceneManager::OnViewportResized(int w, int h)
 
 void SceneManager::OnDPIScaleFactorChanged(float dpi_scale)
 {
+	m_render_context.WaitForLastFrame(); // GPU drains before recreating meshes
+	
 	m_dpi_scale = dpi_scale;
 	if (m_cur_scene)
 		m_cur_scene->OnDPIScaleFactorChanged(dpi_scale);

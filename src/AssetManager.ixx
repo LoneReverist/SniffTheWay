@@ -65,6 +65,9 @@ public:
 		std::vector<InstanceDataT> const & instance_data);
 
 	template<IsVertex VertexT>
+	void UpdateMesh(MeshId<VertexT> mesh_id, dh::Mesh new_mesh);
+
+	template<IsVertex VertexT>
 	void UpdateMesh(
 		MeshId<VertexT> mesh_id,
 		std::vector<VertexT> const & vertices,
@@ -145,6 +148,16 @@ MeshId<VertexT> AssetManager::AddMesh(
 	}
 
 	return AddMesh<VertexT>(std::move(mesh));
+}
+
+template<IsVertex VertexT>
+void AssetManager::UpdateMesh(MeshId<VertexT> mesh_id, dh::Mesh new_mesh)
+{
+	dh::Mesh * mesh = GetMesh(mesh_id);
+	if (!mesh)
+		return;
+
+	*mesh = std::move(new_mesh);
 }
 
 template<IsVertex VertexT>

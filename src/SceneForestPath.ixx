@@ -22,12 +22,14 @@ import Camera;
 import Dog;
 import EditorGrid;
 import FontAtlas;
+import FPSLabel;
 import Input;
 import IScene;
 import LinePipeline;
 import Polygon2d;
 import SceneForestIntersection;
 import SceneRenderer;
+import SniffTheWayConstants;
 import SpritePipeline;
 import TextPipeline;
 import UILabel;
@@ -55,7 +57,7 @@ private:
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 
-	std::unique_ptr<UILabel> m_fps_label;
+	FPSLabel m_fps_label;
 	std::unique_ptr<UILabel> m_title_label;
 
 	Background m_background;
@@ -63,9 +65,6 @@ private:
 	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
-
-	float m_frame_timer = 0.0f;
-	int m_frame_count = 0;
 };
 
 SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::string const & title)
@@ -101,14 +100,11 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::
 
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);
 
-	const float label_font_size = 18.0f;
-	const float title_font_size = 32.0f;
-	const glm::vec4 story_text_color{ 0.96f, 0.90f, 0.78f, 1.0f };
+	m_fps_label.Init(m_asset_manager, *m_arial_font);
+	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
 
-	m_fps_label = std::make_unique<UILabel>(m_asset_manager, "FPS: ", *m_arial_font, label_font_size, glm::vec2{ -0.9, -0.9 } /*origin*/, story_text_color);
-	m_renderer.CreateRenderObject("fps label", m_fps_label->GetMeshId(), text_pipeline_id, m_fps_label->GetLabelData());
-
-	m_title_label = std::make_unique<UILabel>(m_asset_manager, m_title, *m_arial_font, title_font_size, glm::vec2{ -0.9, 0.8 } /*origin*/, story_text_color);
+	m_title_label = std::make_unique<UILabel>(m_asset_manager, m_title, *m_arial_font,
+		SniffTheWay::TitleFontSize, glm::vec2{ -0.9, 0.8 } /*origin*/, SniffTheWay::StoryTextColor);
 	m_renderer.CreateRenderObject("title", m_title_label->GetMeshId(), text_pipeline_id, m_title_label->GetLabelData());
 
 	// editor grid
@@ -136,8 +132,7 @@ void SceneForestPath::OnViewportResized(int width, int height)
 
 	// keep UI elements proportional to the height of the view
 	m_background.OnViewportResized(width, height, m_asset_manager);
-	if (m_fps_label)
-		m_fps_label->OnViewportResized(width, height);
+	m_fps_label.OnViewportResized(width, height);
 	if (m_title_label)
 		m_title_label->OnViewportResized(width, height);
 }
@@ -145,13 +140,9 @@ void SceneForestPath::OnViewportResized(int width, int height)
 // override
 void SceneForestPath::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
-	float label_font_size = 18.0f * dpi_scale_factor;
-	float title_font_size = 32.0f * dpi_scale_factor;
-
-	if (m_fps_label)
-		m_fps_label->SetFontSize(label_font_size);
+	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
 	if (m_title_label)
-		m_title_label->SetFontSize(title_font_size);
+		m_title_label->SetFontSize(SniffTheWay::TitleFontSize * dpi_scale_factor);
 }
 
 // override
@@ -161,17 +152,7 @@ std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & i
 		return SceneTransition{}; // empty scene transition closes application
 
 	m_camera3d.Update(dt, input);
-
-	m_frame_timer += dt;
-	m_frame_count++;
-	if (m_frame_timer >= 1.0)
-	{
-		float fps = static_cast<float>(m_frame_count) / m_frame_timer;
-		m_fps_label->SetText("FPS: " + std::to_string(static_cast<int>(fps)));
-		m_frame_timer = 0.0;
-		m_frame_count = 0;
-	}
-
+	m_fps_label.Update(dt);
 	m_grid.Update(input, m_renderer);
 	m_dog.Update(dt, input, m_bounds);
 	m_baby.Update(dt, &m_dog);

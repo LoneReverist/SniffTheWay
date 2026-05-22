@@ -12,6 +12,7 @@ namespace dh = Dreamhearth;
 import AssetManager;
 import AssetPool;
 import Input;
+import IScene;
 import LinePipeline;
 import RenderObject;
 import SceneRenderer;
@@ -21,7 +22,8 @@ export class EditorGrid
 {
 public:
 	void Init(AssetManager & asset_manager);
-	void Update(Input const & input, SceneRenderer & renderer);
+	void Update(Input const & input, SceneRenderer & renderer, SceneState scene_state);
+	void OnSceneStateChanged(SceneState new_state, SceneRenderer & renderer);
 
 	void SetRO(AssetId ro_id) { m_ro_id = ro_id; }
 
@@ -40,10 +42,18 @@ void EditorGrid::Init(AssetManager & asset_manager)
 	m_mesh_id = create_grid_mesh(asset_manager);
 }
 
-void EditorGrid::Update(Input const & input, SceneRenderer & renderer)
+void EditorGrid::Update(Input const & input, SceneRenderer & renderer, SceneState scene_state)
 {
-	if (input.KeyJustPressed('G'))
+	if (scene_state == SceneState::Gameplay && input.KeyJustPressed('G'))
 		renderer.Show(m_ro_id, !renderer.IsShown(m_ro_id));
+}
+
+void EditorGrid::OnSceneStateChanged(SceneState new_state, SceneRenderer & renderer)
+{
+	if (new_state == SceneState::Gameplay)
+		renderer.Show(m_ro_id, true);
+	else
+		renderer.Show(m_ro_id, false);
 }
 
 MeshId<Vertex2d> EditorGrid::create_grid_mesh(AssetManager & asset_manager)

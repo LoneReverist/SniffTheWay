@@ -13,6 +13,7 @@ export class Input
 public:
 	enum class Key : int
 	{
+		Space   = 32,  // GLFW_KEY_SPACE
 		Esc     = 256, // GLFW_KEY_ESCAPE
 		Enter   = 257, // GLFW_KEY_ENTER
 		Right   = 262, // GLFW_KEY_RIGHT

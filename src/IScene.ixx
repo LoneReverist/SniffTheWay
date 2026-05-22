@@ -2,6 +2,7 @@
 
 module;
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -14,6 +15,13 @@ namespace dh = Dreamhearth;
 import Input;
 
 struct SceneTransition;
+
+export enum class SceneState : std::uint8_t
+{
+	Story,
+	Gameplay,
+	Paused,
+};
 
 export class IScene
 {

@@ -46,19 +46,22 @@ public:
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void Render() const override;
 
+	void ChangeSceneState(SceneState new_state);
+
 private:
 	dh::RenderContext const & m_render_context;
-	std::string const m_title;
-
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
 	Camera2d m_camera2d;
+	SceneState m_scene_state = SceneState::Paused;
 
 	std::unique_ptr<FontAtlas> m_arial_font;
-
 	FPSLabel m_fps_label;
+	std::string const m_title;
 	std::unique_ptr<UILabel> m_title_label;
+	std::unique_ptr<UILabel> m_story_label;
+	AssetId m_story_label_ro;
 
 	Background m_background;
 	Polygon2d m_bounds;
@@ -93,7 +96,7 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::
 		{-1.0f, 10.0f},
 	});
 
-	// title and fps
+	// ui
 	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
@@ -106,6 +109,10 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::
 	m_title_label = std::make_unique<UILabel>(m_asset_manager, m_title, *m_arial_font,
 		SniffTheWay::TitleFontSize, glm::vec2{ -0.9, 0.8 } /*origin*/, SniffTheWay::StoryTextColor);
 	m_renderer.CreateRenderObject("title", m_title_label->GetMeshId(), text_pipeline_id, m_title_label->GetLabelData());
+
+	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
+		SniffTheWay::LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, SniffTheWay::StoryTextColor);
+	m_story_label_ro = m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData());
 
 	// editor grid
 	m_grid.Init(m_asset_manager);
@@ -122,6 +129,8 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context, std::
 	m_baby.Init(m_asset_manager, camera_dir);
 	const auto baby_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_baby.GetTextureId());
 	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), baby_sprite_pipeline_id, m_baby.GetSpriteData());
+
+	ChangeSceneState(SceneState::Story);
 }
 
 // override
@@ -135,6 +144,8 @@ void SceneForestPath::OnViewportResized(int width, int height)
 	m_fps_label.OnViewportResized(width, height);
 	if (m_title_label)
 		m_title_label->OnViewportResized(width, height);
+	if (m_story_label)
+		m_story_label->OnViewportResized(width, height);
 }
 
 // override
@@ -143,6 +154,8 @@ void SceneForestPath::OnDPIScaleFactorChanged(float dpi_scale_factor)
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
 	if (m_title_label)
 		m_title_label->SetFontSize(SniffTheWay::TitleFontSize * dpi_scale_factor);
+	if (m_story_label)
+		m_story_label->SetFontSize(SniffTheWay::LabelFontSize * dpi_scale_factor);
 }
 
 // override
@@ -151,13 +164,19 @@ std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & i
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{}; // empty scene transition closes application
 
+	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
+	{
+		ChangeSceneState(SceneState::Gameplay);
+		m_renderer.Show(m_story_label_ro, false);
+	}
+
 	m_camera3d.Update(dt, input);
 	m_fps_label.Update(dt);
-	m_grid.Update(input, m_renderer);
-	m_dog.Update(dt, input, m_bounds);
-	m_baby.Update(dt, &m_dog);
+	m_grid.Update(input, m_renderer, m_scene_state);
+	m_dog.Update(dt, input, m_bounds, m_scene_state);
+	m_baby.Update(dt, &m_dog, m_scene_state);
 
-	if (m_dog.GetSpriteData().model[3].y < -3.75)
+	if (m_scene_state == SceneState::Gameplay && m_dog.GetSpriteData().model[3].y < -3.75)
 		return SceneTransition{ [](dh::RenderContext const & ctx) { return std::make_unique<SceneForestIntersection>(ctx); } };
 
 	return std::nullopt;
@@ -167,4 +186,12 @@ std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & i
 void SceneForestPath::Render() const
 {
 	m_renderer.Render();
+}
+
+void SceneForestPath::ChangeSceneState(SceneState new_state)
+{
+	m_scene_state = new_state;
+	m_grid.OnSceneStateChanged(m_scene_state, m_renderer);
+	m_dog.OnSceneStateChanged(m_scene_state);
+	m_baby.OnSceneStateChanged(m_scene_state);
 }

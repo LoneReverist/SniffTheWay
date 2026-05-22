@@ -13,6 +13,7 @@ namespace dh = Dreamhearth;
 import AssetManager;
 import AssetPool;
 import Input;
+import IScene;
 import Polygon2d;
 import SpriteSheet;
 import SpritePipeline;
@@ -33,7 +34,8 @@ public:
     void Init(
 		AssetManager & asset_manager,
 		glm::vec3 const & camera_dir);
-    void Update(float dt, Input const & input, Polygon2d const & bounds);
+    void Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state);
+	void OnSceneStateChanged(SceneState new_state);
 
     AssetId GetTextureId() const { return m_tex_id; }
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
@@ -85,21 +87,24 @@ void Dog::Init(
 	};
 }
 
-void Dog::Update(float dt, Input const & input, Polygon2d const & bounds)
+void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state)
 {
 	if (m_sprite_sheet.GetFrameCount() == 0)
 		return;
 
 	// Handle WASD input for 3D movement
 	glm::vec2 move_dir(0.0f);
-	if (input.KeyIsDown('W') || input.KeyIsDown(Input::Key::Up))
-		move_dir.y += 1.0f;
-	if (input.KeyIsDown('S') || input.KeyIsDown(Input::Key::Down))
-		move_dir.y -= 1.0f;
-	if (input.KeyIsDown('A') || input.KeyIsDown(Input::Key::Left))
-		move_dir.x -= 1.0f;
-	if (input.KeyIsDown('D') || input.KeyIsDown(Input::Key::Right))
-		move_dir.x += 1.0f;
+	if (scene_state == SceneState::Gameplay)
+	{
+		if (input.KeyIsDown('W') || input.KeyIsDown(Input::Key::Up))
+			move_dir.y += 1.0f;
+		if (input.KeyIsDown('S') || input.KeyIsDown(Input::Key::Down))
+			move_dir.y -= 1.0f;
+		if (input.KeyIsDown('A') || input.KeyIsDown(Input::Key::Left))
+			move_dir.x -= 1.0f;
+		if (input.KeyIsDown('D') || input.KeyIsDown(Input::Key::Right))
+			move_dir.x += 1.0f;
+	}
 
 	glm::vec2 velocity(0.0f);
 	if (move_dir != glm::vec2(0.0f))
@@ -143,4 +148,10 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds)
 			m_sprite_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
 		}
 	}
+}
+
+void Dog::OnSceneStateChanged(SceneState new_state)
+{
+	if (new_state != SceneState::Gameplay)
+		m_state = State::Idle;
 }

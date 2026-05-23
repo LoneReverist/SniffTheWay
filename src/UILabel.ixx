@@ -47,7 +47,10 @@ public:
 	void SetText(std::string const & text);
 	void SetFontSize(float font_size);
 
+	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
+	
 	MeshId<VertexT> GetMeshId() const { return m_mesh_id; }
+	AssetId GetROId() const { return m_ro_id; }
     TextPipeline::ObjectData const & GetLabelData() const { return m_label_data; }
 
 private:
@@ -57,6 +60,10 @@ private:
 private:
 	AssetManager & m_asset_manager;
 	MeshId<VertexT> m_mesh_id;
+	AssetId m_ro_id;
+
+	int m_viewport_width = 0;
+	int m_viewport_height = 0;
 
 	std::string m_text;
 	FontAtlas const & m_font_atlas;
@@ -66,9 +73,6 @@ private:
 	glm::vec2 m_origin{ 0.0f };
 	Align m_align = Align::Left;
 	TextPipeline::ObjectData m_label_data;
-
-	int m_viewport_width = 0;
-	int m_viewport_height = 0;
 };
 
 UILabel::UILabel(

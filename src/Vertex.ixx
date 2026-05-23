@@ -7,6 +7,7 @@ module;
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 export module Vertex;
 
@@ -58,8 +59,12 @@ dh::LayoutDesc create_layout()
 
 	if constexpr (requires(VertexT v) { v.color; })
 	{
+		dh::AttributeType pos_type = dh::AttributeType::Float3;
+		if constexpr (std::same_as<glm::vec4, decltype(VertexT::color)>)
+			pos_type = dh::AttributeType::Float4;
+
 		layout.attributes.push_back(dh::AttributeDesc{
-			.type = dh::AttributeType::Float3,
+			.type = pos_type,
 			.offset = offsetof(VertexT, color),
 			.location = location++
 			});
@@ -83,7 +88,16 @@ export struct TextureVertex2d
 	static dh::LayoutDesc CreateLayout() { return create_layout<TextureVertex2d>(); }
 };
 
+export struct ColorVertex2d
+{
+	glm::vec2 pos{ 0.0f };
+	glm::vec4 color{ 1.0f };
+
+	static dh::LayoutDesc CreateLayout() { return create_layout<ColorVertex2d>(); }
+};
+
 export template <typename T>
 concept IsVertex =
 	std::same_as<T, Vertex2d>
-	|| std::same_as<T, TextureVertex2d>;
+	|| std::same_as<T, TextureVertex2d>
+	|| std::same_as<T, ColorVertex2d>;

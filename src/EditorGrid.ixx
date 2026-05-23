@@ -27,7 +27,7 @@ public:
 	void Update(Input const & input, SceneRenderer & renderer, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state, SceneRenderer & renderer);
 
-	void SetRO(AssetId ro_id) { m_ro_id = ro_id; }
+	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
 
 	MeshId<Vertex2d> GetMeshId() const { return m_mesh_id; }
 

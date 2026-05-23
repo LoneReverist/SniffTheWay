@@ -19,6 +19,7 @@ import Baby;
 import Background;
 import BackgroundTexPipeline;
 import Camera;
+import ColorPipeline;
 import Dog;
 import EditorGrid;
 import FontAtlas;
@@ -32,6 +33,7 @@ import SniffTheWayConstants;
 import SpritePipeline;
 import TextPipeline;
 import UILabel;
+import UIShadow;
 import Vertex;
 
 using namespace SniffTheWay;
@@ -57,17 +59,17 @@ private:
 	Camera2d m_camera2d;
 	SceneState m_scene_state = SceneState::Paused;
 
-	std::unique_ptr<FontAtlas> m_arial_font;
-	FPSLabel m_fps_label;
-	std::unique_ptr<UILabel> m_title_label;
-	std::unique_ptr<UILabel> m_story_label;
-	AssetId m_story_label_ro;
-
 	Background m_background;
 	Polygon2d m_bounds;
 	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
+
+	std::unique_ptr<FontAtlas> m_arial_font;
+	FPSLabel m_fps_label;
+	std::unique_ptr<UILabel> m_title_label;
+	std::unique_ptr<UILabel> m_story_label;
+	UIShadow m_story_shadow;
 };
 
 SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
@@ -95,28 +97,10 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
 		{-1.0f, 10.0f},
 	});
 
-	// ui
-	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
-		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
-	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
-
-	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);
-
-	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
-
-	m_title_label = std::make_unique<UILabel>(m_asset_manager, ShortTitle, *m_arial_font,
-		TitleFontSize, glm::vec2{ -0.9, 0.8 } /*origin*/, UILabel::Align::Left, StoryTextColor);
-	m_renderer.CreateRenderObject("title", m_title_label->GetMeshId(), text_pipeline_id, m_title_label->GetLabelData());
-
-	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
-		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_story_label_ro = m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData());
-
 	// editor grid
 	m_grid.Init(m_asset_manager);
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
-	m_grid.SetRO(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
+	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
 
 	// dog
 	m_dog.Init(m_asset_manager, camera_dir);
@@ -128,6 +112,28 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
 	m_baby.Init(m_asset_manager, camera_dir);
 	const auto baby_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_baby.GetTextureId());
 	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), baby_sprite_pipeline_id, m_baby.GetSpriteData());
+
+	// ui
+	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
+		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
+	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
+
+	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
+	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);
+
+	m_story_shadow.Init(m_asset_manager, -1.0 /*left*/, 1.0 /*right*/, -0.6 /*top*/, -1.0 /*bottom*/);
+	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
+
+	m_fps_label.Init(m_asset_manager, *m_arial_font);
+	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
+
+	m_title_label = std::make_unique<UILabel>(m_asset_manager, ShortTitle, *m_arial_font,
+		TitleFontSize, glm::vec2{ -0.9, 0.8 } /*origin*/, UILabel::Align::Left, StoryTextColor);
+	m_renderer.CreateRenderObject("title", m_title_label->GetMeshId(), text_pipeline_id, m_title_label->GetLabelData());
+
+	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
+		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
+	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData()));
 
 	ChangeSceneState(SceneState::Story);
 }
@@ -166,7 +172,8 @@ std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & i
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 	{
 		ChangeSceneState(SceneState::Gameplay);
-		m_renderer.Show(m_story_label_ro, false);
+		m_renderer.Show(m_story_label->GetROId(), false);
+		m_renderer.Show(m_story_shadow.GetROId(), false);
 	}
 
 	m_camera3d.Update(dt, input);

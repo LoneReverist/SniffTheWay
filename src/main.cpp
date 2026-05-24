@@ -31,7 +31,7 @@ void run_update_render_loop(
 
 	dh::RenderContext render_context = window.CreateRenderContext(size);
 
-	SceneManager scene_manager{render_context, SceneTransition{ SceneId::ForestPath }};
+	SceneManager scene_manager{render_context, SceneTransition{ SceneId::Picnic }};
 	scene_manager.OnDPIScaleFactorChanged(scale_factor);
 	scene_manager.OnViewportResized(size.width, size.height);
 

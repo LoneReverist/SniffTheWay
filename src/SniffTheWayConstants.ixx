@@ -27,6 +27,7 @@ export namespace SniffTheWay
 	enum class SceneId : std::uint8_t
 	{
 		Exit, // flag to close the application
+		Picnic,
 		ForestPath,
 		ForestIntersection,
 	};

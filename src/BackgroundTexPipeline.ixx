@@ -25,9 +25,7 @@ public:
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
 		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera2d const & camera2d,
-		AssetManager const & asset_manager,
-		AssetId texture_id);
+		Camera2d const & camera2d);
 
 private:
 	BackgroundTexPipeline() = delete;
@@ -36,18 +34,12 @@ private:
 std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipeline(
 	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera2d const & camera2d,
-	AssetManager const & asset_manager,
-	AssetId texture_id)
+	Camera2d const & camera2d)
 {
 	struct ObjectDataVS
 	{
 		alignas(16) glm::mat4 model{ 1.0f };
 	};
-
-	dh::Texture const * texture = asset_manager.GetTexture(texture_id);
-	if (!texture)
-		return std::unexpected{ dh::GraphicsError{ "BackgroundTexPipeline::CreatePipeline: invalid texture" } };
 
 	dh::PipelineBuilder builder{ render_context };
 
@@ -60,7 +52,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipe
 	builder.SetVertexType<VertexT>();
 	builder.SetVSUniformTypes<ProjUniform>();
 	builder.SetObjectDataTypes<ObjectDataVS, std::nullopt_t>();
-	builder.SetTexture(*texture);
+	builder.SetHasTexture(true);
 	builder.SetCullMode(dh::CullMode::NONE);
 	builder.SetDepthTestOptions(dh::DepthTestOptions{
 		.enable_depth_test = false,

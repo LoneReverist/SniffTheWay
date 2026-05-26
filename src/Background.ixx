@@ -20,7 +20,11 @@ public:
 	void Init(AssetManager & asset_manager, AssetId tex_id);
 	void OnViewportResized(int width, int height, AssetManager & asset_manager);
 	
+	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
+	void SetTextureId(AssetId tex_id) { m_tex_id = tex_id; }
+
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
+	AssetId GetROId() const { return m_ro_id; }
 
 private:
 	MeshId<TextureVertex2d> create_bg_mesh(AssetManager & asset_manager);
@@ -28,6 +32,7 @@ private:
 private:
 	AssetId m_tex_id;
 	MeshId<TextureVertex2d> m_mesh_id;
+	AssetId m_ro_id;
 };
 
 void Background::Init(AssetManager & asset_manager, AssetId tex_id)

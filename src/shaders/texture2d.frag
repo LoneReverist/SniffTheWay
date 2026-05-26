@@ -1,6 +1,10 @@
 #version 420 core
 
-layout(binding = 1) uniform sampler2D tex_sampler;
+#ifndef BUILD_VULKAN
+#extension GL_KHR_vulkan_glsl : enable
+#endif
+
+layout(set = 1, binding = 0) uniform sampler2D tex_sampler;
 
 layout(location = 0) in vec2 in_uv;
 

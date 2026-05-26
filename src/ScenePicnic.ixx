@@ -59,6 +59,8 @@ private:
 	SceneState m_scene_state = SceneState::Paused;
 
 	Background m_background;
+	std::vector<AssetId> m_bg_tex_ids;
+	std::uint8_t m_cur_bg_index = 0;
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 	FPSLabel m_fps_label;
@@ -72,30 +74,38 @@ ScenePicnic::ScenePicnic(dh::RenderContext const & render_context)
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 {
+	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d);
+	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
+	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d);
+
 	// background
 	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "picnic.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	m_background.Init(m_asset_manager, bg_tex_id);
-	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, bg_tex_id);
-	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id);
+	AssetId bg_tex_id2 = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "gust_of_wind.png",
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	AssetId bg_tex_id3 = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "following_butterflies.png",
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	AssetId bg_tex_id4 = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "lost.png",
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	m_bg_tex_ids = { bg_tex_id, bg_tex_id2, bg_tex_id3, bg_tex_id4 };
+	m_cur_bg_index = 0;
+	m_background.Init(m_asset_manager, m_bg_tex_ids[m_cur_bg_index]);
+	m_background.SetROId(m_renderer.CreateRenderObject("background", m_background.GetMeshId(), m_bg_tex_ids[m_cur_bg_index], bg_pipeline_id));
 
 	// ui
 	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
-	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
-	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);
-
 	m_story_shadow.Init(m_asset_manager, -1.0 /*left*/, 1.0 /*right*/, -0.6 /*top*/, -1.0 /*bottom*/);
-	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
+	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), AssetId{}, color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
+	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), arial_tex_id, text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData()));
+	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), arial_tex_id, text_pipeline_id, m_story_label->GetLabelData()));
 
 	ChangeSceneState(SceneState::Story);
 }
@@ -128,7 +138,14 @@ std::optional<SceneTransition> ScenePicnic::Update(float dt, Input const & input
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 	{
-		return SceneTransition{ SceneId::ForestPath };
+		m_cur_bg_index++;
+		if (m_cur_bg_index >= m_bg_tex_ids.size())
+			return SceneTransition{ SceneId::ForestPath };
+
+		m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
+		RenderObject * ro = m_renderer.GetRenderObject(m_background.GetROId());
+		if (ro)
+			ro->SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
 	}
 
 	m_fps_label.Update(dt);

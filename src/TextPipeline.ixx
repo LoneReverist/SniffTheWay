@@ -35,9 +35,7 @@ public:
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
 		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera2d const & camera2d,
-		AssetManager const & asset_manager,
-		AssetId texture_id);
+		Camera2d const & camera2d);
 
 private:
 	TextPipeline() = delete;
@@ -46,9 +44,7 @@ private:
 std::expected<dh::Pipeline, dh::GraphicsError> TextPipeline::CreatePipeline(
 	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera2d const & camera2d,
-	AssetManager const & asset_manager,
-	AssetId texture_id)
+	Camera2d const & camera2d)
 {
 	struct ObjectDataFS
 	{
@@ -56,10 +52,6 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextPipeline::CreatePipeline(
 		alignas(16) glm::vec4 bg_color{ 0.0f };
 		alignas(16) glm::vec4 text_color{ 0.0f };
 	};
-
-	dh::Texture const * texture = asset_manager.GetTexture(texture_id);
-	if (!texture)
-		return std::unexpected{ dh::GraphicsError{ "TextPipeline::CreatePipeline: invalid texture" } };
 
 	dh::PipelineBuilder builder{ render_context };
 
@@ -72,7 +64,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextPipeline::CreatePipeline(
 	builder.SetVertexType<VertexT>();
 	builder.SetVSUniformTypes<ProjUniform>();
 	builder.SetObjectDataTypes<std::nullopt_t, ObjectDataFS>();
-	builder.SetTexture(*texture);
+	builder.SetHasTexture(true);
 	builder.SetDepthTestOptions(dh::DepthTestOptions{
 		.enable_depth_test = false,
 		.enable_depth_write = false,

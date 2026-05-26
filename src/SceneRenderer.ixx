@@ -27,8 +27,11 @@ public:
 	AssetId CreateRenderObject(
 		std::string const & name,
 		MeshIdT mesh_id,
+		AssetId texture_id,
 		PipelineIdT pipeline_id,
 		ObjectDataT const & object_data = std::nullopt);
+
+	RenderObject * GetRenderObject(AssetId ro_id) { return m_render_object_pool.Get(ro_id); }
 
 	void Show(AssetId ro_id, bool show);
 	bool IsShown(AssetId ro_id) const;
@@ -61,6 +64,7 @@ template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT /*= std::
 AssetId SceneRenderer::CreateRenderObject(
 	std::string const & name,
 	MeshIdT mesh_id,
+	AssetId texture_id,
 	PipelineIdT pipeline_id,
 	ObjectDataT const & object_data /*= std::nullopt*/)
 {
@@ -75,7 +79,7 @@ AssetId SceneRenderer::CreateRenderObject(
 		return AssetId{};
 	}
 
-	RenderObject ro{ name, mesh_id, pipeline_id };
+	RenderObject ro{ name, mesh_id, texture_id, pipeline_id };
 	if constexpr (!std::same_as<ObjectDataT, std::nullopt_t>)
 		ro.SetObjectData(&object_data);
 
@@ -119,19 +123,19 @@ void SceneRenderer::Render() const
 		dh::Pipeline const * pipeline = m_asset_manager.GetPipeline(batch.pipeline_id);
 		if (!pipeline)
 		{
-			std::cout << "Scene::Render: No pipeline found in pool for pipeline ID: " << batch.pipeline_id.GetIndex() << std::endl;
+			std::cout << "SceneRenderer::Render: No pipeline found in pool for pipeline ID: " << batch.pipeline_id.GetIndex() << std::endl;
 			continue;
 		}
 
-		pipeline->Activate();
 		pipeline->UpdatePerFrameConstants();
+		pipeline->Activate();
 
 		for (AssetId ro_id : batch.ro_ids)
 		{
 			RenderObject const * ro = m_render_object_pool.Get(ro_id);
 			if (!ro)
 			{
-				std::cout << "Scene::Render: No render object found in pool for AssetId: " << ro_id.GetIndex() << std::endl;
+				std::cout << "SceneRenderer::Render: No render object found in pool for AssetId: " << ro_id.GetIndex() << std::endl;
 				continue;
 			}
 
@@ -141,8 +145,19 @@ void SceneRenderer::Render() const
 			dh::Mesh const * mesh = m_asset_manager.GetMesh(ro->GetMeshId());
 			if (!mesh)
 			{
-				std::cout << "Scene::Render: No mesh found in pool for AssetId: " << ro->GetMeshId().GetIndex() << std::endl;
+				std::cout << "SceneRenderer::Render: No mesh found in pool for AssetId: " << ro->GetMeshId().GetIndex() << std::endl;
 				continue;
+			}
+
+			if (ro->GetTextureId().IsValid())
+			{
+				dh::Texture const * texture = m_asset_manager.GetTexture(ro->GetTextureId());
+				if (!texture)
+				{
+					std::cout << "SceneRenderer::Render: No texture found in pool for AssetId: " << ro->GetTextureId().GetIndex() << std::endl;
+					continue;
+				}
+				pipeline->BindTexture(*texture);
 			}
 
 			pipeline->UpdatePerObjectConstants(ro->GetObjectData());

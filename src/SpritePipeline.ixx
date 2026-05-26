@@ -33,9 +33,7 @@ public:
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
 		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera3d const & camera3d,
-		AssetManager const & asset_manager,
-		AssetId texture_id);
+		Camera3d const & camera3d);
 
 private:
 	SpritePipeline() = delete;
@@ -44,9 +42,7 @@ private:
 std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera3d const & camera3d,
-	AssetManager const & asset_manager,
-	AssetId texture_id)
+	Camera3d const & camera3d)
 {
 	struct ObjectDataVS
 	{
@@ -56,10 +52,6 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 	{
 		alignas(16) glm::vec4 frame_uvs{ 0.0f };
 	};
-
-	dh::Texture const * texture = asset_manager.GetTexture(texture_id);
-	if (!texture)
-		return std::unexpected{ dh::GraphicsError{ "SpritePipeline::CreatePipeline: invalid texture" } };
 
 	dh::PipelineBuilder builder{ render_context };
 
@@ -72,7 +64,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 	builder.SetVertexType<VertexT>();
 	builder.SetObjectDataTypes<ObjectDataVS, ObjectDataFS>();
 	builder.SetVSUniformTypes<ViewProjUniform>();
-	builder.SetTexture(*texture);
+	builder.SetHasTexture(true);
 	builder.SetBlendOptions(dh::BlendOptions{
 		.enable_blend = true,
 		.src_factor = dh::BlendFactor::SRC_ALPHA,

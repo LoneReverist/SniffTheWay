@@ -82,12 +82,17 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
 	m_camera3d.Init(camera_pos, camera_dir);
 
+	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d);
+	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
+	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d);
+	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
+	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d);
+
 	// background
 	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_intersection.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
-	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager, bg_tex_id);
-	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id);
+	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_tex_id, bg_pipeline_id);
 
 	m_bounds.SetVertices({
 		{-0.5f, -4.0f},
@@ -98,37 +103,30 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 
 	// editor grid
 	m_grid.Init(m_asset_manager);
-	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
-	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
+	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), AssetId{}, line_pipeline_id));
 
 	// dog
 	m_dog.Init(m_asset_manager, camera_dir);
-	// at some point, we should allow changing the pipeline's texture so we can reuse this for other sprites
-	const auto dog_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_dog.GetTextureId());
-	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), dog_sprite_pipeline_id, m_dog.GetSpriteData());
+	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), m_dog.GetTextureId(), sprite_pipeline_id, m_dog.GetSpriteData());
 
 	// baby
 	m_baby.Init(m_asset_manager, camera_dir);
-	const auto baby_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager, m_baby.GetTextureId());
-	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), baby_sprite_pipeline_id, m_baby.GetSpriteData());
+	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), m_baby.GetTextureId(), sprite_pipeline_id, m_baby.GetSpriteData());
 
 	// ui
 	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
-	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
-	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager, arial_tex_id);
-
 	m_story_shadow.Init(m_asset_manager, -1.0 /*left*/, 1.0 /*right*/, -0.6 /*top*/, -1.0 /*bottom*/);
-	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
+	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), AssetId{}, color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
+	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), arial_tex_id, text_pipeline_id, m_fps_label.GetUILabel()->GetLabelData());
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetLabelData()));
+	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), arial_tex_id, text_pipeline_id, m_story_label->GetLabelData()));
 
 	ChangeSceneState(SceneState::Story);
 }

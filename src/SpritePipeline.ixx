@@ -28,12 +28,14 @@ public:
 	{
 		glm::mat4 model{ 1.0f };
 		glm::vec4 frame_uvs{ 0.0f }; // x = min_u, y = max_u, z = min_v, w = max_v
+		AssetId tex_id;
 	};
 
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
 		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera3d const & camera3d);
+		Camera3d const & camera3d,
+		AssetManager const & asset_manager);
 
 private:
 	SpritePipeline() = delete;
@@ -42,7 +44,8 @@ private:
 std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera3d const & camera3d)
+	Camera3d const & camera3d,
+	AssetManager const & asset_manager)
 {
 	struct ObjectDataVS
 	{
@@ -80,15 +83,21 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 			pipeline.SetUniform(0 /*binding*/, camera3d.GetViewProjUniform());
 		});
 	builder.SetPerObjectConstantsCallback(
-		[](dh::Pipeline const & pipeline, void const * object_data)
+		[&asset_manager](dh::Pipeline const & pipeline, void const * object_data)
 		{
 			if (!object_data)
 			{
-				std::cout << "ObjectData is null for SpritePipeline" << std::endl;
+				std::cout << "SpritePipeline: ObjectData is null" << std::endl;
 				return;
 			}
 
 			auto const * data = static_cast<ObjectData const *>(object_data);
+
+			dh::Texture const * texture = asset_manager.GetTexture(data->tex_id);
+			if (texture)
+				pipeline.BindTexture(0, *texture);
+			else
+				std::cout << "SpritePipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
 
 			pipeline.SetObjectData(
 				ObjectDataVS{

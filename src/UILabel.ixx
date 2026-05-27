@@ -51,7 +51,7 @@ public:
 	
 	MeshId<VertexT> GetMeshId() const { return m_mesh_id; }
 	AssetId GetROId() const { return m_ro_id; }
-    TextPipeline::ObjectData const & GetLabelData() const { return m_label_data; }
+    TextPipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
 
 private:
 	std::expected<dh::Mesh, dh::GraphicsError> create_mesh() const;
@@ -72,7 +72,7 @@ private:
 	float m_font_size = 0.0f;
 	glm::vec2 m_origin{ 0.0f };
 	Align m_align = Align::Left;
-	TextPipeline::ObjectData m_label_data;
+	TextPipeline::ObjectData m_pipeline_data;
 };
 
 UILabel::UILabel(
@@ -98,10 +98,11 @@ UILabel::UILabel(
 		m_font_tex_height = font_tex->GetHeight();
 	}
 
-	m_label_data = TextPipeline::ObjectData{
+	m_pipeline_data = TextPipeline::ObjectData{
 		.screen_px_range = font_size * font_atlas.GetPxRange(),
 		.bg_color = { 0.0f, 0.0f, 0.0f, 0.0f },
 		.text_color = color,
+		.tex_id = font_atlas.GetTextureId(),
 	};
 
 	std::expected<dh::Mesh, dh::GraphicsError> mesh = create_mesh();
@@ -141,7 +142,7 @@ void UILabel::SetFontSize(float font_size)
 		return; // no change
 
 	m_font_size = font_size;
-	m_label_data.screen_px_range = m_font_size * m_font_atlas.GetPxRange();
+	m_pipeline_data.screen_px_range = m_font_size * m_font_atlas.GetPxRange();
 
 	update_mesh();
 }

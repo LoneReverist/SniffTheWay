@@ -12,6 +12,7 @@ namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
+import BackgroundTexPipeline;
 import Vertex;
 
 export class Background
@@ -20,24 +21,24 @@ public:
 	void Init(AssetManager & asset_manager, AssetId tex_id);
 	void OnViewportResized(int width, int height, AssetManager & asset_manager);
 	
-	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
-	void SetTextureId(AssetId tex_id) { m_tex_id = tex_id; }
+	void SetTextureId(AssetId tex_id) { m_pipeline_data.tex_id = tex_id; }
 
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
-	AssetId GetROId() const { return m_ro_id; }
+	BackgroundTexPipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
 
 private:
 	MeshId<TextureVertex2d> create_bg_mesh(AssetManager & asset_manager);
 
 private:
-	AssetId m_tex_id;
 	MeshId<TextureVertex2d> m_mesh_id;
-	AssetId m_ro_id;
+	BackgroundTexPipeline::ObjectData m_pipeline_data;
 };
 
 void Background::Init(AssetManager & asset_manager, AssetId tex_id)
 {
-	m_tex_id = tex_id;
+	m_pipeline_data = BackgroundTexPipeline::ObjectData{
+		.tex_id = tex_id
+	};
 	m_mesh_id = create_bg_mesh(asset_manager);
 }
 
@@ -46,7 +47,7 @@ void Background::OnViewportResized(int width, int height, AssetManager & asset_m
 	if (width == 0 || height == 0)
 		return;
 
-	dh::Texture const * bg_tex = asset_manager.GetTexture(m_tex_id);
+	dh::Texture const * bg_tex = asset_manager.GetTexture(m_pipeline_data.tex_id);
 	if (!bg_tex)
 		return;
 

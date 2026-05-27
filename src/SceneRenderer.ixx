@@ -27,7 +27,6 @@ public:
 	AssetId CreateRenderObject(
 		std::string const & name,
 		MeshIdT mesh_id,
-		AssetId texture_id,
 		PipelineIdT pipeline_id,
 		ObjectDataT const & object_data = std::nullopt);
 
@@ -64,7 +63,6 @@ template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT /*= std::
 AssetId SceneRenderer::CreateRenderObject(
 	std::string const & name,
 	MeshIdT mesh_id,
-	AssetId texture_id,
 	PipelineIdT pipeline_id,
 	ObjectDataT const & object_data /*= std::nullopt*/)
 {
@@ -79,7 +77,7 @@ AssetId SceneRenderer::CreateRenderObject(
 		return AssetId{};
 	}
 
-	RenderObject ro{ name, mesh_id, texture_id, pipeline_id };
+	RenderObject ro{ name, mesh_id, pipeline_id };
 	if constexpr (!std::same_as<ObjectDataT, std::nullopt_t>)
 		ro.SetObjectData(&object_data);
 
@@ -147,17 +145,6 @@ void SceneRenderer::Render() const
 			{
 				std::cout << "SceneRenderer::Render: No mesh found in pool for AssetId: " << ro->GetMeshId().GetIndex() << std::endl;
 				continue;
-			}
-
-			if (ro->GetTextureId().IsValid())
-			{
-				dh::Texture const * texture = m_asset_manager.GetTexture(ro->GetTextureId());
-				if (!texture)
-				{
-					std::cout << "SceneRenderer::Render: No texture found in pool for AssetId: " << ro->GetTextureId().GetIndex() << std::endl;
-					continue;
-				}
-				pipeline->BindTexture(*texture);
 			}
 
 			pipeline->UpdatePerObjectConstants(ro->GetObjectData());

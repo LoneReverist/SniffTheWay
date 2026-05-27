@@ -39,17 +39,15 @@ public:
     void Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
 
-    AssetId GetTextureId() const { return m_tex_id; }
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
     SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
-    SpritePipeline::ObjectData const & GetSpriteData() const { return m_sprite_data; }
+    SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
     
 private:
-	AssetId m_tex_id;
 	MeshId<TextureVertex2d> m_mesh_id;
 
 	SpriteSheet m_sprite_sheet;
-	SpritePipeline::ObjectData m_sprite_data;
+	SpritePipeline::ObjectData m_pipeline_data;
 	State m_state = State::Idle;
 	bool facing_right = true;
 
@@ -63,11 +61,11 @@ void Dog::Init(
 	AssetManager & asset_manager,
 	glm::vec3 const & camera_dir)
 {
-	m_tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "dog_walk.png",
+	AssetId tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "dog_walk.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 
     m_sprite_sheet = SpriteSheet{
-		m_tex_id,
+		tex_id,
 		1200,   // Texture width: 4 frames * 300px
 		700,    // Texture height: 2 rows * 350px
 		300,    // Frame width
@@ -83,9 +81,10 @@ void Dog::Init(
 	float angle = glm::acos(glm::dot(up_dir, target_dir));
     glm::mat4 model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    m_sprite_data = SpritePipeline::ObjectData{
+    m_pipeline_data = SpritePipeline::ObjectData{
 		.model = model,
-		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs()
+		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs(),
+		.tex_id = tex_id,
 	};
 }
 
@@ -111,7 +110,7 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 	glm::vec2 velocity(0.0f);
 	if (move_dir != glm::vec2(0.0f))
 	{
-		glm::vec2 pos = glm::vec2(m_sprite_data.model[3]);
+		glm::vec2 pos = glm::vec2(m_pipeline_data.model[3]);
 		velocity = glm::normalize(move_dir) * m_move_speed;
 		glm::vec2 desired_pos = pos + velocity * dt;
 		
@@ -119,7 +118,7 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 		if (bounds.IsValid())
 			new_pos = bounds.SlideAlongBoundary(pos, desired_pos);
 
-		m_sprite_data.model[3] = glm::vec4(new_pos, 0.0f, 1.0f);
+		m_pipeline_data.model[3] = glm::vec4(new_pos, 0.0f, 1.0f);
 
 		m_state = State::Walking;
 	}
@@ -134,10 +133,10 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 		facing_right = !facing_right;
 		// rotate 180 degrees around Z axis to flip the sprite
 		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::vec3 current_pos = glm::vec3(m_sprite_data.model[3]); // preserve translation
-		m_sprite_data.model[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		m_sprite_data.model = rotation * m_sprite_data.model;
-		m_sprite_data.model[3] = glm::vec4(current_pos, 1.0f); // restore translation after rotation
+		glm::vec3 current_pos = glm::vec3(m_pipeline_data.model[3]); // preserve translation
+		m_pipeline_data.model[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		m_pipeline_data.model = rotation * m_pipeline_data.model;
+		m_pipeline_data.model[3] = glm::vec4(current_pos, 1.0f); // restore translation after rotation
 	}
 
 	if (m_state == State::Walking)
@@ -147,7 +146,7 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 		{
 			m_animation_timer -= m_frame_duration;
 			m_sprite_sheet.AdvanceFrame();
-			m_sprite_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+			m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
 		}
 	}
 }

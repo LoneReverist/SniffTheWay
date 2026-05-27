@@ -30,12 +30,14 @@ public:
 		float screen_px_range = 1.0f;
 		glm::vec4 bg_color = glm::vec4(0.0f);
 		glm::vec4 text_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		AssetId tex_id;
 	};
 
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
 		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
-		Camera2d const & camera2d);
+		Camera2d const & camera2d,
+		AssetManager const & asset_manager);
 
 private:
 	TextPipeline() = delete;
@@ -44,7 +46,8 @@ private:
 std::expected<dh::Pipeline, dh::GraphicsError> TextPipeline::CreatePipeline(
 	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
-	Camera2d const & camera2d)
+	Camera2d const & camera2d,
+	AssetManager const & asset_manager)
 {
 	struct ObjectDataFS
 	{
@@ -83,17 +86,23 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextPipeline::CreatePipeline(
 			pipeline.SetUniform(0 /*binding*/, camera2d.GetProjUniform());
 		});
 	builder.SetPerObjectConstantsCallback(
-		[](dh::Pipeline const & pipeline, void const * object_data)
+		[&asset_manager](dh::Pipeline const & pipeline, void const * object_data)
 		{
 			if (!object_data)
 			{
-				std::cout << "TextObjectData is null for TextPipeline" << std::endl;
+				std::cout << "TextPipeline: ObjectData is null" << std::endl;
 				return;
 			}
 
-			// For optimal performance, we assume that the object data is of the correct type.
-			// Use compile-time checks when creating render objects to ensure the data is compatible with the pipeline.
+			// For performance, we assume that the object data is of the correct type.
+			// Safety is managed with compile-time checks when creating render objects to ensure the data is compatible with the pipeline.
 			auto const * data = static_cast<ObjectData const *>(object_data);
+
+			dh::Texture const * texture = asset_manager.GetTexture(data->tex_id);
+			if (texture)
+				pipeline.BindTexture(0, *texture);
+			else
+				std::cout << "TextPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
 
 			pipeline.SetObjectData(
 				std::nullopt,

@@ -39,17 +39,15 @@ public:
 	void Update(float dt, Dog const * dog, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
 
-	AssetId GetTextureId() const { return m_tex_id; }
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
 	SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
-	SpritePipeline::ObjectData const & GetSpriteData() const { return m_sprite_data; }
+    SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
 	
 private:
-	AssetId m_tex_id;
 	MeshId<TextureVertex2d> m_mesh_id;
 
 	SpriteSheet m_sprite_sheet;
-	SpritePipeline::ObjectData m_sprite_data;
+	SpritePipeline::ObjectData m_pipeline_data;
 	State m_state = State::Idle;
 	bool facing_right = true;
 
@@ -63,11 +61,11 @@ void Baby::Init(
 	AssetManager & asset_manager,
 	glm::vec3 const & camera_dir)
 {
-	m_tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "baby_crawl.png",
+	AssetId tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "baby_crawl.png",
 		 dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 
 	m_sprite_sheet = SpriteSheet{
-		m_tex_id,
+		tex_id,
 		900,    // Texture width
 		900,    // Texture height
 		300,    // Frame width
@@ -83,9 +81,10 @@ void Baby::Init(
 	float angle = glm::acos(glm::dot(up_dir, target_dir));
 	glm::mat4 model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
 
-	m_sprite_data = SpritePipeline::ObjectData{
+	m_pipeline_data = SpritePipeline::ObjectData{
 		.model = model,
-		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs()
+		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs(),
+		.tex_id = tex_id,
 	};
 }
 
@@ -97,8 +96,8 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 	glm::vec2 move_dir(0.0f);
 	if (dog && scene_state == SceneState::Gameplay)
 	{
-		const glm::vec3 dog_pos = dog->GetSpriteData().model[3];
-		const glm::vec3 my_pos = m_sprite_data.model[3];
+		const glm::vec3 dog_pos = dog->GetPipelineData().model[3];
+		const glm::vec3 my_pos = m_pipeline_data.model[3];
 		move_dir = glm::vec2(dog_pos - my_pos);
 	}
 
@@ -107,7 +106,7 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 	{
 		velocity = glm::normalize(move_dir) * m_move_speed;
 		const glm::mat4 translation = glm::translate(glm::mat4(1.0f), glm::vec3(velocity, 0.0f) * dt);
-		m_sprite_data.model = translation * m_sprite_data.model;
+		m_pipeline_data.model = translation * m_pipeline_data.model;
 
 		if (m_state != State::Walking)
 			m_state = State::Walking;
@@ -124,10 +123,10 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 		facing_right = !facing_right;
 		// rotate 180 degrees around Z axis to flip the sprite
 		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::vec3 current_pos = glm::vec3(m_sprite_data.model[3]); // preserve translation
-		m_sprite_data.model[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		m_sprite_data.model = rotation * m_sprite_data.model;
-		m_sprite_data.model[3] = glm::vec4(current_pos, 1.0f); // restore translation after rotation
+		glm::vec3 current_pos = glm::vec3(m_pipeline_data.model[3]); // preserve translation
+		m_pipeline_data.model[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		m_pipeline_data.model = rotation * m_pipeline_data.model;
+		m_pipeline_data.model[3] = glm::vec4(current_pos, 1.0f); // restore translation after rotation
 	}
 
 	if (m_state == State::Walking)
@@ -137,7 +136,7 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 		{
 			m_animation_timer -= m_frame_duration;
 			m_sprite_sheet.AdvanceFrame();
-			m_sprite_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+			m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
 		}
 	}
 }

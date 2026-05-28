@@ -30,5 +30,6 @@ export namespace SniffTheWay
 		Picnic,
 		ForestPath,
 		ForestIntersection,
+		Home,
 	};
 }

@@ -14,6 +14,7 @@ namespace dh = Dreamhearth;
 import IScene;
 import SceneForestIntersection;
 import SceneForestPath;
+import SceneHome;
 import ScenePicnic;
 import SniffTheWayConstants;
 
@@ -40,6 +41,8 @@ SceneRegistry::SceneRegistry()
 		[](dh::RenderContext const & ctx) { return std::make_unique<SceneForestPath>(ctx); };
 	m_create_scene_fns[SceneId::ForestIntersection] =
 		[](dh::RenderContext const & ctx) { return std::make_unique<SceneForestIntersection>(ctx); };
+	m_create_scene_fns[SceneId::Home] =
+		[](dh::RenderContext const & ctx) { return std::make_unique<SceneHome>(ctx); };
 }
 
 std::unique_ptr<IScene> SceneRegistry::Create(SceneTransition trans, dh::RenderContext const & ctx) const

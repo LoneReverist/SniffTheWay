@@ -15,22 +15,16 @@ namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
-import Baby;
 import Background;
 import BackgroundTexPipeline;
 import Camera;
 import ColorPipeline;
-import Dog;
-import EditorGrid;
 import FontAtlas;
 import FPSLabel;
 import Input;
 import IScene;
-import LinePipeline;
-import Polygon2d;
 import SceneRenderer;
 import SniffTheWayConstants;
-import SpritePipeline;
 import TextPipeline;
 import UILabel;
 import UIShadow;
@@ -52,7 +46,6 @@ public:
 	void ChangeSceneState(SceneState new_state);
 
 private:
-	dh::RenderContext const & m_render_context;
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
@@ -69,8 +62,7 @@ private:
 };
 
 ScenePicnic::ScenePicnic(dh::RenderContext const & render_context)
-	: m_render_context{ render_context }
-	, m_asset_manager{ render_context }
+	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 {

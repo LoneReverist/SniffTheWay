@@ -1,4 +1,4 @@
-// SceneForestIntersection.ixx
+// SceneHome.ixx
 
 module;
 
@@ -8,29 +8,23 @@ module;
 
 #include <glm/glm.hpp>
 
-export module SceneForestIntersection;
+export module SceneHome;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
-import Baby;
 import Background;
 import BackgroundTexPipeline;
 import Camera;
 import ColorPipeline;
-import Dog;
-import EditorGrid;
 import FontAtlas;
 import FPSLabel;
 import Input;
 import IScene;
-import LinePipeline;
-import Polygon2d;
 import SceneRenderer;
 import SniffTheWayConstants;
-import SpritePipeline;
 import TextPipeline;
 import UILabel;
 import UIShadow;
@@ -38,10 +32,10 @@ import Vertex;
 
 using namespace SniffTheWay;
 
-export class SceneForestIntersection : public IScene
+export class SceneHome : public IScene
 {
 public:
-	explicit SceneForestIntersection(dh::RenderContext const & render_context);
+	explicit SceneHome(dh::RenderContext const & render_context);
 
 	void OnViewportResized(int width, int height) override;
 	void OnDPIScaleFactorChanged(float dpi_scale_factor) override;
@@ -54,15 +48,12 @@ public:
 private:
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
-	Camera3d m_camera3d;
 	Camera2d m_camera2d;
 	SceneState m_scene_state = SceneState::Paused;
 
 	Background m_background;
-	Polygon2d m_bounds;
-	EditorGrid m_grid;
-	Dog m_dog;
-	Baby m_baby;
+	std::vector<AssetId> m_bg_tex_ids;
+	std::uint8_t m_cur_bg_index = 0;
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 	FPSLabel m_fps_label;
@@ -70,46 +61,26 @@ private:
 	UIShadow m_story_shadow;
 };
 
-SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & render_context)
+SceneHome::SceneHome(dh::RenderContext const & render_context)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
-	, m_camera3d{ render_context.ShouldFlipScreenY() }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 {
-	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
-	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
-	m_camera3d.Init(camera_pos, camera_dir);
-
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager);
-	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
-	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
 	// background
-	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_intersection.png",
+	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "home.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	m_background.Init(m_asset_manager, bg_tex_id);
+	AssetId bg_tex_id2 = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "reunion.png",
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	AssetId bg_tex_id3 = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "safe_again.png",
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	m_bg_tex_ids = { bg_tex_id, bg_tex_id2, bg_tex_id3 };
+	m_cur_bg_index = 0;
+	m_background.Init(m_asset_manager, m_bg_tex_ids[m_cur_bg_index]);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
-
-	m_bounds.SetVertices({
-		{-0.5f, -4.0f},
-		{0.5f, -4.0f},
-		{1.0f, 10.0f},
-		{-1.0f, 10.0f},
-	});
-
-	// editor grid
-	m_grid.Init(m_asset_manager);
-	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
-
-	// dog
-	m_dog.Init(m_asset_manager, camera_dir);
-	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
-
-	// baby
-	m_baby.Init(m_asset_manager, camera_dir);
-	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
 	// ui
 	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
@@ -130,9 +101,8 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 }
 
 // override
-void SceneForestIntersection::OnViewportResized(int width, int height)
+void SceneHome::OnViewportResized(int width, int height)
 {
-	m_camera3d.OnViewportResized(width, height);
 	m_camera2d.OnViewportResized(width, height);
 
 	// keep UI elements proportional to the height of the view
@@ -143,7 +113,7 @@ void SceneForestIntersection::OnViewportResized(int width, int height)
 }
 
 // override
-void SceneForestIntersection::OnDPIScaleFactorChanged(float dpi_scale_factor)
+void SceneHome::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
 	if (m_story_label)
@@ -151,42 +121,32 @@ void SceneForestIntersection::OnDPIScaleFactorChanged(float dpi_scale_factor)
 }
 
 // override
-std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input const & input)
+std::optional<SceneTransition> SceneHome::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 	{
-		ChangeSceneState(SceneState::Gameplay);
-		m_renderer.Show(m_story_label->GetROId(), false);
-		m_renderer.Show(m_story_shadow.GetROId(), false);
+		m_cur_bg_index++;
+		if (m_cur_bg_index >= m_bg_tex_ids.size())
+			return SceneTransition{ SceneId::Exit };
+
+		m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
 	}
 
-	m_camera3d.Update(dt, input);
 	m_fps_label.Update(dt);
-	m_grid.Update(input, m_renderer, m_scene_state);
-	m_dog.Update(dt, input, m_bounds, m_scene_state);
-	m_baby.Update(dt, &m_dog, m_scene_state);
-
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y > 9.75)
-		return SceneTransition{ SceneId::ForestPath };
-	else if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y < -3.75)
-		return SceneTransition{ SceneId::Home };
 
 	return std::nullopt;
 }
 
 // override
-void SceneForestIntersection::Render() const
+void SceneHome::Render() const
 {
 	m_renderer.Render();
 }
 
-void SceneForestIntersection::ChangeSceneState(SceneState new_state)
+void SceneHome::ChangeSceneState(SceneState new_state)
 {
 	m_scene_state = new_state;
-	m_grid.OnSceneStateChanged(m_scene_state, m_renderer);
-	m_dog.OnSceneStateChanged(m_scene_state);
-	m_baby.OnSceneStateChanged(m_scene_state);
 }

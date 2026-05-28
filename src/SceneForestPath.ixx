@@ -52,7 +52,6 @@ public:
 	void ChangeSceneState(SceneState new_state);
 
 private:
-	dh::RenderContext const & m_render_context;
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
@@ -73,8 +72,7 @@ private:
 };
 
 SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
-	: m_render_context{ render_context }
-	, m_asset_manager{ render_context }
+	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }

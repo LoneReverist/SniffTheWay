@@ -52,10 +52,7 @@ void EditorGrid::Update(Input const & input, SceneRenderer & renderer, SceneStat
 
 void EditorGrid::OnSceneStateChanged(SceneState new_state, SceneRenderer & renderer)
 {
-	if (new_state == SceneState::Gameplay)
-		renderer.Show(m_ro_id, true);
-	else
-		renderer.Show(m_ro_id, false);
+	renderer.Show(m_ro_id, false);
 }
 
 MeshId<Vertex2d> EditorGrid::create_grid_mesh(AssetManager & asset_manager)

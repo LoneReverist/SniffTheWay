@@ -1,4 +1,4 @@
-// SceneForestPath.ixx
+// SceneDarkForest.ixx
 
 module;
 
@@ -8,7 +8,7 @@ module;
 
 #include <glm/glm.hpp>
 
-export module SceneForestPath;
+export module SceneDarkForest;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
@@ -38,10 +38,10 @@ import Vertex;
 
 using namespace SniffTheWay;
 
-export class SceneForestPath : public IScene
+export class SceneDarkForest : public IScene
 {
 public:
-	explicit SceneForestPath(dh::RenderContext const & render_context);
+	explicit SceneDarkForest(dh::RenderContext const & render_context);
 
 	void OnViewportResized(int width, int height) override;
 	void OnDPIScaleFactorChanged(float dpi_scale_factor) override;
@@ -71,7 +71,7 @@ private:
 	UIShadow m_story_shadow;
 };
 
-SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
+SceneDarkForest::SceneDarkForest(dh::RenderContext const & render_context)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
@@ -88,7 +88,7 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
 	// background
-	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_path.png",
+	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "dark_forest.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
@@ -135,7 +135,7 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
 }
 
 // override
-void SceneForestPath::OnViewportResized(int width, int height)
+void SceneDarkForest::OnViewportResized(int width, int height)
 {
 	m_camera3d.OnViewportResized(width, height);
 	m_camera2d.OnViewportResized(width, height);
@@ -150,7 +150,7 @@ void SceneForestPath::OnViewportResized(int width, int height)
 }
 
 // override
-void SceneForestPath::OnDPIScaleFactorChanged(float dpi_scale_factor)
+void SceneDarkForest::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
 	if (m_title_label)
@@ -160,7 +160,7 @@ void SceneForestPath::OnDPIScaleFactorChanged(float dpi_scale_factor)
 }
 
 // override
-std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & input)
+std::optional<SceneTransition> SceneDarkForest::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
@@ -174,19 +174,19 @@ std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & i
 	m_dog.Update(dt, input, m_bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y < -3.75)
-		return SceneTransition{ SceneId::Creek };
+	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y > 9.75)
+		return SceneTransition{ SceneId::ForestIntersection };
 
 	return std::nullopt;
 }
 
 // override
-void SceneForestPath::Render() const
+void SceneDarkForest::Render() const
 {
 	m_renderer.Render();
 }
 
-void SceneForestPath::ChangeSceneState(SceneState new_state)
+void SceneDarkForest::ChangeSceneState(SceneState new_state)
 {
 	m_scene_state = new_state;
 	

@@ -13,6 +13,7 @@ namespace dh = Dreamhearth;
 
 import IScene;
 import SceneCreek;
+import SceneDarkForest;
 import SceneForestIntersection;
 import SceneForestPath;
 import SceneHome;
@@ -42,6 +43,8 @@ SceneRegistry::SceneRegistry()
 		[](dh::RenderContext const & ctx) { return std::make_unique<SceneForestPath>(ctx); };
 	m_create_scene_fns[SceneId::Creek] =
 		[](dh::RenderContext const & ctx) { return std::make_unique<SceneCreek>(ctx); };
+	m_create_scene_fns[SceneId::DarkForest] =
+		[](dh::RenderContext const & ctx) { return std::make_unique<SceneDarkForest>(ctx); };
 	m_create_scene_fns[SceneId::ForestIntersection] =
 		[](dh::RenderContext const & ctx) { return std::make_unique<SceneForestIntersection>(ctx); };
 	m_create_scene_fns[SceneId::Home] =

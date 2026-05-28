@@ -19,5 +19,5 @@ public:
 SceneCreek::SceneCreek(dh::RenderContext const & render_context)
 	: StoryScene(render_context, { "approaching_creek.png", "crossing_creek.png", "beyond_the_creek.png" })
 {
-	m_next_scene_id = SceneId::ForestIntersection;
+	m_next_scene_id = SceneId::DarkForest;
 }

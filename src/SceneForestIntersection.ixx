@@ -157,9 +157,7 @@ std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input c
 		return SceneTransition{ SceneId::Exit };
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
-	{
 		ChangeSceneState(SceneState::Gameplay);
-	}
 
 	m_camera3d.Update(dt, input);
 	m_fps_label.Update(dt);

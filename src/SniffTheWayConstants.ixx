@@ -30,6 +30,7 @@ export namespace SniffTheWay
 		Picnic,
 		ForestPath,
 		Creek,
+		DarkForest,
 		ForestIntersection,
 		Home,
 	};

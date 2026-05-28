@@ -126,7 +126,7 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetPipelineData()));
 
-	ChangeSceneState(SceneState::Story);
+	ChangeSceneState(SceneState::Gameplay);
 }
 
 // override
@@ -159,8 +159,6 @@ std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input c
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 	{
 		ChangeSceneState(SceneState::Gameplay);
-		m_renderer.Show(m_story_label->GetROId(), false);
-		m_renderer.Show(m_story_shadow.GetROId(), false);
 	}
 
 	m_camera3d.Update(dt, input);
@@ -169,9 +167,9 @@ std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input c
 	m_dog.Update(dt, input, m_bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y > 9.75)
-		return SceneTransition{ SceneId::ForestPath };
-	else if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y < -3.75)
+	//if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y > 9.75)
+	//	return SceneTransition{ SceneId::ForestPath };
+	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y < -3.75)
 		return SceneTransition{ SceneId::Home };
 
 	return std::nullopt;
@@ -186,7 +184,14 @@ void SceneForestIntersection::Render() const
 void SceneForestIntersection::ChangeSceneState(SceneState new_state)
 {
 	m_scene_state = new_state;
+	
 	m_grid.OnSceneStateChanged(m_scene_state, m_renderer);
 	m_dog.OnSceneStateChanged(m_scene_state);
 	m_baby.OnSceneStateChanged(m_scene_state);
+
+	if (m_scene_state == SceneState::Gameplay)
+	{
+		m_renderer.Show(m_story_label->GetROId(), false);
+		m_renderer.Show(m_story_shadow.GetROId(), false);
+	}
 }

@@ -29,6 +29,7 @@ export namespace SniffTheWay
 		Exit, // flag to close the application
 		Picnic,
 		ForestPath,
+		Creek,
 		ForestIntersection,
 		Home,
 	};

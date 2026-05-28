@@ -1,4 +1,4 @@
-// SceneForestIntersection.ixx
+// ScenePlayground2.ixx
 
 module;
 
@@ -8,7 +8,7 @@ module;
 
 #include <glm/glm.hpp>
 
-export module SceneForestIntersection;
+export module ScenePlayground2;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
@@ -38,10 +38,10 @@ import Vertex;
 
 using namespace SniffTheWay;
 
-export class SceneForestIntersection : public IScene
+export class ScenePlayground2 : public IScene
 {
 public:
-	explicit SceneForestIntersection(dh::RenderContext const & render_context);
+	explicit ScenePlayground2(dh::RenderContext const & render_context);
 
 	void OnViewportResized(int width, int height) override;
 	void OnDPIScaleFactorChanged(float dpi_scale_factor) override;
@@ -70,7 +70,7 @@ private:
 	UIShadow m_story_shadow;
 };
 
-SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & render_context)
+ScenePlayground2::ScenePlayground2(dh::RenderContext const & render_context)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
@@ -87,16 +87,16 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
 	// background
-	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_intersection.png",
+	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "playground2.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
 	m_bounds.SetVertices({
-		{-0.5f, -4.0f},
-		{0.5f, -4.0f},
-		{1.0f, 10.0f},
-		{-1.0f, 10.0f},
+		{-2.0f, -4.0f},
+		{2.0f, -4.0f},
+		{2.0f, -2.0f},
+		{-2.0f, -2.0f},
 	});
 
 	// editor grid
@@ -104,11 +104,11 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
 
 	// dog
-	m_dog.Init(m_asset_manager, camera_dir, glm::vec2{ 0.0f, 5.0f });
+	m_dog.Init(m_asset_manager, camera_dir, glm::vec2{ -1.5f, -3.0f });
 	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
 	// baby
-	m_baby.Init(m_asset_manager, camera_dir, glm::vec2{ 0.0f, 5.0f });
+	m_baby.Init(m_asset_manager, camera_dir, glm::vec2{ -1.75f, -2.25f });
 	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
 	// ui
@@ -126,11 +126,11 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetPipelineData()));
 
-	ChangeSceneState(SceneState::Gameplay);
+	ChangeSceneState(SceneState::Story);
 }
 
 // override
-void SceneForestIntersection::OnViewportResized(int width, int height)
+void ScenePlayground2::OnViewportResized(int width, int height)
 {
 	m_camera3d.OnViewportResized(width, height);
 	m_camera2d.OnViewportResized(width, height);
@@ -143,7 +143,7 @@ void SceneForestIntersection::OnViewportResized(int width, int height)
 }
 
 // override
-void SceneForestIntersection::OnDPIScaleFactorChanged(float dpi_scale_factor)
+void ScenePlayground2::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
 	if (m_story_label)
@@ -151,7 +151,7 @@ void SceneForestIntersection::OnDPIScaleFactorChanged(float dpi_scale_factor)
 }
 
 // override
-std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input const & input)
+std::optional<SceneTransition> ScenePlayground2::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
@@ -165,19 +165,21 @@ std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input c
 	m_dog.Update(dt, input, m_bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y < -3.75)
-		return SceneTransition{ SceneId::Home };
+	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].x < -1.75)
+		return SceneTransition{ SceneId::Playground };
+	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].x > 1.75)
+		return SceneTransition{ SceneId::Creek };
 
 	return std::nullopt;
 }
 
 // override
-void SceneForestIntersection::Render() const
+void ScenePlayground2::Render() const
 {
 	m_renderer.Render();
 }
 
-void SceneForestIntersection::ChangeSceneState(SceneState new_state)
+void ScenePlayground2::ChangeSceneState(SceneState new_state)
 {
 	m_scene_state = new_state;
 	

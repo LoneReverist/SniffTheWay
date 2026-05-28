@@ -19,6 +19,8 @@ import SceneForestPath;
 import SceneHome;
 import SceneNight;
 import ScenePicnic;
+import ScenePlayground;
+import ScenePlayground2;
 import SniffTheWayConstants;
 
 using namespace SniffTheWay;
@@ -42,6 +44,10 @@ SceneRegistry::SceneRegistry()
 		[](dh::RenderContext const & ctx) { return std::make_unique<ScenePicnic>(ctx); };
 	m_create_scene_fns[SceneId::ForestPath] =
 		[](dh::RenderContext const & ctx) { return std::make_unique<SceneForestPath>(ctx); };
+	m_create_scene_fns[SceneId::Playground] =
+		[](dh::RenderContext const & ctx) { return std::make_unique<ScenePlayground>(ctx); };
+	m_create_scene_fns[SceneId::Playground2] =
+		[](dh::RenderContext const & ctx) { return std::make_unique<ScenePlayground2>(ctx); };
 	m_create_scene_fns[SceneId::Creek] =
 		[](dh::RenderContext const & ctx) { return std::make_unique<SceneCreek>(ctx); };
 	m_create_scene_fns[SceneId::DarkForest] =

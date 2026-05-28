@@ -35,7 +35,8 @@ public:
 
     void Init(
 		AssetManager & asset_manager,
-		glm::vec3 const & camera_dir);
+		glm::vec3 const & camera_dir,
+		glm::vec2 const & initial_pos);
     void Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
 
@@ -59,7 +60,8 @@ private:
 
 void Dog::Init(
 	AssetManager & asset_manager,
-	glm::vec3 const & camera_dir)
+	glm::vec3 const & camera_dir,
+	glm::vec2 const & initial_pos)
 {
 	AssetId tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "dog_walk.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
@@ -80,6 +82,7 @@ void Dog::Init(
 	glm::vec3 target_dir = -camera_dir;
 	float angle = glm::acos(glm::dot(up_dir, target_dir));
     glm::mat4 model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
+	model[3] = glm::vec4(initial_pos, 0.0f, 1.0f);
 
     m_pipeline_data = SpritePipeline::ObjectData{
 		.model = model,

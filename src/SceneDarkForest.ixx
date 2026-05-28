@@ -66,7 +66,6 @@ private:
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 	FPSLabel m_fps_label;
-	std::unique_ptr<UILabel> m_title_label;
 	std::unique_ptr<UILabel> m_story_label;
 	UIShadow m_story_shadow;
 };
@@ -105,11 +104,11 @@ SceneDarkForest::SceneDarkForest(dh::RenderContext const & render_context)
 	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
 
 	// dog
-	m_dog.Init(m_asset_manager, camera_dir);
+	m_dog.Init(m_asset_manager, camera_dir, glm::vec2{ 0.0f, -3.0f });
 	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
 	// baby
-	m_baby.Init(m_asset_manager, camera_dir);
+	m_baby.Init(m_asset_manager, camera_dir, glm::vec2{ -1.0f, -3.5f });
 	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
 	// ui
@@ -122,10 +121,6 @@ SceneDarkForest::SceneDarkForest(dh::RenderContext const & render_context)
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
 	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
-
-	m_title_label = std::make_unique<UILabel>(m_asset_manager, ShortTitle, *m_arial_font,
-		TitleFontSize, glm::vec2{ -0.9, 0.8 } /*origin*/, UILabel::Align::Left, StoryTextColor);
-	m_renderer.CreateRenderObject("title", m_title_label->GetMeshId(), text_pipeline_id, m_title_label->GetPipelineData());
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
@@ -143,8 +138,6 @@ void SceneDarkForest::OnViewportResized(int width, int height)
 	// keep UI elements proportional to the height of the view
 	m_background.OnViewportResized(width, height, m_asset_manager);
 	m_fps_label.OnViewportResized(width, height);
-	if (m_title_label)
-		m_title_label->OnViewportResized(width, height);
 	if (m_story_label)
 		m_story_label->OnViewportResized(width, height);
 }
@@ -153,8 +146,6 @@ void SceneDarkForest::OnViewportResized(int width, int height)
 void SceneDarkForest::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
-	if (m_title_label)
-		m_title_label->SetFontSize(TitleFontSize * dpi_scale_factor);
 	if (m_story_label)
 		m_story_label->SetFontSize(LabelFontSize * dpi_scale_factor);
 }

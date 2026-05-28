@@ -155,7 +155,8 @@
         "--build",
         "${workspaceFolder}/build-debug",
         "--target",
-        "SniffTheWay"
+        "SniffTheWay",
+		"-j", "1"
       ],
       "options": {
         "shell": {

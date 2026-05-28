@@ -175,7 +175,7 @@ std::optional<SceneTransition> SceneDarkForest::Update(float dt, Input const & i
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
 	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y > 9.75)
-		return SceneTransition{ SceneId::ForestIntersection };
+		return SceneTransition{ SceneId::Night };
 
 	return std::nullopt;
 }

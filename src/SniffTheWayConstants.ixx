@@ -31,6 +31,7 @@ export namespace SniffTheWay
 		ForestPath,
 		Creek,
 		DarkForest,
+		Night,
 		ForestIntersection,
 		Home,
 	};

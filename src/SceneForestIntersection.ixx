@@ -2,9 +2,11 @@
 
 module;
 
+#include <array>
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <string_view>
 
 #include <glm/glm.hpp>
 
@@ -52,6 +54,17 @@ public:
 	void ChangeSceneState(SceneState new_state);
 
 private:
+	// Gameplay section 3: Familiar trail → strongest scent
+	static constexpr std::string_view BackgroundImage = "forest_intersection.png";
+	static constexpr std::array<std::string_view, 4> StoryTexts{
+		"Find the way home.",
+		// small prompts
+		"Closer.",
+		"The scent feels warm.",
+		"Almost there.",
+	};
+
+private:
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
@@ -66,6 +79,7 @@ private:
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 	FPSLabel m_fps_label;
+	std::unique_ptr<UILabel> m_controls_label;
 	std::unique_ptr<UILabel> m_story_label;
 	UIShadow m_story_shadow;
 };
@@ -87,7 +101,7 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
 	// background
-	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "forest_intersection.png",
+	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / BackgroundImage,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
@@ -116,17 +130,21 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
-	m_story_shadow.Init(m_asset_manager, -1.0 /*left*/, 1.0 /*right*/, -0.6 /*top*/, -1.0 /*bottom*/);
+	m_story_shadow.Init(m_asset_manager, -1.0 /*left*/, 1.0 /*right*/, -0.5 /*top*/, -1.0 /*bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
 	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
 
-	m_story_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
-		LabelFontSize, glm::vec2{ 0.0, -0.8 } /*origin*/, UILabel::Align::Center, StoryTextColor);
+	m_controls_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
+		LabelFontSize, glm::vec2{ 0.0, -0.9 } /*origin*/, UILabel::Align::Center, StoryTextColor);
+	m_controls_label->SetROId(m_renderer.CreateRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
+
+	m_story_label = std::make_unique<UILabel>(m_asset_manager, StoryTexts[0], *m_arial_font,
+		LabelFontSize, glm::vec2{ 0.0, -0.7 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetPipelineData()));
 
-	ChangeSceneState(SceneState::Gameplay);
+	ChangeSceneState(SceneState::Story);
 }
 
 // override
@@ -138,6 +156,8 @@ void SceneForestIntersection::OnViewportResized(int width, int height)
 	// keep UI elements proportional to the height of the view
 	m_background.OnViewportResized(width, height, m_asset_manager);
 	m_fps_label.OnViewportResized(width, height);
+	if (m_controls_label)
+		m_controls_label->OnViewportResized(width, height);
 	if (m_story_label)
 		m_story_label->OnViewportResized(width, height);
 }
@@ -146,6 +166,8 @@ void SceneForestIntersection::OnViewportResized(int width, int height)
 void SceneForestIntersection::OnDPIScaleFactorChanged(float dpi_scale_factor)
 {
 	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
+	if (m_controls_label)
+		m_controls_label->SetFontSize(LabelFontSize * dpi_scale_factor);
 	if (m_story_label)
 		m_story_label->SetFontSize(LabelFontSize * dpi_scale_factor);
 }
@@ -187,6 +209,7 @@ void SceneForestIntersection::ChangeSceneState(SceneState new_state)
 
 	if (m_scene_state == SceneState::Gameplay)
 	{
+		m_renderer.Show(m_controls_label->GetROId(), false);
 		m_renderer.Show(m_story_label->GetROId(), false);
 		m_renderer.Show(m_story_shadow.GetROId(), false);
 	}

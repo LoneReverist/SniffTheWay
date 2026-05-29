@@ -6,6 +6,7 @@ module;
 #include <functional>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -35,7 +36,7 @@ public:
 public:
 	explicit UILabel(
 		AssetManager & asset_manager,
-		std::string const & text,
+		std::string_view text,
 		FontAtlas const & font_atlas,
 		float font_size,
 		glm::vec2 origin,
@@ -44,7 +45,7 @@ public:
 
 	void OnViewportResized(int width, int height);
 
-	void SetText(std::string const & text);
+	void SetText(std::string_view text);
 	void SetFontSize(float font_size);
 
 	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
@@ -77,7 +78,7 @@ private:
 
 UILabel::UILabel(
 	AssetManager & asset_manager,
-	std::string const & text,
+	std::string_view text,
 	FontAtlas const & font_atlas,
 	float font_size,
 	glm::vec2 origin,
@@ -126,7 +127,7 @@ void UILabel::OnViewportResized(int width, int height)
 	update_mesh();
 }
 
-void UILabel::SetText(std::string const & text)
+void UILabel::SetText(std::string_view text)
 {
 	if (m_text == text)
 		return; // no change

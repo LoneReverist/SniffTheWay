@@ -44,8 +44,7 @@ export class ScenePlayground : public IScene
 public:
 	explicit ScenePlayground(dh::RenderContext const & render_context);
 
-	void OnViewportResized(int width, int height) override;
-	void OnDPIScaleFactorChanged(float dpi_scale_factor) override;
+	void OnWindowResized(int width, int height) override;
 
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void Render() const override;
@@ -80,21 +79,24 @@ ScenePlayground::ScenePlayground(dh::RenderContext const & render_context)
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 {
-	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
-	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
-	m_camera3d.Init(camera_pos, camera_dir);
-
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager);
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
 	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
+	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
+
 	// background
 	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / BackgroundImage,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
+
+	// 3d game world
+	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
+	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
+	m_camera3d.Init(camera_pos, camera_dir);
 
 	m_bounds.SetVertices({
 		{-2.0f, -4.0f},
@@ -103,15 +105,12 @@ ScenePlayground::ScenePlayground(dh::RenderContext const & render_context)
 		{-2.0f, -2.0f},
 	});
 
-	// editor grid
 	m_grid.Init(m_asset_manager);
 	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
 
-	// dog
 	m_dog.Init(m_asset_manager, camera_dir, glm::vec2{ -1.5f, -3.0f });
 	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
-	// baby
 	m_baby.Init(m_asset_manager, camera_dir, glm::vec2{ -1.75f, -2.25f });
 	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
@@ -120,38 +119,28 @@ ScenePlayground::ScenePlayground(dh::RenderContext const & render_context)
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
-	m_story_shadow.Init(m_asset_manager, -1.0 /*left*/, 1.0 /*right*/, -0.5 /*top*/, -1.0 /*bottom*/);
+	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
 	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
 
 	m_controls_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
-		LabelFontSize, glm::vec2{ 0.0, -0.9 } /*origin*/, UILabel::Align::Center, StoryTextColor);
+		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_controls_label->SetROId(m_renderer.CreateRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
 
 	ChangeSceneState(SceneState::Gameplay);
 }
 
 // override
-void ScenePlayground::OnViewportResized(int width, int height)
+void ScenePlayground::OnWindowResized(int width, int height)
 {
-	m_camera3d.OnViewportResized(width, height);
-	m_camera2d.OnViewportResized(width, height);
-
-	// keep UI elements proportional to the height of the view
-	m_background.OnViewportResized(width, height, m_asset_manager);
-	m_fps_label.OnViewportResized(width, height);
-	if (m_controls_label)
-		m_controls_label->OnViewportResized(width, height);
-}
-
-// override
-void ScenePlayground::OnDPIScaleFactorChanged(float dpi_scale_factor)
-{
-	m_fps_label.OnDPIScaleFactorChanged(dpi_scale_factor);
-	if (m_controls_label)
-		m_controls_label->SetFontSize(LabelFontSize * dpi_scale_factor);
+	int game_width = static_cast<int>(height * 16.0f / 9.0f);
+	int x_offset = (width - game_width) / 2;
+	m_renderer.SetViewport(x_offset, 0, game_width, height);
+	
+	m_camera3d.SetViewportSize(game_width, height);
+	m_camera2d.SetViewportSize(game_width, height);
 }
 
 // override

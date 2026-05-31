@@ -43,8 +43,6 @@ public:
 		Align align,
 		glm::vec4 color);
 
-	void OnViewportResized(int width, int height);
-
 	void SetText(std::string_view text);
 	void SetFontSize(float font_size);
 
@@ -62,9 +60,6 @@ private:
 	AssetManager & m_asset_manager;
 	MeshId<VertexT> m_mesh_id;
 	AssetId m_ro_id;
-
-	int m_viewport_width = 0;
-	int m_viewport_height = 0;
 
 	std::string m_text;
 	FontAtlas const & m_font_atlas;
@@ -116,17 +111,6 @@ UILabel::UILabel(
 	m_mesh_id = m_asset_manager.AddMesh<VertexT>(std::move(mesh.value()));
 }
 
-void UILabel::OnViewportResized(int width, int height)
-{
-	if (width == m_viewport_width && height == m_viewport_height)
-		return; // no change
-
-	m_viewport_width = width;
-	m_viewport_height = height;
-
-	update_mesh();
-}
-
 void UILabel::SetText(std::string_view text)
 {
 	if (m_text == text)
@@ -150,19 +134,11 @@ void UILabel::SetFontSize(float font_size)
 
 std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 {
-	if (m_font_tex_width == 0 || m_font_tex_height == 0
-		|| m_viewport_width == 0 || m_viewport_height == 0
-		|| m_text.empty())
-	{
+	if (m_font_tex_width == 0 || m_font_tex_height == 0 || m_text.empty())
 		return dh::Mesh{ m_asset_manager.GetRenderContext() }; // an empty mesh is an expected result here
-	}
 
 	std::vector<VertexT> verts;
 	std::vector<dh::Mesh::IndexT> indices;
-
-	// convert font size to screen coordinates -1 to 1
-	float height_scale = m_font_size * (2.0f / m_viewport_height);
-	float width_scale = m_font_size * (2.0f / m_viewport_width);
 
 	glm::vec2 pen = m_origin;
 	for (char c : m_text)
@@ -176,16 +152,16 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 		// For the space character we just advance the pen position
 		if (!g.plane_bounds.has_value() || !g.atlas_bounds.has_value())
 		{
-			pen.x += g.advance * width_scale;
+			pen.x += g.advance * m_font_size;
 			continue;
 		}
 
 		// left, bottom, right, top
 		glm::vec4 pb = g.plane_bounds.value();
-		pb.x *= width_scale;
-		pb.z *= width_scale;
-		pb.y *= height_scale;
-		pb.w *= height_scale;
+		pb.x *= m_font_size;
+		pb.z *= m_font_size;
+		pb.y *= m_font_size;
+		pb.w *= m_font_size;
 		glm::vec4 uv = g.atlas_bounds.value();
 		uv.x /= m_font_tex_width;
 		uv.z /= m_font_tex_width;
@@ -194,10 +170,10 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 
 		// 2 triangles
 		dh::Mesh::IndexT start_vi = verts.size();
-		verts.push_back({ { pen.x + pb.x, pen.y + pb.w }, { uv.x, uv.w } }); // top-left
-		verts.push_back({ { pen.x + pb.z, pen.y + pb.w }, { uv.z, uv.w } }); // top-right
-		verts.push_back({ { pen.x + pb.x, pen.y + pb.y }, { uv.x, uv.y } }); // bottom-left
-		verts.push_back({ { pen.x + pb.z, pen.y + pb.y }, { uv.z, uv.y } }); // bottom-right
+		verts.push_back({ { pen.x + pb.x, pen.y - pb.w }, { uv.x, uv.w } }); // top-left
+		verts.push_back({ { pen.x + pb.z, pen.y - pb.w }, { uv.z, uv.w } }); // top-right
+		verts.push_back({ { pen.x + pb.x, pen.y - pb.y }, { uv.x, uv.y } }); // bottom-left
+		verts.push_back({ { pen.x + pb.z, pen.y - pb.y }, { uv.z, uv.y } }); // bottom-right
 
 		indices.push_back(static_cast<dh::Mesh::IndexT>(start_vi + 1));
 		indices.push_back(static_cast<dh::Mesh::IndexT>(start_vi + 0));
@@ -206,7 +182,7 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 		indices.push_back(static_cast<dh::Mesh::IndexT>(start_vi + 2));
 		indices.push_back(static_cast<dh::Mesh::IndexT>(start_vi + 3));
 
-		pen.x += g.advance * width_scale;
+		pen.x += g.advance * m_font_size;
 	}
 
 	// alignment

@@ -173,7 +173,7 @@ void AssetManager::UpdateMesh(
 	*mesh = dh::Mesh{ m_render_context };
 	std::expected<void, dh::GraphicsError> result = mesh->Create(vertices, indices);
 	if (!result.has_value())
-		std::cout << "Background::OnViewportResized: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
+		std::cout << "AssetManager::UpdateMesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
 }
 
 template <typename PipelineT, typename... Args>

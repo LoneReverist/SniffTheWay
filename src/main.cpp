@@ -23,17 +23,14 @@ void run_update_render_loop(
 	dh::Window const & window,
 	Input & input,
 	std::atomic<dh::WindowSize> const & window_size_pixels,
-	std::atomic<float> const & window_scale_factor,
 	std::stop_token const & s_token)
 {
 	dh::WindowSize size = window_size_pixels.load();
-	float scale_factor = window_scale_factor.load();
 
 	dh::RenderContext render_context = window.CreateRenderContext(size);
 
 	SceneManager scene_manager{render_context, SceneTransition{ SceneId::Picnic }};
-	scene_manager.OnDPIScaleFactorChanged(scale_factor);
-	scene_manager.OnViewportResized(size.width, size.height);
+	scene_manager.OnWindowResized(size.width, size.height);
 
 	auto last_update_time = std::chrono::steady_clock::now();
 
@@ -54,16 +51,9 @@ void run_update_render_loop(
 		dh::WindowSize new_size = window_size_pixels.load();
 		if (draw_result == dh::DrawFrameResult::SwapChainOutOfDate || new_size != size)
 		{
-			render_context.SetViewportSize(new_size.width, new_size.height);
-			scene_manager.OnViewportResized(new_size.width, new_size.height);
+			render_context.RecreateSwapChain(new_size.width, new_size.height);
+			scene_manager.OnWindowResized(new_size.width, new_size.height);
 			size = new_size;
-		}
-
-		float new_scale_factor = window_scale_factor.load();
-		if (new_scale_factor != scale_factor)
-		{
-			scene_manager.OnDPIScaleFactorChanged(new_scale_factor);
-			scale_factor = new_scale_factor;
 		}
 
 		if (!scene_manager.ApplyPendingTransition())
@@ -78,22 +68,17 @@ int main()
 {
 	std::cout << "Initializing app..." << std::endl;
 
-	dh::Window window(dh::WindowSize{ 1920, 1080 }, FullTitle, on_error);
+	dh::Window window(dh::WindowSize{ static_cast<int>(UIWidth), static_cast<int>(UIHeight) }, FullTitle, on_error);
 	if (!window.IsValid())
 		return -1;
 
 	// these are synchronized across update/render thread and main event loop thread
 	Input input;
 	std::atomic<dh::WindowSize> window_size_pixels = window.GetWindowSizePixels(); // must only be called from main thread
-	std::atomic<float> window_scale_factor = window.GetWindowScaleFactor(); // must only be called from main thread
 
 	window.SetOnSizeChanged([&window_size_pixels](int width_pixels, int height_pixels)
 		{
 			window_size_pixels.store(dh::WindowSize{ width_pixels, height_pixels });
-		});
-	window.SetOnScaleFactorChanged([&window_scale_factor](float scale_factor)
-		{
-			window_scale_factor.store(scale_factor);
 		});
 	window.SetOnKeyEvent([&input](int key, int /*scan_code*/, int action, int /*mods*/)
 		{
@@ -106,9 +91,9 @@ int main()
 	std::cout << "Running app..." << std::endl;
 
 	std::jthread update_render_loop(
-		[&window, &input, &window_size_pixels, &window_scale_factor](std::stop_token s_token)
+		[&window, &input, &window_size_pixels](std::stop_token s_token)
 		{
-			run_update_render_loop(window, input, window_size_pixels, window_scale_factor, s_token);
+			run_update_render_loop(window, input, window_size_pixels, s_token);
 		});
 
 	while (!window.ShouldClose())

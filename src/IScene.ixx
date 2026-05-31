@@ -19,8 +19,7 @@ export class IScene
 public:
     virtual ~IScene() = default;
 
-    virtual void OnViewportResized(int width, int height) = 0;
-    virtual void OnDPIScaleFactorChanged(float dpi_scale_factor) = 0;
+    virtual void OnWindowResized(int width, int height) {};
 
     // Returns a transition if the scene wants to hand off control,
     // or nullopt to keep running.

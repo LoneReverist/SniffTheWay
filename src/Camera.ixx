@@ -39,7 +39,7 @@ public:
 	explicit Camera3d(bool flip_proj_y = false) : m_flip_proj_y(flip_proj_y) {}
 
 	void Init(glm::vec3 const & pos, glm::vec3 const & dir);
-	void OnViewportResized(int width, int height);
+	void SetViewportSize(int width, int height);
 
 	void Update(float dt, Input const & input) {}
 
@@ -67,8 +67,8 @@ export class Camera2d
 public:
 	explicit Camera2d(bool flip_proj_y = false) : m_flip_proj_y(flip_proj_y) {}
 
-	void Init() {}
-	void OnViewportResized(int width, int height);
+	void Init(float left, float right, float top, float bottom);
+	void SetViewportSize(int width, int height);
 
 	void Update(float dt, Input const & input) {}
 
@@ -89,7 +89,7 @@ void Camera3d::Init(glm::vec3 const & pos, glm::vec3 const & dir)
 	m_view_proj_uniform.view = glm::lookAt(m_pos_uniform.pos, m_pos_uniform.pos + m_dir, UpDir);
 }
 
-void Camera3d::OnViewportResized(int width, int height)
+void Camera3d::SetViewportSize(int width, int height)
 {
 	if (height == 0)
 		return;
@@ -103,15 +103,18 @@ void Camera3d::OnViewportResized(int width, int height)
 		m_view_proj_uniform.proj[1][1] *= -1; // account for vulkan having flipped y-axis compared to opengl
 }
 
-void Camera2d::OnViewportResized(int width, int height)
+void Camera2d::Init(float left, float right, float top, float bottom)
 {
-	if (height == 0)
+	if (m_flip_proj_y)
+		m_proj_uniform.proj = glm::ortho(left, right, top, bottom, -1.0f, 1.0f);
+	else
+		m_proj_uniform.proj = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
+}
+
+void Camera2d::SetViewportSize(int width, int height)
+{
+	if (width == 0 || height == 0)
 		return;
 
 	m_viewport_uniform.size = glm::vec2{ static_cast<float>(width), static_cast<float>(height) };
-
-	m_proj_uniform.proj = glm::mat4(1.0f);
-
-	if (m_flip_proj_y)
-		m_proj_uniform.proj[1][1] *= -1; // account for vulkan having flipped y-axis compared to opengl
 }

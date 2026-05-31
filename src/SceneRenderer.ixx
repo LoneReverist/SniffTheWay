@@ -22,6 +22,8 @@ export class SceneRenderer
 public:
 	explicit SceneRenderer(dh::RenderContext const & render_context, AssetManager const & asset_manager);
 
+	void SetViewport(int x, int y, int width, int height);
+
 	template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nullopt_t>
 	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
 	AssetId CreateRenderObject(
@@ -56,6 +58,11 @@ SceneRenderer::SceneRenderer(dh::RenderContext const & render_context, AssetMana
 	, m_asset_manager(asset_manager)
 {
 	m_renderer.SetClearColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
+}
+
+void SceneRenderer::SetViewport(int x, int y, int width, int height)
+{
+	m_renderer.SetViewport(x, y, width, height);
 }
 
 template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT /*= std::nullopt_t*/>

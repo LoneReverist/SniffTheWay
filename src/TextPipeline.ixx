@@ -78,7 +78,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextPipeline::CreatePipeline(
 		.src_factor = dh::BlendFactor::SRC_ALPHA,
 		.dst_factor = dh::BlendFactor::ONE_MINUS_SRC_ALPHA
 		});
-	builder.SetCullMode(dh::CullMode::BACK);
+	builder.SetCullMode(dh::CullMode::NONE);
 
 	builder.SetPerFrameConstantsCallback(
 		[&camera2d](dh::Pipeline const & pipeline)

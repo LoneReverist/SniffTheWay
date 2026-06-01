@@ -23,9 +23,9 @@ public:
 private:
 	// Purpose: Show growing teamwork and deepen emotional bond.
 	// Emotional arc: Obstacle → fear → trust → teamwork
-	static constexpr std::array<std::string_view, 3> StoryImages{
+	static constexpr std::array<std::string_view, 4> StoryImages{
 		"approaching_creek.png",
-		//"baby_reluctant.png",
+		"baby_reluctant.png",
 		"crossing_creek.png",
 		"beyond_the_creek.png",
 	};

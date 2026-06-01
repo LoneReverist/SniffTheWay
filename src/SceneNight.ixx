@@ -23,9 +23,9 @@ public:
 private:
 	// Purpose: Vulnerability + loyalty + hope.
 	// Emotional arc: Exhaustion → fear → comfort → determination
-	static constexpr std::array<std::string_view, 2> StoryImages{
-		//"dusk.png",
-		//"exhausted.png",
+	static constexpr std::array<std::string_view, 4> StoryImages{
+		"dusk.png",
+		"exhausted.png",
 		"night.png",
 		"morning.png",
 	};

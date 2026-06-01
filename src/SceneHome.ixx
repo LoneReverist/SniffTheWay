@@ -23,12 +23,12 @@ public:
 private:
 	// Purpose: Emotional payoff.
 	// Emotional arc: Recognition → relief → reunion → peace
-	static constexpr std::array<std::string_view, 3> StoryImages{
+	static constexpr std::array<std::string_view, 5> StoryImages{
 		"home.png",
-		//"parents_notice.png",
+		"parents_notice.png",
 		"reunion.png",
 		"safe_again.png",
-		//"dog_by_fireplace.png",
+		"dog_by_fireplace.png",
 	};
 	static constexpr std::array<std::string_view, 5> StoryTexts{
 		// parents far away, hold this longer than usual.

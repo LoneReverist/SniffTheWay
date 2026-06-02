@@ -89,7 +89,7 @@ StoryScene::StoryScene(
 
 	// background
 	std::ranges::transform(bg_image_filenames, std::back_inserter(m_bg_tex_ids), [&](std::string_view filename) {
-		return m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / filename,
+		return m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "story_backgrounds" / filename,
 			dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	});
 	m_cur_bg_index = 0;

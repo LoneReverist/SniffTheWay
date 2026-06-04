@@ -56,6 +56,11 @@ private:
 	AssetManager * m_asset_manager = nullptr;
 	SceneRenderer * m_renderer = nullptr;
 
+	// OpenGL renders framebuffer attachments with a bottom-left origin. The offscreen
+	// text mask is later sampled as a texture in top-left UI space, so this pass needs
+	// the opposite Y projection from the main screen camera to avoid an inverted mask.
+	Camera2d m_offscreen_camera2d{ true /*flip_screen_y*/ };
+
 	AssetId m_mask_tex_id;
 	AssetId m_blur_temp_tex_id;
 	AssetId m_blur_tex_id;
@@ -86,9 +91,10 @@ void UITextShadow::Init(
 {
 	m_asset_manager = &asset_manager;
 	m_renderer = &renderer;
+	m_offscreen_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
 
-	const auto text_mask_pipeline_id = asset_manager.AddPipeline<TextMaskPipeline>(camera2d, asset_manager);
-	const auto blur_pipeline_id = asset_manager.AddPipeline<BlurPipeline>(camera2d, asset_manager);
+	const auto text_mask_pipeline_id = asset_manager.AddPipeline<TextMaskPipeline>(m_offscreen_camera2d, asset_manager);
+	const auto blur_pipeline_id = asset_manager.AddPipeline<BlurPipeline>(m_offscreen_camera2d, asset_manager);
 	const auto shadow_composite_pipeline_id = asset_manager.AddPipeline<ShadowCompositePipeline>(camera2d, asset_manager);
 
 	m_mask_tex_id = asset_manager.AddRenderTexture(static_cast<std::uint32_t>(UIWidth), static_cast<std::uint32_t>(UIHeight));

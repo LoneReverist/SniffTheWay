@@ -4,9 +4,11 @@ module;
 
 #include <iostream>
 #include <optional>
+#include <span>
 #include <string>
 
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 export module SceneRenderer;
 
@@ -38,8 +40,12 @@ public:
 	bool IsShown(AssetId ro_id) const;
 
 	void Render() const;
+	void RenderToTexture(dh::Texture const & target, std::span<RenderObject const> render_objects, glm::vec4 const & clear_color) const;
 
 private:
+	void render_objects() const;
+	void render_object(RenderObject const & ro) const;
+
 	struct RenderBatch
 	{
 		AssetId pipeline_id;
@@ -122,7 +128,20 @@ bool SceneRenderer::IsShown(AssetId ro_id) const
 void SceneRenderer::Render() const
 {
 	m_renderer.BeginDraw();
+	render_objects();
+	m_renderer.EndDraw();
+}
 
+void SceneRenderer::RenderToTexture(dh::Texture const & target, std::span<RenderObject const> render_objects, glm::vec4 const & clear_color) const
+{
+	m_renderer.BeginTextureDraw(target, clear_color);
+	for (RenderObject const & ro : render_objects)
+		render_object(ro);
+	m_renderer.EndTextureDraw(target);
+}
+
+void SceneRenderer::render_objects() const
+{
 	for (RenderBatch const & batch : m_render_batches)
 	{
 		dh::Pipeline const * pipeline = m_asset_manager.GetPipeline(batch.pipeline_id);
@@ -158,6 +177,26 @@ void SceneRenderer::Render() const
 			mesh->Render();
 		}
 	}
+}
 
-	m_renderer.EndDraw();
+void SceneRenderer::render_object(RenderObject const & ro) const
+{
+	dh::Pipeline const * pipeline = m_asset_manager.GetPipeline(ro.GetPipelineId());
+	if (!pipeline)
+	{
+		std::cout << "SceneRenderer::Render: No pipeline found in pool for pipeline ID: " << ro.GetPipelineId().GetIndex() << std::endl;
+		return;
+	}
+
+	dh::Mesh const * mesh = m_asset_manager.GetMesh(ro.GetMeshId());
+	if (!mesh)
+	{
+		std::cout << "SceneRenderer::Render: No mesh found in pool for AssetId: " << ro.GetMeshId().GetIndex() << std::endl;
+		return;
+	}
+
+	pipeline->UpdatePerFrameConstants();
+	pipeline->Activate();
+	pipeline->UpdatePerObjectConstants(ro.GetObjectData());
+	mesh->Render();
 }

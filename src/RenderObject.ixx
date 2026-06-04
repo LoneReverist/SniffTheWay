@@ -11,6 +11,7 @@ import AssetPool;
 export class RenderObject
 {
 public:
+	RenderObject() = default;
 	explicit RenderObject(std::string name, AssetId mesh_id, AssetId pipeline_id)
 		: m_name(name)
 		, m_mesh_id(mesh_id)

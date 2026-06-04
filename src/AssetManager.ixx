@@ -81,6 +81,7 @@ public:
 		dh::PixelFormat format = dh::PixelFormat::RGBA_SRGB,
 		bool flip_vertically = false,
 		bool use_mip_map = true);
+	AssetId AddRenderTexture(std::uint32_t width, std::uint32_t height);
 
 	void RemoveMesh(AssetId id) { m_mesh_pool.Remove(id); }
 	void RemovePipeline(AssetId id) { m_pipeline_pool.Remove(id); }
@@ -89,6 +90,7 @@ public:
 	dh::Mesh * GetMesh(AssetId id) { return m_mesh_pool.Get(id); }
 	dh::Mesh const * GetMesh(AssetId id) const { return m_mesh_pool.Get(id); }
 	dh::Pipeline const * GetPipeline(AssetId id) const { return m_pipeline_pool.Get(id); }
+	dh::Texture * GetTexture(AssetId id) { return m_texture_pool.Get(id); }
 	dh::Texture const * GetTexture(AssetId id) const { return m_texture_pool.Get(id); }
 
 	std::filesystem::path const & GetResourcesPath() const { return m_resources_path; }
@@ -227,6 +229,23 @@ AssetId AssetManager::AddTexture(
 	AssetId texture_id = m_texture_pool.Add(std::move(texture));
 	if (!texture_id.IsValid())
 		std::cout << "AssetManager::AddTexture: Failed to add texture to pool." << std::endl;
+
+	return texture_id;
+}
+
+AssetId AssetManager::AddRenderTexture(std::uint32_t width, std::uint32_t height)
+{
+	dh::Texture texture;
+	std::expected<void, dh::GraphicsError> result = texture.CreateRenderTarget(m_render_context, width, height);
+	if (!result.has_value() || !texture.IsValid())
+	{
+		std::cout << "AssetManager::AddRenderTexture: Failed to create render texture." << std::endl;
+		return AssetId{};
+	}
+
+	AssetId texture_id = m_texture_pool.Add(std::move(texture));
+	if (!texture_id.IsValid())
+		std::cout << "AssetManager::AddRenderTexture: Failed to add texture to pool." << std::endl;
 
 	return texture_id;
 }

@@ -19,7 +19,6 @@ import AssetPool;
 import Background;
 import BackgroundTexPipeline;
 import Camera;
-import ColorPipeline;
 import FontAtlas;
 import FPSLabel;
 import Input;
@@ -28,7 +27,7 @@ import SceneRenderer;
 import SniffTheWayConstants;
 import TextPipeline;
 import UILabel;
-import UIShadow;
+import UITextShadow;
 import Vertex;
 
 using namespace SniffTheWay;
@@ -69,7 +68,7 @@ protected:
 	std::unique_ptr<UILabel> m_controls_label;
 	std::unique_ptr<UILabel> m_page_number_label;
 	std::unique_ptr<UILabel> m_story_label;
-	UIShadow m_story_shadow;
+	UITextShadow m_story_shadow;
 };
 
 StoryScene::StoryScene(
@@ -82,7 +81,6 @@ StoryScene::StoryScene(
 	, m_story_texts{ story_texts }
 {
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager);
-	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
 	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
@@ -101,9 +99,6 @@ StoryScene::StoryScene(
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
-	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
-	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
-
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
 	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
 
@@ -115,6 +110,9 @@ StoryScene::StoryScene(
 	m_page_number_label = std::make_unique<UILabel>(m_asset_manager, page_number_text, *m_arial_font,
 		LabelFontSize, glm::vec2{ 1824, 1026 } /*origin*/, UILabel::Align::Right, StoryTextColor);
 	m_renderer.CreateRenderObject("page number", m_page_number_label->GetMeshId(), text_pipeline_id, m_page_number_label->GetPipelineData());
+
+	m_story_shadow.Init(m_asset_manager.GetRenderContext(), m_asset_manager, m_renderer, m_camera2d,
+		m_story_texts[m_cur_bg_index], *m_arial_font, LabelFontSize, glm::vec2{ 960, 918 } /*origin*/, UILabel::Align::Center);
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, m_story_texts[m_cur_bg_index], *m_arial_font,
 		LabelFontSize, glm::vec2{ 960, 918 } /*origin*/, UILabel::Align::Center, StoryTextColor);
@@ -160,6 +158,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 // override
 void StoryScene::Render() const
 {
+	m_story_shadow.RenderOffscreenTexture();
 	m_renderer.Render();
 }
 
@@ -175,6 +174,7 @@ bool StoryScene::page_forward()
 		return false;
 
 	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
+	m_story_shadow.SetText(m_story_texts[m_cur_bg_index]);
 	m_story_label->SetText(m_story_texts[m_cur_bg_index]);
 	m_page_number_label->SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 	return true;
@@ -184,6 +184,7 @@ void StoryScene::page_backward()
 {
 	m_cur_bg_index = std::max(0, m_cur_bg_index - 1);
 	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
+	m_story_shadow.SetText(m_story_texts[m_cur_bg_index]);
 	m_story_label->SetText(m_story_texts[m_cur_bg_index]);
 	m_page_number_label->SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 }

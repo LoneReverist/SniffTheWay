@@ -34,6 +34,15 @@ public:
 		PipelineIdT pipeline_id,
 		ObjectDataT const & object_data = std::nullopt);
 
+	// UI render objects are drawn in the order they are created
+	template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT = std::nullopt_t>
+	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
+	AssetId CreateUIRenderObject(
+		std::string const & name,
+		MeshIdT mesh_id,
+		PipelineIdT pipeline_id,
+		ObjectDataT const & object_data = std::nullopt);
+
 	RenderObject * GetRenderObject(AssetId ro_id) { return m_render_object_pool.Get(ro_id); }
 
 	void Show(AssetId ro_id, bool show);
@@ -57,6 +66,7 @@ private:
 	AssetManager const & m_asset_manager;
 	AssetPool<RenderObject> m_render_object_pool;
 	std::vector<RenderBatch> m_render_batches;
+	std::vector<AssetId> m_ui_render_object_ids; // separate list to maintain UI render object order
 };
 
 SceneRenderer::SceneRenderer(dh::RenderContext const & render_context, AssetManager const & asset_manager)
@@ -110,6 +120,41 @@ AssetId SceneRenderer::CreateRenderObject(
 	return ro_id;
 }
 
+template <typename MeshIdT, typename PipelineIdT, typename ObjectDataT /*= std::nullopt_t*/>
+	requires MeshIsCompatibleWithPipeline<MeshIdT, PipelineIdT> && ObjectDataIsCompatibleWithPipeline<ObjectDataT, PipelineIdT>
+AssetId SceneRenderer::CreateUIRenderObject(
+	std::string const & name,
+	MeshIdT mesh_id,
+	PipelineIdT pipeline_id,
+	ObjectDataT const & object_data /*= std::nullopt*/)
+{
+	if (!mesh_id.IsValid())
+	{
+		std::cout << "SceneRenderer::CreateUIRenderObject: Invalid mesh id for object: " + name;
+		return AssetId{};
+	}
+	if (!pipeline_id.IsValid())
+	{
+		std::cout << "SceneRenderer::CreateUIRenderObject: Invalid pipeline id for object: " + name;
+		return AssetId{};
+	}
+
+	RenderObject ro{ name, mesh_id, pipeline_id };
+	if constexpr (!std::same_as<ObjectDataT, std::nullopt_t>)
+		ro.SetObjectData(&object_data);
+
+	AssetId ro_id = m_render_object_pool.Add(std::move(ro));
+	if (!ro_id.IsValid())
+	{
+		std::cout << "SceneRenderer::CreateUIRenderObject: Failed to add render object to pool for object: " + name;
+		return ro_id;
+	}
+
+	m_ui_render_object_ids.push_back(ro_id);
+
+	return ro_id;
+}
+
 void SceneRenderer::Show(AssetId ro_id, bool show)
 {
 	RenderObject * ro = m_render_object_pool.Get(ro_id);
@@ -147,7 +192,7 @@ void SceneRenderer::render_objects() const
 		dh::Pipeline const * pipeline = m_asset_manager.GetPipeline(batch.pipeline_id);
 		if (!pipeline)
 		{
-			std::cout << "SceneRenderer::Render: No pipeline found in pool for pipeline ID: " << batch.pipeline_id.GetIndex() << std::endl;
+			std::cout << "SceneRenderer::render_objects: No pipeline found in pool for pipeline ID: " << batch.pipeline_id.GetIndex() << std::endl;
 			continue;
 		}
 
@@ -159,7 +204,7 @@ void SceneRenderer::render_objects() const
 			RenderObject const * ro = m_render_object_pool.Get(ro_id);
 			if (!ro)
 			{
-				std::cout << "SceneRenderer::Render: No render object found in pool for AssetId: " << ro_id.GetIndex() << std::endl;
+				std::cout << "SceneRenderer::render_objects: No render object found in pool for AssetId: " << ro_id.GetIndex() << std::endl;
 				continue;
 			}
 
@@ -169,7 +214,7 @@ void SceneRenderer::render_objects() const
 			dh::Mesh const * mesh = m_asset_manager.GetMesh(ro->GetMeshId());
 			if (!mesh)
 			{
-				std::cout << "SceneRenderer::Render: No mesh found in pool for AssetId: " << ro->GetMeshId().GetIndex() << std::endl;
+				std::cout << "SceneRenderer::render_objects: No mesh found in pool for AssetId: " << ro->GetMeshId().GetIndex() << std::endl;
 				continue;
 			}
 
@@ -177,21 +222,36 @@ void SceneRenderer::render_objects() const
 			mesh->Render();
 		}
 	}
+
+	for (AssetId ro_id : m_ui_render_object_ids)
+	{
+		RenderObject const * ro = m_render_object_pool.Get(ro_id);
+		if (!ro)
+		{
+			std::cout << "SceneRenderer::render_objects: No render object found in pool for AssetId: " << ro_id.GetIndex() << std::endl;
+			continue;
+		}
+
+		render_object(*ro);
+	}
 }
 
 void SceneRenderer::render_object(RenderObject const & ro) const
 {
+	if (!ro.IsShown())
+		return;
+
 	dh::Pipeline const * pipeline = m_asset_manager.GetPipeline(ro.GetPipelineId());
 	if (!pipeline)
 	{
-		std::cout << "SceneRenderer::Render: No pipeline found in pool for pipeline ID: " << ro.GetPipelineId().GetIndex() << std::endl;
+		std::cout << "SceneRenderer::render_object: No pipeline found in pool for pipeline ID: " << ro.GetPipelineId().GetIndex() << std::endl;
 		return;
 	}
 
 	dh::Mesh const * mesh = m_asset_manager.GetMesh(ro.GetMeshId());
 	if (!mesh)
 	{
-		std::cout << "SceneRenderer::Render: No mesh found in pool for AssetId: " << ro.GetMeshId().GetIndex() << std::endl;
+		std::cout << "SceneRenderer::render_object: No mesh found in pool for AssetId: " << ro.GetMeshId().GetIndex() << std::endl;
 		return;
 	}
 

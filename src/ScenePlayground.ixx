@@ -120,14 +120,14 @@ ScenePlayground::ScenePlayground(dh::RenderContext const & render_context)
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
-	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
+	m_story_shadow.SetROId(m_renderer.CreateUIRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
+	m_renderer.CreateUIRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
 
 	m_controls_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_controls_label->SetROId(m_renderer.CreateRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
+	m_controls_label->SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
 
 	ChangeSceneState(SceneState::Gameplay);
 }

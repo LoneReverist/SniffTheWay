@@ -98,7 +98,9 @@ std::expected<dh::Pipeline, dh::GraphicsError> ShadowCompositePipeline::CreatePi
 
 			pipeline.SetObjectData(
 				std::nullopt,
-				ObjectDataFS{ .color = data->color });
+				ObjectDataFS{
+					.color = data->color,
+				});
 		});
 
 	return builder.CreatePipeline();

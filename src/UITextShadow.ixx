@@ -123,23 +123,27 @@ void UITextShadow::Init(
 
 	m_horizontal_blur_data = BlurPipeline::ObjectData{
 		.tex_id = m_mask_tex_id,
-		.texel_step = glm::vec2{ 2.0f / UIWidth, 0.0f }
+		.texel_step = glm::vec2{ 1.0f / UIWidth, 0.0f },
+		.blur_radius = static_cast<int>(font_size / 6.0f),
+		.alpha_boost = 1.5f
 	};
 	m_horizontal_blur_ro = RenderObject("story shadow horizontal blur", m_quad_mesh_id, blur_pipeline_id);
 	m_horizontal_blur_ro.SetObjectData(&m_horizontal_blur_data);
 
 	m_vertical_blur_data = BlurPipeline::ObjectData{
 		.tex_id = m_blur_temp_tex_id,
-		.texel_step = glm::vec2{ 0.0f, 2.0f / UIHeight }
+		.texel_step = glm::vec2{ 0.0f, 1.0f / UIHeight },
+		.blur_radius = static_cast<int>(font_size / 6.0f),
+		.alpha_boost = 1.5f
 	};
 	m_vertical_blur_ro = RenderObject("story shadow vertical blur", m_quad_mesh_id, blur_pipeline_id);
 	m_vertical_blur_ro.SetObjectData(&m_vertical_blur_data);
 
 	m_composite_data = ShadowCompositePipeline::ObjectData{
 		.tex_id = m_blur_tex_id,
-		.color = glm::vec4{ 0.08f, 0.06f, 0.035f, 1.0f }
+		.color = glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f },
 	};
-	m_composite_ro_id = renderer.CreateRenderObject(
+	m_composite_ro_id = renderer.CreateUIRenderObject(
 		"story shadow composite",
 		m_quad_mesh_id,
 		shadow_composite_pipeline_id,

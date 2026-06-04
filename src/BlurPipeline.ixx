@@ -27,6 +27,8 @@ public:
 	{
 		AssetId tex_id;
 		glm::vec2 texel_step{ 0.0f };
+		int blur_radius{ 1 };
+		float alpha_boost{ 1.0f };
 	};
 
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
@@ -48,6 +50,8 @@ std::expected<dh::Pipeline, dh::GraphicsError> BlurPipeline::CreatePipeline(
 	struct ObjectDataFS
 	{
 		alignas(8) glm::vec2 texel_step{ 0.0f };
+		alignas(4) int blur_radius{ 1 };
+		alignas(4) float alpha_boost{ 1.0f };
 	};
 
 	dh::PipelineBuilder builder{ render_context };
@@ -94,7 +98,11 @@ std::expected<dh::Pipeline, dh::GraphicsError> BlurPipeline::CreatePipeline(
 
 			pipeline.SetObjectData(
 				std::nullopt,
-				ObjectDataFS{ .texel_step = data->texel_step });
+				ObjectDataFS{
+					.texel_step = data->texel_step,
+					.blur_radius = data->blur_radius,
+					.alpha_boost = data->alpha_boost
+				});
 		});
 
 	return builder.CreatePipeline();

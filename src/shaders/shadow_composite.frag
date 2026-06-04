@@ -25,5 +25,5 @@ layout(location = 0) out vec4 out_frag_color;
 void main()
 {
 	float alpha = texture(tex_sampler, in_uv).a;
-	out_frag_color = vec4(obj_data.color.rgb, obj_data.color.a * alpha);
+	out_frag_color = vec4(obj_data.color.rgb, min(obj_data.color.a * alpha, 1.0));
 }

@@ -100,23 +100,23 @@ StoryScene::StoryScene(
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
+	m_renderer.CreateUIRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
 
 	m_controls_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_controls_label->SetROId(m_renderer.CreateRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
+	m_controls_label->SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
 
 	std::string page_number_text = std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size());
 	m_page_number_label = std::make_unique<UILabel>(m_asset_manager, page_number_text, *m_arial_font,
 		LabelFontSize, glm::vec2{ 1824, 1026 } /*origin*/, UILabel::Align::Right, StoryTextColor);
-	m_renderer.CreateRenderObject("page number", m_page_number_label->GetMeshId(), text_pipeline_id, m_page_number_label->GetPipelineData());
+	m_renderer.CreateUIRenderObject("page number", m_page_number_label->GetMeshId(), text_pipeline_id, m_page_number_label->GetPipelineData());
 
 	m_story_shadow.Init(m_asset_manager.GetRenderContext(), m_asset_manager, m_renderer, m_camera2d,
-		m_story_texts[m_cur_bg_index], *m_arial_font, LabelFontSize, glm::vec2{ 960, 918 } /*origin*/, UILabel::Align::Center);
+		m_story_texts[m_cur_bg_index], *m_arial_font, TitleFontSize, glm::vec2{ 960, 250 } /*origin*/, UILabel::Align::Center);
 
 	m_story_label = std::make_unique<UILabel>(m_asset_manager, m_story_texts[m_cur_bg_index], *m_arial_font,
-		LabelFontSize, glm::vec2{ 960, 918 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_story_label->SetROId(m_renderer.CreateRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetPipelineData()));
+		TitleFontSize, glm::vec2{ 960, 250 } /*origin*/, UILabel::Align::Center, StoryTextColor);
+	m_story_label->SetROId(m_renderer.CreateUIRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetPipelineData()));
 
 	ChangeSceneState(SceneState::Story);
 }

@@ -48,6 +48,7 @@ public:
 	void OnWindowResized(int width, int height) override;
 
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
+	void DestroyPendingAssets() const override;
 	void Render() const override;
 
 	void ChangeSceneState(SceneState new_state);
@@ -178,6 +179,12 @@ std::optional<SceneTransition> SceneDarkForest::Update(float dt, Input const & i
 		return SceneTransition{ SceneId::Night };
 
 	return std::nullopt;
+}
+
+// override
+void SceneDarkForest::DestroyPendingAssets() const
+{
+	m_asset_manager.DestroyPendingAssets();
 }
 
 // override

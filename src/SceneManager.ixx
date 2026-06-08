@@ -65,7 +65,10 @@ void SceneManager::Update(float dt, Input const & input)
 void SceneManager::Render() const
 {
 	if (m_cur_scene)
+	{
+		m_cur_scene->DestroyPendingAssets();
 		m_cur_scene->Render();
+	}
 }
 
 bool SceneManager::ApplyPendingTransition()

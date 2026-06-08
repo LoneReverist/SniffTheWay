@@ -47,6 +47,7 @@ public:
 	void OnWindowResized(int width, int height) override;
 
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
+	void DestroyPendingAssets() const override;
 	void Render() const override;
 
 	void ChangeSceneState(SceneState new_state);
@@ -163,6 +164,12 @@ std::optional<SceneTransition> ScenePlayground2::Update(float dt, Input const & 
 		return SceneTransition{ SceneId::Creek };
 
 	return std::nullopt;
+}
+
+// override
+void ScenePlayground2::DestroyPendingAssets() const
+{
+	m_asset_manager.DestroyPendingAssets();
 }
 
 // override

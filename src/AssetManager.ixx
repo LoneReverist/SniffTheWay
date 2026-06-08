@@ -5,6 +5,7 @@ module;
 #include <expected>
 #include <filesystem>
 #include <iostream>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -83,9 +84,10 @@ public:
 		bool use_mip_map = true);
 	AssetId AddRenderTexture(std::uint32_t width, std::uint32_t height);
 
-	void RemoveMesh(AssetId id) { m_mesh_pool.Remove(id); }
-	void RemovePipeline(AssetId id) { m_pipeline_pool.Remove(id); }
-	void RemoveTexture(AssetId id) { m_texture_pool.Remove(id); }
+	void RemoveMesh(AssetId id);
+	void RemovePipeline(AssetId id);
+	void RemoveTexture(AssetId id);
+	void DestroyPendingAssets() const;
 
 	dh::Mesh * GetMesh(AssetId id) { return m_mesh_pool.Get(id); }
 	dh::Mesh const * GetMesh(AssetId id) const { return m_mesh_pool.Get(id); }
@@ -101,12 +103,24 @@ public:
 	dh::RenderContext const & GetRenderContext() const { return m_render_context; }
 
 private:
+	template <typename AssetT>
+	using DeferredFrameAssets = std::array<std::vector<AssetT>, dh::RenderContext::MaxFramesInFlight>;
+
+	void defer_destroy(dh::Mesh mesh) const;
+	void defer_destroy(dh::Pipeline pipeline) const;
+	void defer_destroy(dh::Texture texture) const;
+
+private:
 	dh::RenderContext const & m_render_context;
 	std::filesystem::path m_resources_path;
 
 	AssetPool<dh::Mesh> m_mesh_pool;
 	AssetPool<dh::Pipeline> m_pipeline_pool;
 	AssetPool<dh::Texture> m_texture_pool;
+
+	mutable DeferredFrameAssets<dh::Mesh> m_meshes_to_destroy;
+	mutable DeferredFrameAssets<dh::Pipeline> m_pipelines_to_destroy;
+	mutable DeferredFrameAssets<dh::Texture> m_textures_to_destroy;
 };
 
 template<IsVertex VertexT>
@@ -159,6 +173,7 @@ void AssetManager::UpdateMesh(MeshId<VertexT> mesh_id, dh::Mesh new_mesh)
 	if (!mesh)
 		return;
 
+	defer_destroy(std::move(*mesh));
 	*mesh = std::move(new_mesh);
 }
 
@@ -172,10 +187,16 @@ void AssetManager::UpdateMesh(
 	if (!mesh)
 		return;
 
-	*mesh = dh::Mesh{ m_render_context };
-	std::expected<void, dh::GraphicsError> result = mesh->Create(vertices, indices);
+	dh::Mesh new_mesh{ m_render_context };
+	std::expected<void, dh::GraphicsError> result = new_mesh.Create(vertices, indices);
 	if (!result.has_value())
+	{
 		std::cout << "AssetManager::UpdateMesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
+		return;
+	}
+
+	defer_destroy(std::move(*mesh));
+	*mesh = std::move(new_mesh);
 }
 
 template <typename PipelineT, typename... Args>
@@ -196,6 +217,59 @@ PipelineId<PipelineT> AssetManager::AddPipeline(Args &&... args)
 		std::cout << "AssetManager::AddPipeline: Failed to add pipeline to pool." << std::endl;
 
 	return pipeline_id;
+}
+
+void AssetManager::RemoveMesh(AssetId id)
+{
+	dh::Mesh * mesh = GetMesh(id);
+	if (mesh)
+		defer_destroy(std::move(*mesh));
+
+	m_mesh_pool.Remove(id);
+}
+
+void AssetManager::RemovePipeline(AssetId id)
+{
+	dh::Pipeline * pipeline = m_pipeline_pool.Get(id);
+	if (pipeline)
+		defer_destroy(std::move(*pipeline));
+
+	m_pipeline_pool.Remove(id);
+}
+
+void AssetManager::RemoveTexture(AssetId id)
+{
+	dh::Texture * texture = GetTexture(id);
+	if (texture)
+		defer_destroy(std::move(*texture));
+
+	m_texture_pool.Remove(id);
+}
+
+void AssetManager::DestroyPendingAssets() const
+{
+	const std::uint32_t frame_index = m_render_context.GetCurFrameIndex();
+	if (frame_index >= dh::RenderContext::MaxFramesInFlight)
+		return;
+
+	m_meshes_to_destroy[frame_index].clear();
+	m_pipelines_to_destroy[frame_index].clear();
+	m_textures_to_destroy[frame_index].clear();
+}
+
+void AssetManager::defer_destroy(dh::Mesh mesh) const
+{
+	m_meshes_to_destroy[m_render_context.GetCurFrameIndex()].push_back(std::move(mesh));
+}
+
+void AssetManager::defer_destroy(dh::Pipeline pipeline) const
+{
+	m_pipelines_to_destroy[m_render_context.GetCurFrameIndex()].push_back(std::move(pipeline));
+}
+
+void AssetManager::defer_destroy(dh::Texture texture) const
+{
+	m_textures_to_destroy[m_render_context.GetCurFrameIndex()].push_back(std::move(texture));
 }
 
 AssetId AssetManager::AddTexture(

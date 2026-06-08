@@ -1,9 +1,7 @@
 Push-Location $PSScriptRoot/..
 
-New-Item -ItemType Directory -Force -Path "build-release"
-cd build-release
-cmake -B . -S .. --preset "x64-windows-static" -DCMAKE_BUILD_TYPE=Release
-cmake --build . --target SniffTheWay
+cmake --preset "x64-windows-static"
+cmake --build --preset "x64-windows-static-release"
 
 Pop-Location
 

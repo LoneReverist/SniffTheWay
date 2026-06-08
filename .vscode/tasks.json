@@ -90,13 +90,8 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "-B",
-        "${workspaceFolder}/build-debug",
-        "-S",
-        "${workspaceFolder}",
         "--preset",
-        "x64-windows-static",
-        "-DCMAKE_BUILD_TYPE=Debug"
+        "x64-windows-static"
       ],
       "options": {
         "shell": {
@@ -121,13 +116,8 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "-B",
-        "${workspaceFolder}/build-release",
-        "-S",
-        "${workspaceFolder}",
         "--preset",
-        "x64-windows-static",
-        "-DCMAKE_BUILD_TYPE=Release"
+        "x64-windows-static"
       ],
       "options": {
         "shell": {
@@ -153,9 +143,8 @@
       "command": "cmake",
       "args": [
         "--build",
-        "${workspaceFolder}/build-debug",
-        "--target",
-        "SniffTheWay"
+        "--preset",
+        "x64-windows-static-debug"
       ],
       "options": {
         "shell": {
@@ -183,9 +172,8 @@
       "command": "cmake",
       "args": [
         "--build",
-        "${workspaceFolder}/build-release",
-        "--target",
-        "SniffTheWay"
+        "--preset",
+        "x64-windows-static-release"
       ],
       "options": {
         "shell": {

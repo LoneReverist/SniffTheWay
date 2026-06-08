@@ -1,23 +1,43 @@
 {
-  "version": 8,
-  "configurePresets": [
-    {
-      "name": "x64-windows-static",
-      "description": "Static Windows build using vcpkg",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
-      }
-    },
-    {
-      "name": "x64-linux",
-      "description": "Linux build using vcpkg",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "/opt/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-linux"
-      }
-    }
-  ]
+	"version": 8,
+	"configurePresets": [
+		{
+			"name": "x64-windows-static",
+			"description": "Static Windows build using vcpkg",
+			"generator": "Visual Studio 18 2026",
+			"architecture": "x64",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+				"VCPKG_TARGET_TRIPLET": "x64-windows-static"
+			}
+		},
+		{
+			"name": "x64-linux",
+			"description": "Linux build using vcpkg",
+			"generator": "Ninja",
+			"cacheVariables": {
+				"CMAKE_TOOLCHAIN_FILE": "/opt/vcpkg/scripts/buildsystems/vcpkg.cmake",
+				"VCPKG_TARGET_TRIPLET": "x64-linux"
+			}
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "x64-windows-static-release",
+			"configurePreset": "x64-windows-static",
+			"configuration": "Release",
+			"targets": [
+				"SniffTheWay"
+			]
+		},
+		{
+			"name": "x64-windows-static-debug",
+			"configurePreset": "x64-windows-static",
+			"configuration": "Debug",
+			"targets": [
+				"SniffTheWay"
+			]
+		}
+	]
 }

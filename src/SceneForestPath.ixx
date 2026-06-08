@@ -137,8 +137,7 @@ SceneForestPath::SceneForestPath(dh::RenderContext const & render_context)
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, 1920 /*right*/, 810 /*top*/, 1080 /*bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateUIRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
 
-	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateUIRenderObject("fps label", m_fps_label.GetUILabel().GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel().GetPipelineData());
+	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, *m_arial_font);
 
 	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
@@ -186,6 +185,7 @@ std::optional<SceneTransition> SceneForestPath::Update(float dt, Input const & i
 // override
 void SceneForestPath::Render() const
 {
+	m_fps_label.RenderOffscreenTexture();
 	m_renderer.Render();
 }
 

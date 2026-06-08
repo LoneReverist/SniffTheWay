@@ -33,14 +33,6 @@ import Vertex;
 export class UIShadowedText
 {
 public:
-	struct ShadowStyle
-	{
-		int blur_radius = 12;
-		float alpha_boost = 1.5f;
-		glm::vec2 offset{ 0.0f };
-		glm::vec4 color{ 0.0f, 0.0f, 0.0f, 1.0f };
-	};
-
 	void Init(
 		AssetManager & asset_manager,
 		SceneRenderer & renderer,
@@ -51,19 +43,27 @@ public:
 		float font_size,
 		glm::vec2 origin,
 		UILabel::Align align,
-		glm::vec4 text_color,
-		ShadowStyle shadow_style = {});
+		glm::vec4 text_color);
 
 	void RenderOffscreenTexture() const;
 	void SetText(std::string_view text);
 	void SetFontSize(float font_size);
 	void SetOrigin(glm::vec2 origin);
 	void SetAlign(UILabel::Align align);
-	void SetShadowStyle(ShadowStyle shadow_style);
 
 	UILabel const & GetUILabel() const { return m_label; }
 
 private:
+	struct ShadowStyle
+	{
+		int blur_radius = 12;
+		float alpha_boost = 1.5f;
+		glm::vec2 offset{ 0.0f };
+		glm::vec4 color{ 0.0f, 0.0f, 0.0f, 1.0f };
+	};
+
+	static ShadowStyle create_shadow_style(float font_size);
+
 	void update_layout();
 	void update_render_textures(std::uint32_t width, std::uint32_t height);
 	void update_quad_meshes();
@@ -125,15 +125,14 @@ void UIShadowedText::Init(
 	float font_size,
 	glm::vec2 origin,
 	UILabel::Align align,
-	glm::vec4 text_color,
-	ShadowStyle shadow_style /*= {}*/)
+	glm::vec4 text_color)
 {
 	m_asset_manager = &asset_manager;
 	m_renderer = &renderer;
 	m_name = std::string{ name };
 	m_origin = origin;
 	m_align = align;
-	m_shadow_style = shadow_style;
+	m_shadow_style = create_shadow_style(font_size);
 
 	const auto text_pipeline_id = asset_manager.AddPipeline<TextPipeline>(camera2d, asset_manager);
 	const auto text_mask_pipeline_id = asset_manager.AddPipeline<TextMaskPipeline>(m_offscreen_camera2d, asset_manager);
@@ -212,6 +211,24 @@ void UIShadowedText::Init(
 	update_layout();
 }
 
+UIShadowedText::ShadowStyle UIShadowedText::create_shadow_style(float font_size)
+{
+	constexpr float ReferenceSmallFontSize = 36.0f;
+	constexpr float ReferenceSmallAlphaBoost = 1.8f;
+	constexpr float ReferenceLargeFontSize = 64.0f;
+	constexpr float ReferenceLargeAlphaBoost = 1.5f;
+
+	constexpr float alpha_boost_slope =
+		(ReferenceLargeAlphaBoost - ReferenceSmallAlphaBoost) / (ReferenceLargeFontSize - ReferenceSmallFontSize);
+
+	return ShadowStyle{
+		.blur_radius = static_cast<int>(font_size / 6.0f),
+		.alpha_boost = ReferenceSmallAlphaBoost + alpha_boost_slope * (font_size - ReferenceSmallFontSize),
+		.offset = glm::vec2{0.0f},
+		.color = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f},
+	};
+}
+
 void UIShadowedText::RenderOffscreenTexture() const
 {
 	if (!m_shadow_texture_dirty || !m_asset_manager || !m_renderer)
@@ -242,6 +259,12 @@ void UIShadowedText::SetFontSize(float font_size)
 	m_label.SetFontSize(font_size);
 	m_mask_label.SetFontSize(font_size);
 
+	m_shadow_style = create_shadow_style(font_size);
+	m_horizontal_blur_data.blur_radius = m_shadow_style.blur_radius;
+	m_horizontal_blur_data.alpha_boost = m_shadow_style.alpha_boost;
+	m_vertical_blur_data.blur_radius = m_shadow_style.blur_radius;
+	m_vertical_blur_data.alpha_boost = m_shadow_style.alpha_boost;
+
 	TextPipeline::ObjectData const & label_data = m_mask_label.GetPipelineData();
 	m_mask_data.screen_px_range = label_data.screen_px_range;
 
@@ -266,17 +289,6 @@ void UIShadowedText::SetAlign(UILabel::Align align)
 	m_align = align;
 	m_label.SetAlign(align);
 	m_mask_label.SetAlign(align);
-	update_layout();
-}
-
-void UIShadowedText::SetShadowStyle(ShadowStyle shadow_style)
-{
-	m_shadow_style = shadow_style;
-	m_horizontal_blur_data.blur_radius = m_shadow_style.blur_radius;
-	m_horizontal_blur_data.alpha_boost = m_shadow_style.alpha_boost;
-	m_vertical_blur_data.blur_radius = m_shadow_style.blur_radius;
-	m_vertical_blur_data.alpha_boost = m_shadow_style.alpha_boost;
-	m_composite_data.color = m_shadow_style.color;
 	update_layout();
 }
 

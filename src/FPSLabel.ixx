@@ -2,7 +2,6 @@
 
 module;
 
-#include <memory>
 #include <string>
 
 #include <glm/vec2.hpp>
@@ -20,10 +19,10 @@ public:
 	void Init(AssetManager & asset_manager, FontAtlas const & font_atlas);
 	void Update(float dt);
 
-	UILabel const * GetUILabel() const { return m_ui_label.get(); }
+	UILabel const & GetUILabel() const { return m_ui_label; }
 
 private:
-	std::unique_ptr<UILabel> m_ui_label;
+	UILabel m_ui_label;
 
 	float m_frame_timer = 0.0f;
 	int m_frame_count = 0;
@@ -31,8 +30,8 @@ private:
 
 void FPSLabel::Init(AssetManager & asset_manager, FontAtlas const & font_atlas)
 {
-	m_ui_label = std::make_unique<UILabel>(asset_manager, "FPS: ", font_atlas,
-		SniffTheWay::LabelFontSize, glm::vec2{ 96, 1026 } /*origin*/, UILabel::Align::Left, SniffTheWay::StoryTextColor);
+	m_ui_label.Init(asset_manager, "FPS: ", font_atlas, SniffTheWay::LabelFontSize,
+		glm::vec2{ 96, 1026 } /*origin*/, UILabel::Align::Left, SniffTheWay::StoryTextColor);
 }
 
 void FPSLabel::Update(float dt)
@@ -42,7 +41,7 @@ void FPSLabel::Update(float dt)
 	if (m_frame_timer >= 1.0)
 	{
 		float fps = static_cast<float>(m_frame_count) / m_frame_timer;
-		m_ui_label->SetText("FPS: " + std::to_string(static_cast<int>(fps)));
+		m_ui_label.SetText("FPS: " + std::to_string(static_cast<int>(fps)));
 		m_frame_timer = 0.0;
 		m_frame_count = 0;
 	}

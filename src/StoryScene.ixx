@@ -65,8 +65,8 @@ protected:
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 	FPSLabel m_fps_label;
-	std::unique_ptr<UILabel> m_controls_label;
-	std::unique_ptr<UILabel> m_page_number_label;
+	UILabel m_controls_label;
+	UILabel m_page_number_label;
 	UIShadowedText m_story_text;
 };
 
@@ -99,16 +99,16 @@ StoryScene::StoryScene(
 	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateUIRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
+	m_renderer.CreateUIRenderObject("fps label", m_fps_label.GetUILabel().GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel().GetPipelineData());
 
-	m_controls_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
+	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_controls_label->SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
+	m_controls_label.SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label.GetMeshId(), text_pipeline_id, m_controls_label.GetPipelineData()));
 
 	std::string page_number_text = std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size());
-	m_page_number_label = std::make_unique<UILabel>(m_asset_manager, page_number_text, *m_arial_font,
+	m_page_number_label.Init(m_asset_manager, page_number_text, *m_arial_font,
 		LabelFontSize, glm::vec2{ 1824, 1026 } /*origin*/, UILabel::Align::Right, StoryTextColor);
-	m_renderer.CreateUIRenderObject("page number", m_page_number_label->GetMeshId(), text_pipeline_id, m_page_number_label->GetPipelineData());
+	m_renderer.CreateUIRenderObject("page number", m_page_number_label.GetMeshId(), text_pipeline_id, m_page_number_label.GetPipelineData());
 
 	m_story_text.Init(
 		m_asset_manager,
@@ -185,7 +185,7 @@ bool StoryScene::page_forward()
 
 	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
 	m_story_text.SetText(m_story_texts[m_cur_bg_index]);
-	m_page_number_label->SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
+	m_page_number_label.SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 	return true;
 }
 
@@ -194,5 +194,5 @@ void StoryScene::page_backward()
 	m_cur_bg_index = std::max(0, m_cur_bg_index - 1);
 	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
 	m_story_text.SetText(m_story_texts[m_cur_bg_index]);
-	m_page_number_label->SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
+	m_page_number_label.SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 }

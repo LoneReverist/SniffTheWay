@@ -5,7 +5,6 @@ module;
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <memory>
 #include <span>
 #include <string>
 #include <string_view>
@@ -62,7 +61,7 @@ public:
 	void SetAlign(UILabel::Align align);
 	void SetShadowStyle(ShadowStyle shadow_style);
 
-	UILabel const * GetUILabel() const { return m_label.get(); }
+	UILabel const & GetUILabel() const { return m_label; }
 
 private:
 	void update_layout();
@@ -85,8 +84,8 @@ private:
 
 	Camera2d m_offscreen_camera2d{ true /*flip_screen_y*/ };
 
-	std::unique_ptr<UILabel> m_label;
-	std::unique_ptr<UILabel> m_mask_label;
+	UILabel m_label;
+	UILabel m_mask_label;
 
 	std::string m_name;
 	glm::vec2 m_origin{ 0.0f };
@@ -141,7 +140,7 @@ void UIShadowedText::Init(
 	const auto blur_pipeline_id = asset_manager.AddPipeline<BlurPipeline>(m_offscreen_camera2d, asset_manager);
 	const auto shadow_composite_pipeline_id = asset_manager.AddPipeline<ShadowCompositePipeline>(camera2d, asset_manager);
 
-	m_label = std::make_unique<UILabel>(
+	m_label.Init(
 		asset_manager,
 		text,
 		font_atlas,
@@ -149,7 +148,7 @@ void UIShadowedText::Init(
 		origin,
 		align,
 		text_color);
-	m_mask_label = std::make_unique<UILabel>(
+	m_mask_label.Init(
 		asset_manager,
 		text,
 		font_atlas,
@@ -158,14 +157,14 @@ void UIShadowedText::Init(
 		align,
 		glm::vec4{ 1.0f });
 
-	TextPipeline::ObjectData const & label_data = m_mask_label->GetPipelineData();
+	TextPipeline::ObjectData const & label_data = m_mask_label.GetPipelineData();
 	m_mask_data = TextMaskPipeline::ObjectData{
 		.screen_px_range = label_data.screen_px_range,
 		.bg_color = label_data.bg_color,
 		.text_color = label_data.text_color,
 		.tex_id = label_data.tex_id,
 	};
-	m_mask_ro = RenderObject(m_name + " shadow mask", m_mask_label->GetMeshId(), text_mask_pipeline_id);
+	m_mask_ro = RenderObject(m_name + " shadow mask", m_mask_label.GetMeshId(), text_mask_pipeline_id);
 	m_mask_ro.SetObjectData(&m_mask_data);
 
 	m_mask_tex_id = asset_manager.AddRenderTexture(m_texture_width, m_texture_height);
@@ -205,10 +204,10 @@ void UIShadowedText::Init(
 
 	m_label_ro_id = renderer.CreateUIRenderObject(
 		m_name + " label",
-		m_label->GetMeshId(),
+		m_label.GetMeshId(),
 		text_pipeline_id,
-		m_label->GetPipelineData());
-	m_label->SetROId(m_label_ro_id);
+		m_label.GetPipelineData());
+	m_label.SetROId(m_label_ro_id);
 
 	update_layout();
 }
@@ -233,23 +232,17 @@ void UIShadowedText::RenderOffscreenTexture() const
 
 void UIShadowedText::SetText(std::string_view text)
 {
-	if (!m_label || !m_mask_label)
-		return;
-
-	m_label->SetText(text);
-	m_mask_label->SetText(text);
+	m_label.SetText(text);
+	m_mask_label.SetText(text);
 	update_layout();
 }
 
 void UIShadowedText::SetFontSize(float font_size)
 {
-	if (!m_label || !m_mask_label)
-		return;
+	m_label.SetFontSize(font_size);
+	m_mask_label.SetFontSize(font_size);
 
-	m_label->SetFontSize(font_size);
-	m_mask_label->SetFontSize(font_size);
-
-	TextPipeline::ObjectData const & label_data = m_mask_label->GetPipelineData();
+	TextPipeline::ObjectData const & label_data = m_mask_label.GetPipelineData();
 	m_mask_data.screen_px_range = label_data.screen_px_range;
 
 	update_layout();
@@ -257,22 +250,22 @@ void UIShadowedText::SetFontSize(float font_size)
 
 void UIShadowedText::SetOrigin(glm::vec2 origin)
 {
-	if (!m_label || !m_mask_label || m_origin == origin)
+	if (m_origin == origin)
 		return;
 
 	m_origin = origin;
-	m_label->SetOrigin(origin);
+	m_label.SetOrigin(origin);
 	update_layout();
 }
 
 void UIShadowedText::SetAlign(UILabel::Align align)
 {
-	if (!m_label || !m_mask_label || m_align == align)
+	if (m_align == align)
 		return;
 
 	m_align = align;
-	m_label->SetAlign(align);
-	m_mask_label->SetAlign(align);
+	m_label.SetAlign(align);
+	m_mask_label.SetAlign(align);
 	update_layout();
 }
 
@@ -289,10 +282,10 @@ void UIShadowedText::SetShadowStyle(ShadowStyle shadow_style)
 
 void UIShadowedText::update_layout()
 {
-	if (!m_asset_manager || !m_renderer || !m_label || !m_mask_label)
+	if (!m_asset_manager || !m_renderer)
 		return;
 
-	UILabel::Bounds const & bounds = m_label->GetBounds();
+	UILabel::Bounds const & bounds = m_label.GetBounds();
 	if (!bounds.is_valid)
 	{
 		m_renderer->Show(m_composite_ro_id, false);
@@ -311,7 +304,7 @@ void UIShadowedText::update_layout()
 	update_render_textures(width, height);
 
 	const glm::vec2 mask_origin = m_origin - bounds.min + glm::vec2{ padding };
-	m_mask_label->SetOrigin(mask_origin);
+	m_mask_label.SetOrigin(mask_origin);
 
 	const glm::vec2 composite_top_left = bounds.min + m_shadow_style.offset - glm::vec2{ padding };
 	update_quad(m_composite_quad_mesh_id, composite_top_left, glm::vec2{ static_cast<float>(width), static_cast<float>(height) });

@@ -45,7 +45,9 @@ public:
 	};
 
 public:
-	explicit UILabel(
+	UILabel() = default;
+
+	void Init(
 		AssetManager & asset_manager,
 		std::string_view text,
 		FontAtlas const & font_atlas,
@@ -71,12 +73,12 @@ private:
 	void update_mesh() const;
 
 private:
-	AssetManager & m_asset_manager;
+	AssetManager * m_asset_manager = nullptr;
 	MeshId<VertexT> m_mesh_id;
 	AssetId m_ro_id;
 
 	std::string m_text;
-	FontAtlas const & m_font_atlas;
+	FontAtlas const * m_font_atlas = nullptr;
 	std::uint32_t m_font_tex_width = 0;
 	std::uint32_t m_font_tex_height = 0;
 	float m_font_size = 0.0f;
@@ -86,7 +88,7 @@ private:
 	mutable Bounds m_bounds;
 };
 
-UILabel::UILabel(
+void UILabel::Init(
 	AssetManager & asset_manager,
 	std::string_view text,
 	FontAtlas const & font_atlas,
@@ -94,15 +96,16 @@ UILabel::UILabel(
 	glm::vec2 origin,
 	Align align,
 	glm::vec4 color)
-	: m_asset_manager(asset_manager)
-	, m_text(text)
-	, m_font_atlas(font_atlas)
-	, m_font_size(font_size)
-	, m_origin(origin)
-	, m_align(align)
 {
+	m_asset_manager = &asset_manager;
+	m_text = text;
+	m_font_atlas = &font_atlas;
+	m_font_size = font_size;
+	m_origin = origin;
+	m_align = align;
+
 	std::uint32_t font_tex_width = 0, font_tex_height = 0;
-	dh::Texture const * font_tex = m_asset_manager.GetTexture(font_atlas.GetTextureId());
+	dh::Texture const * font_tex = m_asset_manager->GetTexture(font_atlas.GetTextureId());
 	if (font_tex)
 	{
 		m_font_tex_width = font_tex->GetWidth();
@@ -123,7 +126,7 @@ UILabel::UILabel(
 		return;
 	}
 
-	m_mesh_id = m_asset_manager.AddMesh<VertexT>(std::move(mesh.value()));
+	m_mesh_id = m_asset_manager->AddMesh<VertexT>(std::move(mesh.value()));
 }
 
 void UILabel::SetText(std::string_view text)
@@ -142,7 +145,8 @@ void UILabel::SetFontSize(float font_size)
 		return; // no change
 
 	m_font_size = font_size;
-	m_pipeline_data.screen_px_range = m_font_size * m_font_atlas.GetPxRange();
+	if (m_font_atlas)
+		m_pipeline_data.screen_px_range = m_font_size * m_font_atlas->GetPxRange();
 
 	update_mesh();
 }
@@ -169,10 +173,13 @@ void UILabel::SetAlign(Align align)
 
 std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 {
+	if (!m_asset_manager || !m_font_atlas)
+		return std::unexpected{ dh::GraphicsError{ "UILabel::create_mesh called before Init." } };
+
 	if (m_font_tex_width == 0 || m_font_tex_height == 0 || m_text.empty())
 	{
 		m_bounds = Bounds{};
-		return dh::Mesh{ m_asset_manager.GetRenderContext() }; // an empty mesh is an expected result here
+		return dh::Mesh{ m_asset_manager->GetRenderContext() }; // an empty mesh is an expected result here
 	}
 
 	std::vector<VertexT> verts;
@@ -181,7 +188,7 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 	glm::vec2 pen = m_origin;
 	for (char c : m_text)
 	{
-		auto glyph = m_font_atlas.GetGlyph(static_cast<std::uint32_t>(c));
+		auto glyph = m_font_atlas->GetGlyph(static_cast<std::uint32_t>(c));
 		if (!glyph.has_value())
 			continue; // skip missing glyphs
 
@@ -264,7 +271,7 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 		};
 	}
 
-	dh::Mesh mesh{ m_asset_manager.GetRenderContext() };
+	dh::Mesh mesh{ m_asset_manager->GetRenderContext() };
 	std::expected<void, dh::GraphicsError> result = mesh.Create(verts, indices);
 	if (!result.has_value())
 		return std::unexpected{ result.error().AddToMessage(" UILabel::CreateMesh: Failed to create mesh.") };
@@ -281,5 +288,6 @@ void UILabel::update_mesh() const
 		return;
 	}
 
-	m_asset_manager.UpdateMesh(m_mesh_id, std::move(new_mesh.value()));
+	if (m_asset_manager)
+		m_asset_manager->UpdateMesh(m_mesh_id, std::move(new_mesh.value()));
 }

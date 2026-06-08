@@ -69,7 +69,7 @@ private:
 
 	std::unique_ptr<FontAtlas> m_arial_font;
 	FPSLabel m_fps_label;
-	std::unique_ptr<UILabel> m_controls_label;
+	UILabel m_controls_label;
 	UIShadow m_story_shadow;
 };
 
@@ -123,11 +123,11 @@ ScenePlayground2::ScenePlayground2(dh::RenderContext const & render_context)
 	m_story_shadow.SetROId(m_renderer.CreateUIRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, *m_arial_font);
-	m_renderer.CreateUIRenderObject("fps label", m_fps_label.GetUILabel()->GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel()->GetPipelineData());
+	m_renderer.CreateUIRenderObject("fps label", m_fps_label.GetUILabel().GetMeshId(), text_pipeline_id, m_fps_label.GetUILabel().GetPipelineData());
 
-	m_controls_label = std::make_unique<UILabel>(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
+	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_controls_label->SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label->GetMeshId(), text_pipeline_id, m_controls_label->GetPipelineData()));
+	m_controls_label.SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label.GetMeshId(), text_pipeline_id, m_controls_label.GetPipelineData()));
 
 	ChangeSceneState(SceneState::Gameplay);
 }
@@ -182,7 +182,7 @@ void ScenePlayground2::ChangeSceneState(SceneState new_state)
 
 	if (m_scene_state == SceneState::Gameplay)
 	{
-		m_renderer.Show(m_controls_label->GetROId(), false);
+		m_renderer.Show(m_controls_label.GetROId(), false);
 		m_renderer.Show(m_story_shadow.GetROId(), false);
 	}
 }

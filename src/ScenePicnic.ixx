@@ -30,29 +30,29 @@ private:
 	static constexpr std::array<StoryText, 4> PicnicTexts{
 		StoryText{
 			.text = "It was a perfect day\nfor a picnic.",
-			.font_size = TitleFontSize,
+			.font_size = StoryLargeFontSize,
 			.pos = glm::vec2{ 1440, 250 },
 			.align = UILabel::Align::Center,
 			.show_time = 1.5f,
 		},
 		StoryText{
 			.text = "A little baby.",
-			.font_size = LabelFontSize,
-			.pos = glm::vec2{ 1440, 390 },
+			.font_size = StoryMediumFontSize,
+			.pos = glm::vec2{ 1440, 460 },
 			.align = UILabel::Align::Center,
 			.show_time = 3.0f,
 		},
 		StoryText{
 			.text = "A loyal dog.",
-			.font_size = LabelFontSize,
-			.pos = glm::vec2{ 1440, 460 },
+			.font_size = StoryMediumFontSize,
+			.pos = glm::vec2{ 1440, 560 },
 			.align = UILabel::Align::Center,
 			.show_time = 4.5f,
 		},
 		StoryText{
 			.text = "And a family together.",
-			.font_size = LabelFontSize,
-			.pos = glm::vec2{ 1440, 530 },
+			.font_size = StoryMediumFontSize,
+			.pos = glm::vec2{ 1440, 660 },
 			.align = UILabel::Align::Center,
 			.show_time = 6.0f,
 		},
@@ -61,14 +61,14 @@ private:
 	static constexpr std::array<StoryText, 2> GustOfWindTexts{
 		StoryText{
 			.text = "Then,",
-			.font_size = LabelFontSize,
+			.font_size = StorySmallFontSize,
 			.pos = glm::vec2{ 860, 250 },
 			.align = UILabel::Align::Right,
 			.show_time = 0.75f,
 		},
 		StoryText{
 			.text = "WHOOSH!",
-			.font_size = TitleFontSize,
+			.font_size = StoryLargeFontSize,
 			.pos = glm::vec2{ 910, 250 },
 			.align = UILabel::Align::Left,
 			.show_time = 1.5f,
@@ -79,21 +79,21 @@ private:
 	static constexpr std::array<StoryText, 3> FollowingButterfliesTexts{
 		StoryText{
 			.text = "While everyone looked away...",
-			.font_size = LabelFontSize,
+			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 250 },
 			.align = UILabel::Align::Center,
 			.show_time = 0.75f,
 		},
 		StoryText{
 			.text = "tiny footsteps wandered.",
-			.font_size = LabelFontSize,
+			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 320 },
 			.align = UILabel::Align::Center,
 			.show_time = 2.25f,
 		},
 		StoryText{
 			.text = "And one brave nose followed close behind.",
-			.font_size = LabelFontSize,
+			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 390 },
 			.align = UILabel::Align::Center,
 			.show_time = 3.75f,
@@ -103,21 +103,21 @@ private:
 	static constexpr std::array<StoryText, 3> LostTexts{
 		StoryText{
 			.text = "When they stopped,",
-			.font_size = LabelFontSize,
+			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 250 },
 			.align = UILabel::Align::Center,
 			.show_time = 0.75f,
 		},
 		StoryText{
 			.text = "home was nowhere to be seen.",
-			.font_size = LabelFontSize,
+			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 320 },
 			.align = UILabel::Align::Center,
 			.show_time = 2.0f,
 		},
 		StoryText{
 			.text = "But the puppy stayed close.",
-			.font_size = LabelFontSize,
+			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 390 },
 			.align = UILabel::Align::Center,
 			.show_time = 4.0f,

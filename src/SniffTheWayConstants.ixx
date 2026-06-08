@@ -21,8 +21,11 @@ export namespace SniffTheWay
 	// It will be scaled proportionally to the height of the viewport.
 	constexpr float LabelFontSize = 36.0f;
 	constexpr float TitleFontSize = 64.0f;
+	constexpr float StoryLargeFontSize = 80.0f;
+	constexpr float StoryMediumFontSize = 56.0f;
+	constexpr float StorySmallFontSize = 36.0f;
 
-	constexpr glm::vec4 StoryTextColor{ 0.96f, 0.90f, 0.78f, 1.0f };
+	constexpr glm::vec4 StoryTextColor{ 0.96f, 0.9f, 0.7f, 1.0f };
 
 	enum class SceneState : std::uint8_t
 	{

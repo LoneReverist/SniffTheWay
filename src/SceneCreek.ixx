@@ -22,27 +22,33 @@ public:
 
 private:
 	// Purpose: Show growing teamwork and deepen emotional bond.
-	// Emotional arc: Obstacle → fear → trust → teamwork
-	static constexpr std::array<std::string_view, 4> StoryImages{
-		"approaching_creek.png",
-		"baby_reluctant.png",
-		"crossing_creek.png",
-		"beyond_the_creek.png",
+	// Emotional arc: Obstacle -> fear -> trust -> teamwork
+	// water blocks path
+	static constexpr std::array<StoryText, 1> ApproachingCreekTexts{
+		StoryText{ .text = "The forest grew thicker.<pause>And soon,\nthe path disappeared.<pause>", .font_size = TitleFontSize },
 	};
-	static constexpr std::array<std::string_view, 4> StoryTexts{
-		// water blocks path
-		"The forest grew thicker.<pause>And soon,\nthe path disappeared.<pause>",
-		// words appear slower, slight wobble on "Too scary."
-		"The water looked cold.<pause>Too far.<pause>Too scary.<pause>",
-		// dog guiding path
-		"But the puppy searched carefully.<pause>One safe step...<pause>then another.<pause>",
-		// they make it across, music becomes hopeful, camera slowly pushes in
-		"Together,<pause>they kept going.<pause>",
+	// words appear slower, slight wobble on "Too scary."
+	static constexpr std::array<StoryText, 1> BabyReluctantTexts{
+		StoryText{ .text = "The water looked cold.<pause>Too far.<pause>Too scary.<pause>", .font_size = TitleFontSize },
+	};
+	// dog guiding path
+	static constexpr std::array<StoryText, 1> CrossingCreekTexts{
+		StoryText{ .text = "But the puppy searched carefully.<pause>One safe step...<pause>then another.<pause>", .font_size = TitleFontSize },
+	};
+	// they make it across, music becomes hopeful, camera slowly pushes in
+	static constexpr std::array<StoryText, 1> BeyondTheCreekTexts{
+		StoryText{ .text = "Together,<pause>they kept going.<pause>", .font_size = TitleFontSize },
+	};
+	static constexpr std::array<StoryPage, 4> StoryPages{
+		StoryPage{ .bg_image_filename = "approaching_creek.png", .story_texts = ApproachingCreekTexts },
+		StoryPage{ .bg_image_filename = "baby_reluctant.png", .story_texts = BabyReluctantTexts },
+		StoryPage{ .bg_image_filename = "crossing_creek.png", .story_texts = CrossingCreekTexts },
+		StoryPage{ .bg_image_filename = "beyond_the_creek.png", .story_texts = BeyondTheCreekTexts },
 	};
 };
 
 SceneCreek::SceneCreek(dh::RenderContext const & render_context)
-	: StoryScene(render_context, StoryImages, StoryTexts)
+	: StoryScene(render_context, StoryPages)
 {
 	m_next_scene_id = SceneId::DarkForest;
 }

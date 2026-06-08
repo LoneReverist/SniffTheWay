@@ -60,6 +60,7 @@ public:
 	void SetFontSize(float font_size);
 	void SetOrigin(glm::vec2 origin);
 	void SetAlign(Align align);
+	void SetTextColor(glm::vec4 color);
 
 	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
 	
@@ -169,6 +170,11 @@ void UILabel::SetAlign(Align align)
 	m_align = align;
 
 	update_mesh();
+}
+
+void UILabel::SetTextColor(glm::vec4 color)
+{
+	m_pipeline_data.text_color = color;
 }
 
 std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const

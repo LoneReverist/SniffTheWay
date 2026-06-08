@@ -22,31 +22,39 @@ public:
 
 private:
 	// Purpose: Emotional payoff.
-	// Emotional arc: Recognition → relief → reunion → peace
-	static constexpr std::array<std::string_view, 5> StoryImages{
-		"home.png",
-		"parents_notice.png",
-		"reunion.png",
-		"safe_again.png",
-		"dog_by_fireplace.png",
+	// Emotional arc: Recognition -> relief -> reunion -> peace
+	// parents far away, hold this longer than usual.
+	static constexpr std::array<StoryText, 1> HomeTexts{
+		StoryText{ .text = "Then,<pause>something familiar.<pause>Home.<pause>", .font_size = TitleFontSize },
 	};
-	static constexpr std::array<std::string_view, 5> StoryTexts{
-		// parents far away, hold this longer than usual.
-		"Then,<pause>something familiar.<pause>Home.<pause>",
-		// parents notice
-		"Voices called out.<pause>Feet hurried down the path.<pause>",
-		// mom hugs baby, dad hugs dog, Keep it simple. Let visuals carry emotion.
-		"Safe again.<pause>Held tight.<pause>Loved deeply.<pause>",
-		// calm ending, family together by the fire
-		"<pause>",
-		// dog and baby cuddled together
-		"A loyal nose.<pause>A brave heart.<pause>Home at last.",
-		// fade to credits
+	// parents notice
+	static constexpr std::array<StoryText, 1> ParentsNoticeTexts{
+		StoryText{ .text = "Voices called out.<pause>Feet hurried down the path.<pause>", .font_size = TitleFontSize },
+	};
+	// mom hugs baby, dad hugs dog, Keep it simple. Let visuals carry emotion.
+	static constexpr std::array<StoryText, 1> ReunionTexts{
+		StoryText{ .text = "Safe again.<pause>Held tight.<pause>Loved deeply.<pause>", .font_size = TitleFontSize },
+	};
+	// calm ending, family together by the fire
+	static constexpr std::array<StoryText, 1> SafeAgainTexts{
+		StoryText{ .text = "<pause>", .font_size = TitleFontSize },
+	};
+	// dog and baby cuddled together
+	static constexpr std::array<StoryText, 1> DogByFireplaceTexts{
+		StoryText{ .text = "A loyal nose.<pause>A brave heart.<pause>Home at last.", .font_size = TitleFontSize },
+	};
+	// fade to credits
+	static constexpr std::array<StoryPage, 5> StoryPages{
+		StoryPage{ .bg_image_filename = "home.png", .story_texts = HomeTexts },
+		StoryPage{ .bg_image_filename = "parents_notice.png", .story_texts = ParentsNoticeTexts },
+		StoryPage{ .bg_image_filename = "reunion.png", .story_texts = ReunionTexts },
+		StoryPage{ .bg_image_filename = "safe_again.png", .story_texts = SafeAgainTexts },
+		StoryPage{ .bg_image_filename = "dog_by_fireplace.png", .story_texts = DogByFireplaceTexts },
 	};
 };
 
 SceneHome::SceneHome(dh::RenderContext const & render_context)
-	: StoryScene(render_context, StoryImages, StoryTexts)
+	: StoryScene(render_context, StoryPages)
 {
 	m_next_scene_id = SceneId::Exit;
 }

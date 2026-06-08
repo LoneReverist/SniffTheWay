@@ -48,8 +48,11 @@ public:
 	void RenderOffscreenTexture() const;
 	void SetText(std::string_view text);
 	void SetFontSize(float font_size);
+	void SetTextColor(glm::vec4 text_color);
+	void SetOpacity(float opacity);
 	void SetOrigin(glm::vec2 origin);
 	void SetAlign(UILabel::Align align);
+	void SetVisible(bool visible);
 
 	UILabel const & GetUILabel() const { return m_label; }
 
@@ -90,6 +93,8 @@ private:
 	std::string m_name;
 	glm::vec2 m_origin{ 0.0f };
 	UILabel::Align m_align = UILabel::Align::Left;
+	glm::vec4 m_text_color{ 1.0f };
+	float m_opacity = 1.0f;
 	ShadowStyle m_shadow_style;
 
 	AssetId m_mask_tex_id;
@@ -132,6 +137,7 @@ void UIShadowedText::Init(
 	m_name = std::string{ name };
 	m_origin = origin;
 	m_align = align;
+	m_text_color = text_color;
 	m_shadow_style = create_shadow_style(font_size);
 
 	const auto text_pipeline_id = asset_manager.AddPipeline<TextPipeline>(camera2d, asset_manager);
@@ -264,11 +270,35 @@ void UIShadowedText::SetFontSize(float font_size)
 	m_horizontal_blur_data.alpha_boost = m_shadow_style.alpha_boost;
 	m_vertical_blur_data.blur_radius = m_shadow_style.blur_radius;
 	m_vertical_blur_data.alpha_boost = m_shadow_style.alpha_boost;
+	m_composite_data.color = glm::vec4{
+		m_shadow_style.color.r,
+		m_shadow_style.color.g,
+		m_shadow_style.color.b,
+		m_shadow_style.color.a * m_opacity
+	};
 
 	TextPipeline::ObjectData const & label_data = m_mask_label.GetPipelineData();
 	m_mask_data.screen_px_range = label_data.screen_px_range;
 
 	update_layout();
+}
+
+void UIShadowedText::SetTextColor(glm::vec4 text_color)
+{
+	m_text_color = text_color;
+	m_label.SetTextColor(glm::vec4{ text_color.r, text_color.g, text_color.b, text_color.a * m_opacity });
+}
+
+void UIShadowedText::SetOpacity(float opacity)
+{
+	m_opacity = std::clamp(opacity, 0.0f, 1.0f);
+	m_label.SetTextColor(glm::vec4{ m_text_color.r, m_text_color.g, m_text_color.b, m_text_color.a * m_opacity });
+	m_composite_data.color = glm::vec4{
+		m_shadow_style.color.r,
+		m_shadow_style.color.g,
+		m_shadow_style.color.b,
+		m_shadow_style.color.a * m_opacity
+	};
 }
 
 void UIShadowedText::SetOrigin(glm::vec2 origin)
@@ -279,6 +309,15 @@ void UIShadowedText::SetOrigin(glm::vec2 origin)
 	m_origin = origin;
 	m_label.SetOrigin(origin);
 	update_layout();
+}
+
+void UIShadowedText::SetVisible(bool visible)
+{
+	if (!m_renderer)
+		return;
+
+	m_renderer->Show(m_composite_ro_id, visible);
+	m_renderer->Show(m_label_ro_id, visible);
 }
 
 void UIShadowedText::SetAlign(UILabel::Align align)

@@ -219,17 +219,18 @@ void UIShadowedText::Init(
 
 UIShadowedText::ShadowStyle UIShadowedText::create_shadow_style(float font_size)
 {
-	constexpr float ReferenceSmallFontSize = 36.0f;
-	constexpr float ReferenceSmallAlphaBoost = 1.8f;
-	constexpr float ReferenceLargeFontSize = 64.0f;
-	constexpr float ReferenceLargeAlphaBoost = 1.5f;
-
-	constexpr float alpha_boost_slope =
-		(ReferenceLargeAlphaBoost - ReferenceSmallAlphaBoost) / (ReferenceLargeFontSize - ReferenceSmallFontSize);
+//	constexpr float ReferenceSmallFontSize = 36.0f;
+//	constexpr float ReferenceSmallAlphaBoost = 1.8f;
+//	constexpr float ReferenceLargeFontSize = 64.0f;
+//	constexpr float ReferenceLargeAlphaBoost = 1.5f;
+//
+//	constexpr float alpha_boost_slope =
+//		(ReferenceLargeAlphaBoost - ReferenceSmallAlphaBoost) / (ReferenceLargeFontSize - ReferenceSmallFontSize);
+//	float alpha_boost = ReferenceSmallAlphaBoost + alpha_boost_slope * (font_size - ReferenceSmallFontSize);
 
 	return ShadowStyle{
 		.blur_radius = static_cast<int>(font_size / 6.0f),
-		.alpha_boost = ReferenceSmallAlphaBoost + alpha_boost_slope * (font_size - ReferenceSmallFontSize),
+		.alpha_boost = 1.5f,
 		.offset = glm::vec2{0.0f},
 		.color = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f},
 	};

@@ -192,8 +192,41 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 	std::vector<dh::Mesh::IndexT> indices;
 
 	glm::vec2 pen = m_origin;
+	std::size_t line_start_vi = 0;
+	const float line_height = m_font_atlas->GetLineHeight() * m_font_size;
+
+	auto align_line = [&](std::size_t start_vi, std::size_t end_vi, float line_end_x)
+	{
+		if (start_vi == end_vi)
+			return;
+
+		float x_offset = 0.0f;
+		if (m_align == Align::Right)
+			x_offset = m_origin.x - line_end_x;
+		else if (m_align == Align::Center)
+			x_offset = (m_origin.x - line_end_x) * 0.5f;
+
+		if (x_offset != 0.0f)
+		{
+			for (std::size_t i = start_vi; i < end_vi; ++i)
+				verts[i].pos.x += x_offset;
+		}
+	};
+
 	for (char c : m_text)
 	{
+		if (c == '\r')
+			continue;
+
+		if (c == '\n')
+		{
+			align_line(line_start_vi, verts.size(), pen.x);
+			pen.x = m_origin.x;
+			pen.y += line_height;
+			line_start_vi = verts.size();
+			continue;
+		}
+
 		auto glyph = m_font_atlas->GetGlyph(static_cast<std::uint32_t>(c));
 		if (!glyph.has_value())
 			continue; // skip missing glyphs
@@ -235,19 +268,7 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 
 		pen.x += g.advance * m_font_size;
 	}
-
-	// alignment
-	float x_offset = 0.0f;
-	if (m_align == Align::Right)
-		x_offset = m_origin.x - pen.x;
-	else if (m_align == Align::Center)
-		x_offset = (m_origin.x - pen.x) * 0.5;
-
-	if (x_offset != 0.0f)
-	{
-		for (VertexT & vert : verts)
-			vert.pos.x += x_offset;
-	}
+	align_line(line_start_vi, verts.size(), pen.x);
 
 	if (verts.empty())
 	{

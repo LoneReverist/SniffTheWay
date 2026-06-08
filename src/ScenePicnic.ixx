@@ -27,27 +27,34 @@ private:
 	// Purpose: Establish love, safety, family bond, and the accidental separation.
 	// Emotional arc: Warmth -> distraction -> curiosity -> separation
 	// warm fade in, slight floating motion on text, gentle ambient music
-	static constexpr std::array<StoryText, 3> PicnicTexts{
+	static constexpr std::array<StoryText, 4> PicnicTexts{
 		StoryText{
-			.text = "It was a perfect day for a picnic.",
+			.text = "It was a perfect day\nfor a picnic.",
 			.font_size = TitleFontSize,
-			.pos = glm::vec2{ 960, 250 },
+			.pos = glm::vec2{ 1440, 250 },
 			.align = UILabel::Align::Center,
 			.show_time = 1.5f,
 		},
 		StoryText{
-			.text = "A little baby. A loyal dog.",
+			.text = "A little baby.",
 			.font_size = LabelFontSize,
-			.pos = glm::vec2{ 960, 340 },
+			.pos = glm::vec2{ 1440, 390 },
 			.align = UILabel::Align::Center,
 			.show_time = 3.0f,
 		},
 		StoryText{
-			.text = "And a family together.",
+			.text = "A loyal dog.",
 			.font_size = LabelFontSize,
-			.pos = glm::vec2{ 960, 410 },
+			.pos = glm::vec2{ 1440, 460 },
 			.align = UILabel::Align::Center,
 			.show_time = 4.5f,
+		},
+		StoryText{
+			.text = "And a family together.",
+			.font_size = LabelFontSize,
+			.pos = glm::vec2{ 1440, 530 },
+			.align = UILabel::Align::Center,
+			.show_time = 6.0f,
 		},
 	};
 	// leaves in wind effect, text blown sideways, slight camera shake

@@ -40,6 +40,7 @@ public:
 
 	AssetId GetTextureId() const { return m_texture_id; }
 	float GetPxRange() const { return m_px_range; }
+	float GetLineHeight() const { return m_line_height; }
 
 	std::optional<std::reference_wrapper<const Glyph>> GetGlyph(std::uint32_t unicode) const
 	{
@@ -62,6 +63,10 @@ private:
 		auto atlas = json["atlas"];
 		m_px_range = atlas["distanceRange"].get<float>();
 
+		auto metrics = json.find("metrics");
+		if (metrics != json.end())
+			m_line_height = (*metrics)["lineHeight"].get<float>();
+
 		for (const auto & g : json["glyphs"])
 		{
 			Glyph glyph;
@@ -83,5 +88,6 @@ private:
 private:
 	AssetId m_texture_id;
 	float m_px_range = 0.0f;
+	float m_line_height = 1.0f;
 	std::unordered_map<std::uint32_t, const Glyph> m_glyphs;
 };

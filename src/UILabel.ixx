@@ -3,8 +3,10 @@
 module;
 
 #include <expected>
+#include <algorithm>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -33,6 +35,15 @@ public:
 		Center,
 	};
 
+	struct Bounds
+	{
+		glm::vec2 min{ 0.0f };
+		glm::vec2 max{ 0.0f };
+		bool is_valid = false;
+
+		glm::vec2 Size() const { return is_valid ? max - min : glm::vec2{ 0.0f }; }
+	};
+
 public:
 	explicit UILabel(
 		AssetManager & asset_manager,
@@ -45,12 +56,15 @@ public:
 
 	void SetText(std::string_view text);
 	void SetFontSize(float font_size);
+	void SetOrigin(glm::vec2 origin);
+	void SetAlign(Align align);
 
 	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
 	
 	MeshId<VertexT> GetMeshId() const { return m_mesh_id; }
 	AssetId GetROId() const { return m_ro_id; }
     TextPipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
+	Bounds const & GetBounds() const { return m_bounds; }
 
 private:
 	std::expected<dh::Mesh, dh::GraphicsError> create_mesh() const;
@@ -69,6 +83,7 @@ private:
 	glm::vec2 m_origin{ 0.0f };
 	Align m_align = Align::Left;
 	TextPipeline::ObjectData m_pipeline_data;
+	mutable Bounds m_bounds;
 };
 
 UILabel::UILabel(
@@ -132,10 +147,33 @@ void UILabel::SetFontSize(float font_size)
 	update_mesh();
 }
 
+void UILabel::SetOrigin(glm::vec2 origin)
+{
+	if (m_origin == origin)
+		return; // no change
+
+	m_origin = origin;
+
+	update_mesh();
+}
+
+void UILabel::SetAlign(Align align)
+{
+	if (m_align == align)
+		return; // no change
+
+	m_align = align;
+
+	update_mesh();
+}
+
 std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 {
 	if (m_font_tex_width == 0 || m_font_tex_height == 0 || m_text.empty())
+	{
+		m_bounds = Bounds{};
 		return dh::Mesh{ m_asset_manager.GetRenderContext() }; // an empty mesh is an expected result here
+	}
 
 	std::vector<VertexT> verts;
 	std::vector<dh::Mesh::IndexT> indices;
@@ -196,6 +234,34 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 	{
 		for (VertexT & vert : verts)
 			vert.pos.x += x_offset;
+	}
+
+	if (verts.empty())
+	{
+		m_bounds = Bounds{};
+	}
+	else
+	{
+		glm::vec2 min{
+			std::numeric_limits<float>::max(),
+			std::numeric_limits<float>::max()
+		};
+		glm::vec2 max{
+			std::numeric_limits<float>::lowest(),
+			std::numeric_limits<float>::lowest()
+		};
+		for (VertexT const & vert : verts)
+		{
+			min.x = std::min(min.x, vert.pos.x);
+			min.y = std::min(min.y, vert.pos.y);
+			max.x = std::max(max.x, vert.pos.x);
+			max.y = std::max(max.y, vert.pos.y);
+		}
+		m_bounds = Bounds{
+			.min = min,
+			.max = max,
+			.is_valid = true
+		};
 	}
 
 	dh::Mesh mesh{ m_asset_manager.GetRenderContext() };

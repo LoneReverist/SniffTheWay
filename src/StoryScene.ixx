@@ -27,7 +27,7 @@ import SceneRenderer;
 import SniffTheWayConstants;
 import TextPipeline;
 import UILabel;
-import UITextShadow;
+import UIShadowedText;
 import Vertex;
 
 using namespace SniffTheWay;
@@ -67,8 +67,7 @@ protected:
 	FPSLabel m_fps_label;
 	std::unique_ptr<UILabel> m_controls_label;
 	std::unique_ptr<UILabel> m_page_number_label;
-	std::unique_ptr<UILabel> m_story_label;
-	UITextShadow m_story_shadow;
+	UIShadowedText m_story_text;
 };
 
 StoryScene::StoryScene(
@@ -111,12 +110,23 @@ StoryScene::StoryScene(
 		LabelFontSize, glm::vec2{ 1824, 1026 } /*origin*/, UILabel::Align::Right, StoryTextColor);
 	m_renderer.CreateUIRenderObject("page number", m_page_number_label->GetMeshId(), text_pipeline_id, m_page_number_label->GetPipelineData());
 
-	m_story_shadow.Init(m_asset_manager.GetRenderContext(), m_asset_manager, m_renderer, m_camera2d,
-		m_story_texts[m_cur_bg_index], *m_arial_font, TitleFontSize, glm::vec2{ 960, 250 } /*origin*/, UILabel::Align::Center);
-
-	m_story_label = std::make_unique<UILabel>(m_asset_manager, m_story_texts[m_cur_bg_index], *m_arial_font,
-		TitleFontSize, glm::vec2{ 960, 250 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_story_label->SetROId(m_renderer.CreateUIRenderObject("story label", m_story_label->GetMeshId(), text_pipeline_id, m_story_label->GetPipelineData()));
+	m_story_text.Init(
+		m_asset_manager,
+		m_renderer,
+		m_camera2d,
+		"story",
+		m_story_texts[m_cur_bg_index],
+		*m_arial_font,
+		TitleFontSize,
+		glm::vec2{ 960, 250 } /*origin*/,
+		UILabel::Align::Center,
+		StoryTextColor,
+		UIShadowedText::ShadowStyle{
+			.blur_radius = static_cast<int>(TitleFontSize / 6.0f),
+			.alpha_boost = 1.5f,
+			.offset = glm::vec2{ 0.0f },
+			.color = glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f },
+		});
 
 	ChangeSceneState(SceneState::Story);
 }
@@ -158,7 +168,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 // override
 void StoryScene::Render() const
 {
-	m_story_shadow.RenderOffscreenTexture();
+	m_story_text.RenderOffscreenTexture();
 	m_renderer.Render();
 }
 
@@ -174,8 +184,7 @@ bool StoryScene::page_forward()
 		return false;
 
 	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
-	m_story_shadow.SetText(m_story_texts[m_cur_bg_index]);
-	m_story_label->SetText(m_story_texts[m_cur_bg_index]);
+	m_story_text.SetText(m_story_texts[m_cur_bg_index]);
 	m_page_number_label->SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 	return true;
 }
@@ -184,7 +193,6 @@ void StoryScene::page_backward()
 {
 	m_cur_bg_index = std::max(0, m_cur_bg_index - 1);
 	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
-	m_story_shadow.SetText(m_story_texts[m_cur_bg_index]);
-	m_story_label->SetText(m_story_texts[m_cur_bg_index]);
+	m_story_text.SetText(m_story_texts[m_cur_bg_index]);
 	m_page_number_label->SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 }

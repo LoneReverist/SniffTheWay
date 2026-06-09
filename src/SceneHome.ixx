@@ -51,10 +51,10 @@ private:
 		StoryPage{ .bg_image_filename = "safe_again.png", .story_texts = SafeAgainTexts },
 		StoryPage{ .bg_image_filename = "dog_by_fireplace.png", .story_texts = DogByFireplaceTexts },
 	};
+	static constexpr SceneId NextSceneId = SceneId::Exit;
 };
 
 SceneHome::SceneHome(dh::RenderContext const & render_context)
-	: StoryScene(render_context, StoryPages)
+	: StoryScene(render_context, StoryPages, NextSceneId)
 {
-	m_next_scene_id = SceneId::Exit;
 }

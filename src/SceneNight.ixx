@@ -45,10 +45,10 @@ private:
 		StoryPage{ .bg_image_filename = "night.png", .story_texts = NightTexts },
 		StoryPage{ .bg_image_filename = "morning.png", .story_texts = MorningTexts },
 	};
+	static constexpr SceneId NextSceneId = SceneId::ForestIntersection;
 };
 
 SceneNight::SceneNight(dh::RenderContext const & render_context)
-	: StoryScene(render_context, StoryPages)
+	: StoryScene(render_context, StoryPages, NextSceneId)
 {
-	m_next_scene_id = SceneId::ForestIntersection;
 }

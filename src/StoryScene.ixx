@@ -58,7 +58,8 @@ export class StoryScene : public IScene
 public:
 	explicit StoryScene(
 		dh::RenderContext const & render_context,
-		std::span<StoryPage const> story_pages);
+		std::span<StoryPage const> story_pages,
+		SceneId next_scene_id);
 
 	void OnWindowResized(int width, int height) override;
 
@@ -68,15 +69,13 @@ public:
 
 	void ChangeSceneState(SceneState new_state);
 
-protected:
+private:
 	bool page_forward();
 	void page_backward();
-
-private:
 	void apply_current_page();
 	void update_story_texts();
 
-protected:
+private:
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
@@ -98,11 +97,13 @@ protected:
 
 StoryScene::StoryScene(
 	dh::RenderContext const & render_context,
-	std::span<StoryPage const> story_pages)
+	std::span<StoryPage const> story_pages,
+	SceneId next_scene_id)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 	, m_story_pages{ story_pages }
+	, m_next_scene_id{ next_scene_id }
 {
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager);
 

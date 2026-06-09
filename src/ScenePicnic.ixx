@@ -129,10 +129,10 @@ private:
 		StoryPage{ .bg_image_filename = "following_butterflies.png", .story_texts = FollowingButterfliesTexts },
 		StoryPage{ .bg_image_filename = "lost.png", .story_texts = LostTexts },
 	};
+	static constexpr SceneId NextSceneId = SceneId::ForestPath;
 };
 
 ScenePicnic::ScenePicnic(dh::RenderContext const & render_context)
-	: StoryScene(render_context, StoryPages)
+	: StoryScene(render_context, StoryPages, NextSceneId)
 {
-	m_next_scene_id = SceneId::ForestPath;
 }

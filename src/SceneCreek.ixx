@@ -45,10 +45,10 @@ private:
 		StoryPage{ .bg_image_filename = "crossing_creek.png", .story_texts = CrossingCreekTexts },
 		StoryPage{ .bg_image_filename = "beyond_the_creek.png", .story_texts = BeyondTheCreekTexts },
 	};
+	static constexpr SceneId NextSceneId = SceneId::DarkForest;
 };
 
 SceneCreek::SceneCreek(dh::RenderContext const & render_context)
-	: StoryScene(render_context, StoryPages)
+	: StoryScene(render_context, StoryPages, NextSceneId)
 {
-	m_next_scene_id = SceneId::DarkForest;
 }

@@ -80,7 +80,7 @@ private:
 	Dog m_dog;
 	Baby m_baby;
 
-	std::unique_ptr<FontAtlas> m_arial_font;
+	std::unique_ptr<FontAtlas> m_font_atlas;
 	FPSLabel m_fps_label;
 	UILabel m_controls_label;
 	UILabel m_story_label;
@@ -129,20 +129,20 @@ SceneDarkForest::SceneDarkForest(dh::RenderContext const & render_context)
 	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
 	// ui
-	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
+	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
-	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
+	m_font_atlas = std::make_unique<FontAtlas>(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateUIRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
 
-	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, *m_arial_font);
+	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, *m_font_atlas);
 
-	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_arial_font,
+	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_font_atlas,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_controls_label.SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label.GetMeshId(), text_pipeline_id, m_controls_label.GetPipelineData()));
 
-	m_story_label.Init(m_asset_manager, StoryTexts[0], *m_arial_font,
+	m_story_label.Init(m_asset_manager, StoryTexts[0], *m_font_atlas,
 		LabelFontSize, glm::vec2{ 960, 918 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_story_label.SetROId(m_renderer.CreateUIRenderObject("story label", m_story_label.GetMeshId(), text_pipeline_id, m_story_label.GetPipelineData()));
 

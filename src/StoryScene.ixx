@@ -88,7 +88,7 @@ private:
 	std::vector<AssetId> m_bg_tex_ids;
 	std::uint8_t m_cur_bg_index = 0;
 
-	std::unique_ptr<FontAtlas> m_arial_font;
+	std::unique_ptr<FontAtlas> m_font_atlas;
 	FPSLabel m_fps_label;
 	UIShadowedText m_controls_label;
 	UIShadowedText m_page_number_label;
@@ -117,11 +117,11 @@ StoryScene::StoryScene(
 	m_background.Init(m_asset_manager, m_bg_tex_ids[m_cur_bg_index]);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
-	AssetId arial_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "ArialAtlas.png",
+	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
-	m_arial_font = std::make_unique<FontAtlas>(arial_tex_id, m_asset_manager.GetFontsPath() / "ArialAtlas.json");
+	m_font_atlas = std::make_unique<FontAtlas>(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
-	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, *m_arial_font);
+	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, *m_font_atlas);
 
 	m_controls_label.Init(
 		m_asset_manager,
@@ -129,7 +129,7 @@ StoryScene::StoryScene(
 		m_camera2d,
 		"controls",
 		"(Press [Space] to continue)",
-		*m_arial_font,
+		*m_font_atlas,
 		LabelFontSize,
 		glm::vec2{ 960, 1026 } /*origin*/,
 		UILabel::Align::Center,
@@ -142,7 +142,7 @@ StoryScene::StoryScene(
 		m_camera2d,
 		"page number",
 		page_number_text,
-		*m_arial_font,
+		*m_font_atlas,
 		LabelFontSize,
 		glm::vec2{ 1824, 1026 } /*origin*/,
 		UILabel::Align::Right,
@@ -161,7 +161,7 @@ StoryScene::StoryScene(
 			m_camera2d,
 			"story " + std::to_string(i + 1),
 			"",
-			*m_arial_font,
+			*m_font_atlas,
 			TitleFontSize,
 			glm::vec2{ 960, 250 } /*origin*/,
 			UILabel::Align::Center,

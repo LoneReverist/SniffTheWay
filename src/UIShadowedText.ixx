@@ -61,6 +61,8 @@ private:
 	{
 		int blur_radius = 12;
 		float alpha_boost = 1.5f;
+		int sharp_blur_radius = 2;
+		float sharp_alpha_boost = 1.5f;
 		glm::vec2 offset{ 0.0f };
 		glm::vec4 color{ 0.0f, 0.0f, 0.0f, 1.0f };
 	};
@@ -100,13 +102,18 @@ private:
 	AssetId m_mask_tex_id;
 	AssetId m_blur_temp_tex_id;
 	AssetId m_blur_tex_id;
+	AssetId m_sharp_blur_temp_tex_id;
+	AssetId m_sharp_blur_tex_id;
 	std::uint32_t m_texture_width = 1;
 	std::uint32_t m_texture_height = 1;
 
 	TextMaskPipeline::ObjectData m_mask_data;
 	BlurPipeline::ObjectData m_horizontal_blur_data;
 	BlurPipeline::ObjectData m_vertical_blur_data;
+	BlurPipeline::ObjectData m_sharp_horizontal_blur_data;
+	BlurPipeline::ObjectData m_sharp_vertical_blur_data;
 	ShadowCompositePipeline::ObjectData m_composite_data;
+	ShadowCompositePipeline::ObjectData m_sharp_composite_data;
 
 	MeshId<TextureVertex2d> m_offscreen_quad_mesh_id;
 	MeshId<TextureVertex2d> m_composite_quad_mesh_id;
@@ -114,7 +121,10 @@ private:
 	RenderObject m_mask_ro;
 	RenderObject m_horizontal_blur_ro;
 	RenderObject m_vertical_blur_ro;
+	RenderObject m_sharp_horizontal_blur_ro;
+	RenderObject m_sharp_vertical_blur_ro;
 	AssetId m_composite_ro_id;
+	AssetId m_sharp_composite_ro_id;
 	AssetId m_label_ro_id;
 
 	mutable bool m_shadow_texture_dirty = true;
@@ -175,6 +185,8 @@ void UIShadowedText::Init(
 	m_mask_tex_id = asset_manager.AddRenderTexture(m_texture_width, m_texture_height);
 	m_blur_temp_tex_id = asset_manager.AddRenderTexture(m_texture_width, m_texture_height);
 	m_blur_tex_id = asset_manager.AddRenderTexture(m_texture_width, m_texture_height);
+	m_sharp_blur_temp_tex_id = asset_manager.AddRenderTexture(m_texture_width, m_texture_height);
+	m_sharp_blur_tex_id = asset_manager.AddRenderTexture(m_texture_width, m_texture_height);
 
 	m_offscreen_quad_mesh_id = create_quad(asset_manager, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
 	m_composite_quad_mesh_id = create_quad(asset_manager, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
@@ -197,6 +209,24 @@ void UIShadowedText::Init(
 	m_vertical_blur_ro = RenderObject(m_name + " shadow vertical blur", m_offscreen_quad_mesh_id, blur_pipeline_id);
 	m_vertical_blur_ro.SetObjectData(&m_vertical_blur_data);
 
+	m_sharp_horizontal_blur_data = BlurPipeline::ObjectData{
+		.tex_id = m_mask_tex_id,
+		.texel_step = glm::vec2{ 1.0f, 0.0f },
+		.blur_radius = m_shadow_style.sharp_blur_radius,
+		.alpha_boost = m_shadow_style.sharp_alpha_boost
+	};
+	m_sharp_horizontal_blur_ro = RenderObject(m_name + " sharp shadow horizontal blur", m_offscreen_quad_mesh_id, blur_pipeline_id);
+	m_sharp_horizontal_blur_ro.SetObjectData(&m_sharp_horizontal_blur_data);
+
+	m_sharp_vertical_blur_data = BlurPipeline::ObjectData{
+		.tex_id = m_sharp_blur_temp_tex_id,
+		.texel_step = glm::vec2{ 0.0f, 1.0f },
+		.blur_radius = m_shadow_style.sharp_blur_radius,
+		.alpha_boost = m_shadow_style.sharp_alpha_boost
+	};
+	m_sharp_vertical_blur_ro = RenderObject(m_name + " sharp shadow vertical blur", m_offscreen_quad_mesh_id, blur_pipeline_id);
+	m_sharp_vertical_blur_ro.SetObjectData(&m_sharp_vertical_blur_data);
+
 	m_composite_data = ShadowCompositePipeline::ObjectData{
 		.tex_id = m_blur_tex_id,
 		.color = m_shadow_style.color,
@@ -206,6 +236,16 @@ void UIShadowedText::Init(
 		m_composite_quad_mesh_id,
 		shadow_composite_pipeline_id,
 		m_composite_data);
+
+	m_sharp_composite_data = ShadowCompositePipeline::ObjectData{
+		.tex_id = m_sharp_blur_tex_id,
+		.color = m_shadow_style.color,
+	};
+	m_sharp_composite_ro_id = renderer.CreateUIRenderObject(
+		m_name + " sharp shadow composite",
+		m_composite_quad_mesh_id,
+		shadow_composite_pipeline_id,
+		m_sharp_composite_data);
 
 	m_label_ro_id = renderer.CreateUIRenderObject(
 		m_name + " label",
@@ -229,8 +269,10 @@ UIShadowedText::ShadowStyle UIShadowedText::create_shadow_style(float font_size)
 //	float alpha_boost = ReferenceSmallAlphaBoost + alpha_boost_slope * (font_size - ReferenceSmallFontSize);
 
 	return ShadowStyle{
-		.blur_radius = static_cast<int>(font_size / 6.0f),
-		.alpha_boost = 1.5f,
+		.blur_radius = static_cast<int>(font_size / 2.0f),
+		.alpha_boost = 1.6f,
+		.sharp_blur_radius = 4,
+		.sharp_alpha_boost = 1.6f,
 		.offset = glm::vec2{0.0f},
 		.color = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f},
 	};
@@ -244,12 +286,16 @@ void UIShadowedText::RenderOffscreenTexture() const
 	dh::Texture const * mask_tex = m_asset_manager->GetTexture(m_mask_tex_id);
 	dh::Texture const * blur_temp_tex = m_asset_manager->GetTexture(m_blur_temp_tex_id);
 	dh::Texture const * blur_tex = m_asset_manager->GetTexture(m_blur_tex_id);
-	if (!mask_tex || !blur_temp_tex || !blur_tex)
+	dh::Texture const * sharp_blur_temp_tex = m_asset_manager->GetTexture(m_sharp_blur_temp_tex_id);
+	dh::Texture const * sharp_blur_tex = m_asset_manager->GetTexture(m_sharp_blur_tex_id);
+	if (!mask_tex || !blur_temp_tex || !blur_tex || !sharp_blur_temp_tex || !sharp_blur_tex)
 		return;
 
 	m_renderer->RenderToTexture(*mask_tex, std::span<RenderObject const>{ &m_mask_ro, 1 }, glm::vec4{ 0.0f });
 	m_renderer->RenderToTexture(*blur_temp_tex, std::span<RenderObject const>{ &m_horizontal_blur_ro, 1 }, glm::vec4{ 0.0f });
 	m_renderer->RenderToTexture(*blur_tex, std::span<RenderObject const>{ &m_vertical_blur_ro, 1 }, glm::vec4{ 0.0f });
+	m_renderer->RenderToTexture(*sharp_blur_temp_tex, std::span<RenderObject const>{ &m_sharp_horizontal_blur_ro, 1 }, glm::vec4{ 0.0f });
+	m_renderer->RenderToTexture(*sharp_blur_tex, std::span<RenderObject const>{ &m_sharp_vertical_blur_ro, 1 }, glm::vec4{ 0.0f });
 
 	m_shadow_texture_dirty = false;
 }
@@ -271,12 +317,17 @@ void UIShadowedText::SetFontSize(float font_size)
 	m_horizontal_blur_data.alpha_boost = m_shadow_style.alpha_boost;
 	m_vertical_blur_data.blur_radius = m_shadow_style.blur_radius;
 	m_vertical_blur_data.alpha_boost = m_shadow_style.alpha_boost;
+	m_sharp_horizontal_blur_data.blur_radius = m_shadow_style.sharp_blur_radius;
+	m_sharp_horizontal_blur_data.alpha_boost = m_shadow_style.sharp_alpha_boost;
+	m_sharp_vertical_blur_data.blur_radius = m_shadow_style.sharp_blur_radius;
+	m_sharp_vertical_blur_data.alpha_boost = m_shadow_style.sharp_alpha_boost;
 	m_composite_data.color = glm::vec4{
 		m_shadow_style.color.r,
 		m_shadow_style.color.g,
 		m_shadow_style.color.b,
 		m_shadow_style.color.a * m_opacity
 	};
+	m_sharp_composite_data.color = m_composite_data.color;
 
 	TextPipeline::ObjectData const & label_data = m_mask_label.GetPipelineData();
 	m_mask_data.screen_px_range = label_data.screen_px_range;
@@ -300,6 +351,7 @@ void UIShadowedText::SetOpacity(float opacity)
 		m_shadow_style.color.b,
 		m_shadow_style.color.a * m_opacity
 	};
+	m_sharp_composite_data.color = m_composite_data.color;
 }
 
 void UIShadowedText::SetOrigin(glm::vec2 origin)
@@ -318,6 +370,7 @@ void UIShadowedText::SetVisible(bool visible)
 		return;
 
 	m_renderer->Show(m_composite_ro_id, visible);
+	m_renderer->Show(m_sharp_composite_ro_id, visible);
 	m_renderer->Show(m_label_ro_id, visible);
 }
 
@@ -341,11 +394,13 @@ void UIShadowedText::update_layout()
 	if (!bounds.is_valid)
 	{
 		m_renderer->Show(m_composite_ro_id, false);
+		m_renderer->Show(m_sharp_composite_ro_id, false);
 		m_shadow_texture_dirty = true;
 		return;
 	}
 
 	m_renderer->Show(m_composite_ro_id, true);
+	m_renderer->Show(m_sharp_composite_ro_id, true);
 
 	const int blur_radius = std::max(0, m_shadow_style.blur_radius);
 	const float padding = static_cast<float>(std::max(2, blur_radius * 2));
@@ -376,16 +431,25 @@ void UIShadowedText::update_render_textures(std::uint32_t width, std::uint32_t h
 		m_asset_manager->RemoveTexture(m_blur_temp_tex_id);
 	if (m_blur_tex_id.IsValid())
 		m_asset_manager->RemoveTexture(m_blur_tex_id);
+	if (m_sharp_blur_temp_tex_id.IsValid())
+		m_asset_manager->RemoveTexture(m_sharp_blur_temp_tex_id);
+	if (m_sharp_blur_tex_id.IsValid())
+		m_asset_manager->RemoveTexture(m_sharp_blur_tex_id);
 
 	m_texture_width = width;
 	m_texture_height = height;
 	m_mask_tex_id = m_asset_manager->AddRenderTexture(width, height);
 	m_blur_temp_tex_id = m_asset_manager->AddRenderTexture(width, height);
 	m_blur_tex_id = m_asset_manager->AddRenderTexture(width, height);
+	m_sharp_blur_temp_tex_id = m_asset_manager->AddRenderTexture(width, height);
+	m_sharp_blur_tex_id = m_asset_manager->AddRenderTexture(width, height);
 
 	m_horizontal_blur_data.tex_id = m_mask_tex_id;
 	m_vertical_blur_data.tex_id = m_blur_temp_tex_id;
 	m_composite_data.tex_id = m_blur_tex_id;
+	m_sharp_horizontal_blur_data.tex_id = m_mask_tex_id;
+	m_sharp_vertical_blur_data.tex_id = m_sharp_blur_temp_tex_id;
+	m_sharp_composite_data.tex_id = m_sharp_blur_tex_id;
 }
 
 void UIShadowedText::update_quad_meshes()
@@ -398,6 +462,8 @@ void UIShadowedText::update_quad_meshes()
 
 	m_horizontal_blur_data.texel_step = glm::vec2{ 1.0f / static_cast<float>(m_texture_width), 0.0f };
 	m_vertical_blur_data.texel_step = glm::vec2{ 0.0f, 1.0f / static_cast<float>(m_texture_height) };
+	m_sharp_horizontal_blur_data.texel_step = glm::vec2{ 1.0f / static_cast<float>(m_texture_width), 0.0f };
+	m_sharp_vertical_blur_data.texel_step = glm::vec2{ 0.0f, 1.0f / static_cast<float>(m_texture_height) };
 }
 
 MeshId<TextureVertex2d> UIShadowedText::create_quad(

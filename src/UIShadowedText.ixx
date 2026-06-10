@@ -24,6 +24,7 @@ import Camera;
 import FontAtlas;
 import RenderObject;
 import SceneRenderer;
+import ShadowBackdropPipeline;
 import ShadowCompositePipeline;
 import TextMaskPipeline;
 import TextPipeline;
@@ -73,6 +74,15 @@ private:
 	void update_render_textures(std::uint32_t width, std::uint32_t height);
 	void update_quad_meshes();
 
+	MeshId<TextureVertex2d> create_shadow_backdrop_mesh(
+		AssetManager & asset_manager,
+		UILabel::Bounds const & bounds,
+		float padding) const;
+
+	void update_shadow_backdrop_mesh(
+		UILabel::Bounds const & bounds,
+		float padding);
+
 	MeshId<TextureVertex2d> create_quad(
 		AssetManager & asset_manager,
 		glm::vec2 top_left,
@@ -97,6 +107,8 @@ private:
 	UILabel::Align m_align = UILabel::Align::Left;
 	glm::vec4 m_text_color{ 1.0f };
 	float m_opacity = 1.0f;
+	float m_font_line_height_scale = 0.0f;
+	float m_line_height = 0.0f;
 	ShadowStyle m_shadow_style;
 
 	AssetId m_mask_tex_id;
@@ -106,12 +118,14 @@ private:
 	AssetId m_sharp_blur_tex_id;
 	std::uint32_t m_texture_width = 1;
 	std::uint32_t m_texture_height = 1;
+	MeshId<TextureVertex2d> m_shadow_backdrop_mesh_id;
 
 	TextMaskPipeline::ObjectData m_mask_data;
 	BlurPipeline::ObjectData m_horizontal_blur_data;
 	BlurPipeline::ObjectData m_vertical_blur_data;
 	BlurPipeline::ObjectData m_sharp_horizontal_blur_data;
 	BlurPipeline::ObjectData m_sharp_vertical_blur_data;
+	ShadowBackdropPipeline::ObjectData m_shadow_backdrop_data;
 	ShadowCompositePipeline::ObjectData m_composite_data;
 	ShadowCompositePipeline::ObjectData m_sharp_composite_data;
 
@@ -123,6 +137,7 @@ private:
 	RenderObject m_vertical_blur_ro;
 	RenderObject m_sharp_horizontal_blur_ro;
 	RenderObject m_sharp_vertical_blur_ro;
+	AssetId m_shadow_backdrop_ro_id;
 	AssetId m_composite_ro_id;
 	AssetId m_sharp_composite_ro_id;
 	AssetId m_label_ro_id;
@@ -148,9 +163,12 @@ void UIShadowedText::Init(
 	m_origin = origin;
 	m_align = align;
 	m_text_color = text_color;
+	m_font_line_height_scale = font_atlas.GetLineHeight();
+	m_line_height = m_font_line_height_scale * font_size;
 	m_shadow_style = create_shadow_style(font_size);
 
 	const auto text_pipeline_id = asset_manager.AddPipeline<TextPipeline>(camera2d, asset_manager);
+	const auto shadow_backdrop_pipeline_id = asset_manager.AddPipeline<ShadowBackdropPipeline>(camera2d);
 	const auto text_mask_pipeline_id = asset_manager.AddPipeline<TextMaskPipeline>(m_offscreen_camera2d, asset_manager);
 	const auto blur_pipeline_id = asset_manager.AddPipeline<BlurPipeline>(m_offscreen_camera2d, asset_manager);
 	const auto shadow_composite_pipeline_id = asset_manager.AddPipeline<ShadowCompositePipeline>(camera2d, asset_manager);
@@ -190,6 +208,7 @@ void UIShadowedText::Init(
 
 	m_offscreen_quad_mesh_id = create_quad(asset_manager, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
 	m_composite_quad_mesh_id = create_quad(asset_manager, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
+	m_shadow_backdrop_mesh_id = create_shadow_backdrop_mesh(asset_manager, m_label.GetBounds(), m_line_height);
 
 	m_horizontal_blur_data = BlurPipeline::ObjectData{
 		.tex_id = m_mask_tex_id,
@@ -226,6 +245,12 @@ void UIShadowedText::Init(
 	};
 	m_sharp_vertical_blur_ro = RenderObject(m_name + " sharp shadow vertical blur", m_offscreen_quad_mesh_id, blur_pipeline_id);
 	m_sharp_vertical_blur_ro.SetObjectData(&m_sharp_vertical_blur_data);
+
+	m_shadow_backdrop_ro_id = renderer.CreateUIRenderObject(
+		m_name + " shadow backdrop",
+		m_shadow_backdrop_mesh_id,
+		shadow_backdrop_pipeline_id,
+		m_shadow_backdrop_data);
 
 	m_composite_data = ShadowCompositePipeline::ObjectData{
 		.tex_id = m_blur_tex_id,
@@ -270,9 +295,9 @@ UIShadowedText::ShadowStyle UIShadowedText::create_shadow_style(float font_size)
 
 	return ShadowStyle{
 		.blur_radius = static_cast<int>(font_size / 2.0f),
-		.alpha_boost = 1.6f,
-		.sharp_blur_radius = 4,
-		.sharp_alpha_boost = 1.6f,
+		.alpha_boost = 1.5f,
+		.sharp_blur_radius = 6,
+		.sharp_alpha_boost = 2.0f,
 		.offset = glm::vec2{0.0f},
 		.color = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f},
 	};
@@ -311,6 +336,7 @@ void UIShadowedText::SetFontSize(float font_size)
 {
 	m_label.SetFontSize(font_size);
 	m_mask_label.SetFontSize(font_size);
+	m_line_height = m_font_line_height_scale * font_size;
 
 	m_shadow_style = create_shadow_style(font_size);
 	m_horizontal_blur_data.blur_radius = m_shadow_style.blur_radius;
@@ -328,6 +354,7 @@ void UIShadowedText::SetFontSize(float font_size)
 		m_shadow_style.color.a * m_opacity
 	};
 	m_sharp_composite_data.color = m_composite_data.color;
+	m_shadow_backdrop_data.color.a = 0.6f * m_opacity;
 
 	TextPipeline::ObjectData const & label_data = m_mask_label.GetPipelineData();
 	m_mask_data.screen_px_range = label_data.screen_px_range;
@@ -352,6 +379,7 @@ void UIShadowedText::SetOpacity(float opacity)
 		m_shadow_style.color.a * m_opacity
 	};
 	m_sharp_composite_data.color = m_composite_data.color;
+	m_shadow_backdrop_data.color.a = 0.6f * m_opacity;
 }
 
 void UIShadowedText::SetOrigin(glm::vec2 origin)
@@ -369,6 +397,7 @@ void UIShadowedText::SetVisible(bool visible)
 	if (!m_renderer)
 		return;
 
+	m_renderer->Show(m_shadow_backdrop_ro_id, visible);
 	m_renderer->Show(m_composite_ro_id, visible);
 	m_renderer->Show(m_sharp_composite_ro_id, visible);
 	m_renderer->Show(m_label_ro_id, visible);
@@ -393,14 +422,18 @@ void UIShadowedText::update_layout()
 	UILabel::Bounds const & bounds = m_label.GetBounds();
 	if (!bounds.is_valid)
 	{
+		update_shadow_backdrop_mesh(bounds, m_line_height);
+		m_renderer->Show(m_shadow_backdrop_ro_id, false);
 		m_renderer->Show(m_composite_ro_id, false);
 		m_renderer->Show(m_sharp_composite_ro_id, false);
 		m_shadow_texture_dirty = true;
 		return;
 	}
 
+	m_renderer->Show(m_shadow_backdrop_ro_id, true);
 	m_renderer->Show(m_composite_ro_id, true);
 	m_renderer->Show(m_sharp_composite_ro_id, true);
+	update_shadow_backdrop_mesh(bounds, m_line_height);
 
 	const int blur_radius = std::max(0, m_shadow_style.blur_radius);
 	const float padding = static_cast<float>(std::max(2, blur_radius * 2));
@@ -464,6 +497,49 @@ void UIShadowedText::update_quad_meshes()
 	m_vertical_blur_data.texel_step = glm::vec2{ 0.0f, 1.0f / static_cast<float>(m_texture_height) };
 	m_sharp_horizontal_blur_data.texel_step = glm::vec2{ 1.0f / static_cast<float>(m_texture_width), 0.0f };
 	m_sharp_vertical_blur_data.texel_step = glm::vec2{ 0.0f, 1.0f / static_cast<float>(m_texture_height) };
+}
+
+MeshId<TextureVertex2d> UIShadowedText::create_shadow_backdrop_mesh(
+	AssetManager & asset_manager,
+	UILabel::Bounds const & bounds,
+	float padding) const
+{
+	if (!bounds.is_valid)
+		return create_quad(asset_manager, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
+
+	glm::vec2 const outer_min = bounds.min - glm::vec2{ padding };
+	glm::vec2 const outer_size = bounds.Size() + glm::vec2{ padding * 2.0f };
+	return create_quad(asset_manager, outer_min, outer_size);
+}
+
+void UIShadowedText::update_shadow_backdrop_mesh(
+	UILabel::Bounds const & bounds,
+	float padding)
+{
+	if (!m_asset_manager)
+		return;
+
+	if (!bounds.is_valid)
+	{
+		update_quad(m_shadow_backdrop_mesh_id, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
+		m_shadow_backdrop_data = ShadowBackdropPipeline::ObjectData{
+			.inner_min_uv = glm::vec2{ 0.5f },
+			.inner_max_uv = glm::vec2{ 0.5f },
+			.color = glm::vec4{ 0.0f },
+		};
+		return;
+	}
+
+	glm::vec2 const outer_min = bounds.min - glm::vec2{ padding };
+	glm::vec2 const outer_size = bounds.Size() + glm::vec2{ padding * 2.0f };
+	update_quad(m_shadow_backdrop_mesh_id, outer_min, outer_size);
+
+	glm::vec2 const inner_min_uv = glm::vec2{ padding } / outer_size;
+	m_shadow_backdrop_data = ShadowBackdropPipeline::ObjectData{
+		.inner_min_uv = inner_min_uv,
+		.inner_max_uv = glm::vec2{ 1.0f } - inner_min_uv,
+		.color = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.6f * m_opacity },
+	};
 }
 
 MeshId<TextureVertex2d> UIShadowedText::create_quad(

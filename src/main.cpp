@@ -68,7 +68,7 @@ int main()
 {
 	std::cout << "Initializing app..." << std::endl;
 
-	dh::Window window(dh::WindowSize{ static_cast<int>(UIWidth), static_cast<int>(UIHeight) }, FullTitle, on_error);
+	dh::Window window(dh::WindowSize{ 2560, 1440 }, FullTitle, on_error);
 	if (!window.IsValid())
 		return -1;
 

@@ -208,7 +208,7 @@ void UIShadowedText::Init(
 
 	m_offscreen_quad_mesh_id = create_quad(asset_manager, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
 	m_composite_quad_mesh_id = create_quad(asset_manager, glm::vec2{ 0.0f }, glm::vec2{ 1.0f });
-	m_shadow_backdrop_mesh_id = create_shadow_backdrop_mesh(asset_manager, m_label.GetBounds(), m_line_height);
+	m_shadow_backdrop_mesh_id = create_shadow_backdrop_mesh(asset_manager, m_label.GetBounds(), m_line_height * 2.0f);
 
 	m_horizontal_blur_data = BlurPipeline::ObjectData{
 		.tex_id = m_mask_tex_id,
@@ -422,7 +422,7 @@ void UIShadowedText::update_layout()
 	UILabel::Bounds const & bounds = m_label.GetBounds();
 	if (!bounds.is_valid)
 	{
-		update_shadow_backdrop_mesh(bounds, m_line_height);
+		update_shadow_backdrop_mesh(bounds, m_line_height * 2.0f);
 		m_renderer->Show(m_shadow_backdrop_ro_id, false);
 		m_renderer->Show(m_composite_ro_id, false);
 		m_renderer->Show(m_sharp_composite_ro_id, false);
@@ -433,7 +433,7 @@ void UIShadowedText::update_layout()
 	m_renderer->Show(m_shadow_backdrop_ro_id, true);
 	m_renderer->Show(m_composite_ro_id, true);
 	m_renderer->Show(m_sharp_composite_ro_id, true);
-	update_shadow_backdrop_mesh(bounds, m_line_height);
+	update_shadow_backdrop_mesh(bounds, m_line_height * 2.0f);
 
 	const int blur_radius = std::max(0, m_shadow_style.blur_radius);
 	const float padding = static_cast<float>(std::max(2, blur_radius * 2));

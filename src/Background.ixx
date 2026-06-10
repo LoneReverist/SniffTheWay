@@ -12,7 +12,7 @@ namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
-import BackgroundTexPipeline;
+import Texture2dPipeline;
 import SniffTheWayConstants;
 import Vertex;
 
@@ -26,19 +26,19 @@ public:
 	void SetTextureId(AssetId tex_id) { m_pipeline_data.tex_id = tex_id; }
 
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
-	BackgroundTexPipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
+	Texture2dPipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
 
 private:
 	MeshId<TextureVertex2d> create_bg_mesh(AssetManager & asset_manager);
 
 private:
 	MeshId<TextureVertex2d> m_mesh_id;
-	BackgroundTexPipeline::ObjectData m_pipeline_data;
+	Texture2dPipeline::ObjectData m_pipeline_data;
 };
 
 void Background::Init(AssetManager & asset_manager, AssetId tex_id)
 {
-	m_pipeline_data = BackgroundTexPipeline::ObjectData{
+	m_pipeline_data = Texture2dPipeline::ObjectData{
 		.tex_id = tex_id
 	};
 	m_mesh_id = create_bg_mesh(asset_manager);

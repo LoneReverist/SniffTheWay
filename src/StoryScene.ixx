@@ -22,8 +22,9 @@ namespace dh = Dreamhearth;
 import AssetManager;
 import AssetPool;
 import Background;
-import BackgroundTexPipeline;
+import Texture2dPipeline;
 import Camera;
+import DecorationAtlas;
 import FontAtlas;
 import FPSLabel;
 import Input;
@@ -74,6 +75,7 @@ private:
 	void page_backward();
 	void apply_current_page();
 	void update_story_texts();
+	MeshId<TextureVertex2d> create_decoration_mesh(Decorations::DecorationInfo const & decoration, float scale);
 
 private:
 	AssetManager m_asset_manager;
@@ -89,6 +91,9 @@ private:
 	std::uint8_t m_cur_bg_index = 0;
 
 	std::unique_ptr<FontAtlas> m_font_atlas;
+	Texture2dPipeline::ObjectData m_decoration_pipeline_data;
+	MeshId<TextureVertex2d> m_decoration_mesh_id;
+	AssetId m_decoration_ro_id;
 	FPSLabel m_fps_label;
 	UIShadowedText m_controls_label;
 	UIShadowedText m_page_number_label;
@@ -105,7 +110,7 @@ StoryScene::StoryScene(
 	, m_story_pages{ story_pages }
 	, m_next_scene_id{ next_scene_id }
 {
-	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager);
+	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
 
@@ -116,6 +121,20 @@ StoryScene::StoryScene(
 	m_cur_bg_index = 0;
 	m_background.Init(m_asset_manager, m_bg_tex_ids[m_cur_bg_index]);
 	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
+
+	AssetId decoration_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / Decorations::TextureFileName,
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	m_decoration_pipeline_data = Texture2dPipeline::ObjectData{
+		.tex_id = decoration_tex_id
+	};
+	m_decoration_mesh_id = create_decoration_mesh(
+		Decorations::Get(Decorations::DecorationId::HorizontalDividerPawFlourish),
+		1.5f /*scale*/);
+	m_decoration_ro_id = m_renderer.CreateRenderObject(
+		"story horizontal divider paw flourish",
+		m_decoration_mesh_id,
+		bg_pipeline_id,
+		m_decoration_pipeline_data);
 
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
@@ -288,4 +307,33 @@ void StoryScene::update_story_texts()
 			: std::clamp((m_page_time - story_text.show_time) / fade_duration, 0.0f, 1.0f);
 		m_story_text_labels[i]->SetOpacity(opacity);
 	}
+}
+
+MeshId<TextureVertex2d> StoryScene::create_decoration_mesh(Decorations::DecorationInfo const & decoration, float scale)
+{
+	Decorations::PixelBounds const & bounds = decoration.bounds;
+
+	const float draw_width = static_cast<float>(bounds.width) * scale;
+	const float draw_height = static_cast<float>(bounds.height) * scale;
+	const float left = (UIWidth - draw_width) * 0.87f;
+	const float top = 100.0f;
+	const float right = left + draw_width;
+	const float bottom = top + draw_height;
+
+	const float min_u = static_cast<float>(bounds.x) / Decorations::TextureWidth;
+	const float max_u = static_cast<float>(bounds.x + bounds.width) / Decorations::TextureWidth;
+	const float min_v = static_cast<float>(bounds.y) / Decorations::TextureHeight;
+	const float max_v = static_cast<float>(bounds.y + bounds.height) / Decorations::TextureHeight;
+
+	std::vector<TextureVertex2d> verts{
+		{ { left, top }, { min_u, min_v } },
+		{ { right, top }, { max_u, min_v } },
+		{ { left, bottom }, { min_u, max_v } },
+		{ { right, bottom }, { max_u, max_v } } };
+
+	std::vector<dh::Mesh::IndexT> indices{
+		1, 0, 2,
+		1, 2, 3 };
+
+	return m_asset_manager.AddMesh(verts, indices);
 }

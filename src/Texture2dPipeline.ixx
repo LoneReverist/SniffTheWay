@@ -1,4 +1,4 @@
-// BackgroundTexPipeline.ixx
+// Texture2dPipeline.ixx
 
 module;
 
@@ -8,7 +8,7 @@ module;
 
 #include <glm/mat4x4.hpp>
 
-export module BackgroundTexPipeline;
+export module Texture2dPipeline;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
@@ -18,7 +18,7 @@ import AssetPool;
 import Camera;
 import Vertex;
 
-export class BackgroundTexPipeline
+export class Texture2dPipeline
 {
 public:
 	using VertexT = TextureVertex2d;
@@ -35,20 +35,15 @@ public:
 		AssetManager const & asset_manager);
 
 private:
-	BackgroundTexPipeline() = delete;
+	Texture2dPipeline() = delete;
 };
 
-std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipeline(
+std::expected<dh::Pipeline, dh::GraphicsError> Texture2dPipeline::CreatePipeline(
 	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera2d const & camera2d,
 	AssetManager const & asset_manager)
 {
-	struct ObjectDataVS
-	{
-		alignas(16) glm::mat4 model{ 1.0f };
-	};
-
 	dh::PipelineBuilder builder{ render_context };
 
 	std::expected<void, dh::GraphicsError> load_shaders_result = builder.LoadShaders(
@@ -59,7 +54,6 @@ std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipe
 
 	builder.SetVertexType<VertexT>();
 	builder.SetVSUniformTypes<ProjUniform>();
-	builder.SetObjectDataTypes<ObjectDataVS, std::nullopt_t>();
 	builder.SetHasTexture(true);
 	builder.SetCullMode(dh::CullMode::NONE);
 	builder.SetDepthTestOptions(dh::DepthTestOptions{
@@ -67,6 +61,11 @@ std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipe
 		.enable_depth_write = false,
 		.depth_compare_op = dh::DepthCompareOp::ALWAYS
 		});
+	builder.SetBlendOptions(dh::BlendOptions{
+		.enable_blend = true,
+		.src_factor = dh::BlendFactor::SRC_ALPHA,
+		.dst_factor = dh::BlendFactor::ONE_MINUS_SRC_ALPHA,
+	});
 
 	builder.SetPerFrameConstantsCallback(
 		[&camera2d](dh::Pipeline const & pipeline)
@@ -78,7 +77,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipe
 		{
 			if (!object_data)
 			{
-				std::cout << "BackgroundTexPipeline: ObjectData is null" << std::endl;
+				std::cout << "Texture2dPipeline: ObjectData is null" << std::endl;
 				return;
 			}
 
@@ -88,7 +87,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> BackgroundTexPipeline::CreatePipe
 			if (texture)
 				pipeline.BindTexture(0, *texture);
 			else
-				std::cout << "BackgroundTexPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
+				std::cout << "Texture2dPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
 		});
 
 	return builder.CreatePipeline();

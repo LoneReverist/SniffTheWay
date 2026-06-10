@@ -18,7 +18,7 @@ import AssetManager;
 import AssetPool;
 import Baby;
 import Background;
-import BackgroundTexPipeline;
+import Texture2dPipeline;
 import Camera;
 import ColorPipeline;
 import Dog;
@@ -80,7 +80,7 @@ ScenePlayground::ScenePlayground(dh::RenderContext const & render_context)
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 {
-	const auto bg_pipeline_id = m_asset_manager.AddPipeline<BackgroundTexPipeline>(m_camera2d, m_asset_manager);
+	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
 	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);

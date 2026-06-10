@@ -1,10 +1,10 @@
-// UIShadow.ixx
+// UIDarkBackdrop.ixx
 
 module;
 
 #include <vector>
 
-export module UIShadow;
+export module UIDarkBackdrop;
 
 import Dreamhearth;
 namespace dh = Dreamhearth;
@@ -13,7 +13,7 @@ import AssetManager;
 import AssetPool;
 import Vertex;
 
-export class UIShadow
+export class UIDarkBackdrop
 {
 public:
 	void Init(AssetManager & asset_manager, float left, float right, float top, float bottom);
@@ -28,7 +28,7 @@ private:
 	AssetId m_ro_id;
 };
 
-void UIShadow::Init(AssetManager & asset_manager, float left, float right, float top, float bottom)
+void UIDarkBackdrop::Init(AssetManager & asset_manager, float left, float right, float top, float bottom)
 {
 	std::vector<ColorVertex2d> verts{
 		{ { left, top }, { 0.0f, 0.0f, 0.0f, 0.6f } },

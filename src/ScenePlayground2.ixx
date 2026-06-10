@@ -33,8 +33,8 @@ import SceneRenderer;
 import SniffTheWayConstants;
 import SpritePipeline;
 import TextPipeline;
+import UIDarkBackdrop;
 import UILabel;
-import UIShadow;
 import Vertex;
 
 using namespace SniffTheWay;
@@ -71,7 +71,7 @@ private:
 	std::unique_ptr<FontAtlas> m_font_atlas;
 	FPSLabel m_fps_label;
 	UILabel m_controls_label;
-	UIShadow m_story_shadow;
+	UIDarkBackdrop m_story_shadow;
 };
 
 ScenePlayground2::ScenePlayground2(dh::RenderContext const & render_context)

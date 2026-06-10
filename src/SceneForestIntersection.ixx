@@ -34,8 +34,8 @@ import SceneRenderer;
 import SniffTheWayConstants;
 import SpritePipeline;
 import TextPipeline;
+import UIDarkBackdrop;
 import UILabel;
-import UIShadow;
 import Vertex;
 
 using namespace SniffTheWay;
@@ -81,7 +81,7 @@ private:
 	FPSLabel m_fps_label;
 	UILabel m_controls_label;
 	UILabel m_story_label;
-	UIShadow m_story_shadow;
+	UIDarkBackdrop m_story_shadow;
 };
 
 SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & render_context)

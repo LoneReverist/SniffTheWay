@@ -17,7 +17,6 @@ module;
 export module StoryScene;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -35,6 +34,7 @@ import UILabel;
 import UIShadowedText;
 import Vertex;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export struct StoryText

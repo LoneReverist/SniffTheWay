@@ -12,7 +12,6 @@ module;
 export module ScenePlayground;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -37,6 +36,7 @@ import UIDarkBackdrop;
 import UILabel;
 import Vertex;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class ScenePlayground : public IScene

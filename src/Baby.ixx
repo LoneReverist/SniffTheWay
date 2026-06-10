@@ -8,7 +8,6 @@ module;
 export module Baby;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -19,6 +18,7 @@ import SpriteSheet;
 import SpritePipeline;
 import Vertex;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class Baby

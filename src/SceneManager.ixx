@@ -8,11 +8,12 @@ module;
 export module SceneManager;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import Input;
 import IScene;
 import SceneRegistry;
+
+namespace dh = Dreamhearth;
 
 export class SceneManager
 {

@@ -11,11 +11,12 @@ module;
 export module SpriteSheet;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetPool;
 import AssetManager;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export class SpriteSheet
 {

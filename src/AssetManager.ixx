@@ -12,12 +12,13 @@ module;
 export module AssetManager;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetPool;
 import PlatformUtils;
 import StbImage;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export template<IsVertex T>
 class MeshId : public AssetId

@@ -12,10 +12,11 @@ module;
 export module ShadowBackdropPipeline;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import Camera;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export class ShadowBackdropPipeline
 {

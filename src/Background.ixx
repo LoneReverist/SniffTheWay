@@ -8,7 +8,6 @@ module;
 export module Background;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -16,6 +15,7 @@ import Texture2dPipeline;
 import SniffTheWayConstants;
 import Vertex;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class Background

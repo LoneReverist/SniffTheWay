@@ -15,7 +15,6 @@ module;
 export module UIShadowedText;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -30,6 +29,8 @@ import TextMaskPipeline;
 import TextPipeline;
 import UILabel;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export class UIShadowedText
 {

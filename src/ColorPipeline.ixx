@@ -8,12 +8,11 @@ module;
 export module ColorPipeline;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import Camera;
 import Vertex;
 
-using namespace Dreamhearth;
+namespace dh = Dreamhearth;
 
 export class ColorPipeline
 {

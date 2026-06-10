@@ -9,7 +9,6 @@ module;
 export module SceneRegistry;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import IScene;
 import SceneCreek;
@@ -23,6 +22,7 @@ import ScenePlayground;
 import ScenePlayground2;
 import SniffTheWayConstants;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class SceneRegistry

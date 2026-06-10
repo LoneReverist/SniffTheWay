@@ -12,12 +12,13 @@ module;
 export module TextMaskPipeline;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
 import Camera;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export class TextMaskPipeline
 {

@@ -8,11 +8,11 @@ module;
 export module SceneNight;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import SniffTheWayConstants;
 import StoryScene;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class SceneNight : public StoryScene

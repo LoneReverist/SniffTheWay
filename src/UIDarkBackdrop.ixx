@@ -7,11 +7,12 @@ module;
 export module UIDarkBackdrop;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export class UIDarkBackdrop
 {

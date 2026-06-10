@@ -13,7 +13,6 @@ module;
 export module SceneForestPath;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -38,6 +37,7 @@ import UIDarkBackdrop;
 import UILabel;
 import Vertex;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class SceneForestPath : public IScene

@@ -10,12 +10,12 @@ module;
 export module ScenePicnic;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import SniffTheWayConstants;
 import StoryScene;
 import UILabel;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class ScenePicnic : public StoryScene

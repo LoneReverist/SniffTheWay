@@ -13,7 +13,6 @@ module;
 export module SceneForestIntersection;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -38,6 +37,7 @@ import UIDarkBackdrop;
 import UILabel;
 import Vertex;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class SceneForestIntersection : public IScene

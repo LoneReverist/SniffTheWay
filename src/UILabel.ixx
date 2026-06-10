@@ -16,13 +16,14 @@ module;
 export module UILabel;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
 import FontAtlas;
 import TextPipeline;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export class UILabel
 {

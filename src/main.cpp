@@ -6,12 +6,13 @@
 
 import Dreamhearth;
 import DreamhearthWindow;
-namespace dh = Dreamhearth;
 
 import Input;
+import IScene;
 import SceneManager;
 import SniffTheWayConstants;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 void on_error(std::string msg)

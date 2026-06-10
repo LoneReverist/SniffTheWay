@@ -11,12 +11,13 @@ module;
 export module BlurPipeline;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
 import Camera;
 import Vertex;
+
+namespace dh = Dreamhearth;
 
 export class BlurPipeline
 {

@@ -7,7 +7,6 @@ module;
 export module EditorGrid;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetManager;
 import AssetPool;
@@ -18,6 +17,7 @@ import SceneRenderer;
 import SniffTheWayConstants;
 import Vertex;
 
+namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 export class EditorGrid

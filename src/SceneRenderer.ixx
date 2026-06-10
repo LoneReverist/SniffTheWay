@@ -13,11 +13,12 @@ module;
 export module SceneRenderer;
 
 import Dreamhearth;
-namespace dh = Dreamhearth;
 
 import AssetPool;
 import AssetManager;
 import RenderObject;
+
+namespace dh = Dreamhearth;
 
 export class SceneRenderer
 {

@@ -415,7 +415,7 @@ void UIElementShadowRenderer::update_shadow_backdrop_mesh(
 	m_shadow_backdrop_data = ShadowBackdropPipeline::ObjectData{
 		.inner_min_uv = inner_min_uv,
 		.inner_max_uv = glm::vec2{ 1.0f } - inner_min_uv,
-		.color = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.6f * m_opacity },
+		.color = glm::vec4{ 0.0f, 0.0f, 0.0f, 0.5f * m_opacity },
 	};
 }
 

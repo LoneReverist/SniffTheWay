@@ -41,12 +41,12 @@ public:
 		AssetManager & asset_manager,
 		AssetId texture_id,
 		SniffTheWay::Decorations::DecorationId decoration_id,
-		glm::vec2 top_left,
+		glm::vec2 center,
 		float scale,
 		glm::vec4 color = glm::vec4{ 1.0f });
 
 	void SetDecorationId(SniffTheWay::Decorations::DecorationId decoration_id);
-	void SetTopLeft(glm::vec2 top_left);
+	void SetCenter(glm::vec2 center);
 	void SetScale(float scale);
 	void SetColor(glm::vec4 color);
 
@@ -68,7 +68,7 @@ private:
 	AssetId m_ro_id;
 
 	SniffTheWay::Decorations::DecorationId m_decoration_id = SniffTheWay::Decorations::DecorationId::HorizontalDividerPawFlourish;
-	glm::vec2 m_top_left{ 0.0f };
+	glm::vec2 m_center{ 0.0f };
 	float m_scale = 1.0f;
 	Texture2dPipeline::ObjectData m_pipeline_data;
 	mutable Bounds m_bounds;
@@ -78,13 +78,13 @@ void UIDecoration::Init(
 	AssetManager & asset_manager,
 	AssetId texture_id,
 	SniffTheWay::Decorations::DecorationId decoration_id,
-	glm::vec2 top_left,
+	glm::vec2 center,
 	float scale,
 	glm::vec4 color)
 {
 	m_asset_manager = &asset_manager;
 	m_decoration_id = decoration_id;
-	m_top_left = top_left;
+	m_center = center;
 	m_scale = scale;
 	m_pipeline_data = Texture2dPipeline::ObjectData{
 		.tex_id = texture_id,
@@ -111,12 +111,12 @@ void UIDecoration::SetDecorationId(SniffTheWay::Decorations::DecorationId decora
 	update_mesh();
 }
 
-void UIDecoration::SetTopLeft(glm::vec2 top_left)
+void UIDecoration::SetCenter(glm::vec2 center)
 {
-	if (m_top_left == top_left)
+	if (m_center == center)
 		return;
 
-	m_top_left = top_left;
+	m_center = center;
 	update_mesh();
 }
 
@@ -149,8 +149,8 @@ std::expected<dh::Mesh, dh::GraphicsError> UIDecoration::create_mesh() const
 
 	const float draw_width = static_cast<float>(bounds.width) * m_scale;
 	const float draw_height = static_cast<float>(bounds.height) * m_scale;
-	const float left = m_top_left.x;
-	const float top = m_top_left.y;
+	const float left = m_center.x - draw_width * 0.5f;
+	const float top = m_center.y - draw_height * 0.5f;
 	const float right = left + draw_width;
 	const float bottom = top + draw_height;
 

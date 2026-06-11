@@ -91,7 +91,8 @@ private:
 	std::uint8_t m_cur_bg_index = 0;
 
 	std::unique_ptr<FontAtlas> m_font_atlas;
-	UIShadowedDecoration m_decoration;
+	UIShadowedDecoration m_top_decoration;
+	UIShadowedDecoration m_bot_decoration;
 	FPSLabel m_fps_label;
 	UIShadowedLabel m_controls_label;
 	UIShadowedLabel m_page_number_label;
@@ -122,22 +123,25 @@ StoryScene::StoryScene(
 
 	AssetId decoration_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / Decorations::TextureFileName,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	Decorations::PixelBounds const & decoration_bounds =
-		Decorations::Get(Decorations::DecorationId::HorizontalDividerPawFlourish).bounds;
-	const float decoration_scale = 1.5f;
-	const glm::vec2 decoration_top_left{
-		(UIWidth - static_cast<float>(decoration_bounds.width) * decoration_scale) * 0.87f,
-		100.0f
-	};
-	m_decoration.Init(
+	m_top_decoration.Init(
 		m_asset_manager,
 		m_renderer,
 		m_camera2d,
 		"story horizontal divider paw flourish",
 		decoration_tex_id,
 		Decorations::DecorationId::HorizontalDividerPawFlourish,
-		decoration_top_left,
-		decoration_scale,
+		glm::vec2{ 1440.0f, 110.0f } /*center*/,
+		1.5f /*scale*/,
+		StoryTextColor);
+	m_bot_decoration.Init(
+		m_asset_manager,
+		m_renderer,
+		m_camera2d,
+		"story horizontal short divider paw arrows",
+		decoration_tex_id,
+		Decorations::DecorationId::ShortDividerPawArrows,
+		glm::vec2{ 1440.0f, 760.0f } /*center*/,
+		1.5f /*scale*/,
 		StoryTextColor);
 
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
@@ -240,7 +244,8 @@ void StoryScene::DestroyPendingAssets() const
 
 void StoryScene::Render() const
 {
-	m_decoration.RenderOffscreenTexture();
+	m_top_decoration.RenderOffscreenTexture();
+	m_bot_decoration.RenderOffscreenTexture();
 	m_fps_label.RenderOffscreenTexture();
 	m_controls_label.RenderOffscreenTexture();
 	m_page_number_label.RenderOffscreenTexture();

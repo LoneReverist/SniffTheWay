@@ -33,13 +33,13 @@ public:
 		std::string_view name,
 		AssetId texture_id,
 		SniffTheWay::Decorations::DecorationId decoration_id,
-		glm::vec2 top_left,
+		glm::vec2 center,
 		float scale,
 		glm::vec4 color);
 
 	void RenderOffscreenTexture() const;
 	void SetDecorationId(SniffTheWay::Decorations::DecorationId decoration_id);
-	void SetTopLeft(glm::vec2 top_left);
+	void SetCenter(glm::vec2 center);
 	void SetScale(float scale);
 	void SetColor(glm::vec4 color);
 	void SetOpacity(float opacity);
@@ -65,7 +65,7 @@ private:
 	std::string m_name;
 	AssetId m_texture_id;
 	SniffTheWay::Decorations::DecorationId m_decoration_id = SniffTheWay::Decorations::DecorationId::HorizontalDividerPawFlourish;
-	glm::vec2 m_top_left{ 0.0f };
+	glm::vec2 m_center{ 0.0f };
 	float m_scale = 1.0f;
 	glm::vec4 m_color{ 1.0f };
 	float m_opacity = 1.0f;
@@ -83,7 +83,7 @@ void UIShadowedDecoration::Init(
 	std::string_view name,
 	AssetId texture_id,
 	SniffTheWay::Decorations::DecorationId decoration_id,
-	glm::vec2 top_left,
+	glm::vec2 center,
 	float scale,
 	glm::vec4 color)
 {
@@ -92,7 +92,7 @@ void UIShadowedDecoration::Init(
 	m_name = std::string{ name };
 	m_texture_id = texture_id;
 	m_decoration_id = decoration_id;
-	m_top_left = top_left;
+	m_center = center;
 	m_scale = scale;
 	m_color = color;
 
@@ -105,7 +105,7 @@ void UIShadowedDecoration::Init(
 		asset_manager,
 		texture_id,
 		decoration_id,
-		top_left,
+		center,
 		scale,
 		color);
 	m_mask_decoration.Init(
@@ -172,13 +172,13 @@ void UIShadowedDecoration::SetDecorationId(SniffTheWay::Decorations::DecorationI
 	update_layout();
 }
 
-void UIShadowedDecoration::SetTopLeft(glm::vec2 top_left)
+void UIShadowedDecoration::SetCenter(glm::vec2 center)
 {
-	if (m_top_left == top_left)
+	if (m_center == center)
 		return;
 
-	m_top_left = top_left;
-	m_decoration.SetTopLeft(top_left);
+	m_center = center;
+	m_decoration.SetCenter(center);
 	update_layout();
 }
 
@@ -236,6 +236,6 @@ void UIShadowedDecoration::update_layout()
 	}
 
 	const float padding = m_shadow_renderer.GetMaskPadding();
-	m_mask_decoration.SetTopLeft(glm::vec2{ padding });
+	m_mask_decoration.SetCenter(bounds.Size() * 0.5f + glm::vec2{ padding });
 	m_shadow_renderer.SetBounds(shadow_bounds, padding);
 }

@@ -11,6 +11,7 @@ export module ScenePicnic;
 
 import Dreamhearth;
 
+import DecorationAtlas;
 import SniffTheWayConstants;
 import StoryScene;
 import UILabel;
@@ -54,6 +55,18 @@ private:
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 1440, 660 },
 			.align = UILabel::Align::Center,
+			.show_time = 6.0f,
+		},
+	};
+	static constexpr std::array<StoryDecoration, 2> PicnicDecorations{
+		StoryDecoration{
+			.decoration_id = Decorations::DecorationId::HorizontalDividerPawFlourish,
+			.center = glm::vec2{ 1440.0f, 110.0f },
+			.show_time = 1.5f,
+		},
+		StoryDecoration{
+			.decoration_id = Decorations::DecorationId::ShortDividerPawArrows,
+			.center = glm::vec2{ 1440.0f, 760.0f },
 			.show_time = 6.0f,
 		},
 	};
@@ -124,7 +137,7 @@ private:
 		},
 	};
 	static constexpr std::array<StoryPage, 4> StoryPages{
-		StoryPage{ .bg_image_filename = "picnic.png", .story_texts = PicnicTexts },
+		StoryPage{ .bg_image_filename = "picnic.png", .story_texts = PicnicTexts, .decorations = PicnicDecorations },
 		StoryPage{ .bg_image_filename = "gust_of_wind.png", .story_texts = GustOfWindTexts },
 		StoryPage{ .bg_image_filename = "following_butterflies.png", .story_texts = FollowingButterfliesTexts },
 		StoryPage{ .bg_image_filename = "lost.png", .story_texts = LostTexts },

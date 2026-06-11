@@ -49,10 +49,21 @@ export struct StoryText
 	glm::vec4 color = StoryTextColor;
 };
 
+export struct StoryDecoration
+{
+	Decorations::DecorationId decoration_id;
+	glm::vec2 center;
+	float scale = 1.5f;
+	float show_time = 0.0f;
+	float fade_duration = 0.5f;
+	glm::vec4 color = StoryTextColor;
+};
+
 export struct StoryPage
 {
 	std::string_view bg_image_filename;
 	std::span<StoryText const> story_texts;
+	std::span<StoryDecoration const> decorations;
 };
 
 export class StoryScene : public IScene
@@ -76,6 +87,7 @@ private:
 	void page_backward();
 	void apply_current_page();
 	void update_story_texts();
+	void update_decorations();
 
 private:
 	AssetManager m_asset_manager;
@@ -91,12 +103,11 @@ private:
 	std::uint8_t m_cur_bg_index = 0;
 
 	std::unique_ptr<FontAtlas> m_font_atlas;
-	UIShadowedDecoration m_top_decoration;
-	UIShadowedDecoration m_bot_decoration;
 	FPSLabel m_fps_label;
 	UIShadowedLabel m_controls_label;
 	UIShadowedLabel m_page_number_label;
 	std::vector<std::unique_ptr<UIShadowedLabel>> m_story_text_labels;
+	std::vector<std::unique_ptr<UIShadowedDecoration>> m_decorations;
 };
 
 StoryScene::StoryScene(
@@ -123,27 +134,6 @@ StoryScene::StoryScene(
 
 	AssetId decoration_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / Decorations::TextureFileName,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	m_top_decoration.Init(
-		m_asset_manager,
-		m_renderer,
-		m_camera2d,
-		"story horizontal divider paw flourish",
-		decoration_tex_id,
-		Decorations::DecorationId::HorizontalDividerPawFlourish,
-		glm::vec2{ 1440.0f, 110.0f } /*center*/,
-		1.5f /*scale*/,
-		StoryTextColor);
-	m_bot_decoration.Init(
-		m_asset_manager,
-		m_renderer,
-		m_camera2d,
-		"story horizontal short divider paw arrows",
-		decoration_tex_id,
-		Decorations::DecorationId::ShortDividerPawArrows,
-		glm::vec2{ 1440.0f, 760.0f } /*center*/,
-		1.5f /*scale*/,
-		StoryTextColor);
-
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_font_atlas = std::make_unique<FontAtlas>(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
@@ -179,6 +169,10 @@ StoryScene::StoryScene(
 	for (StoryPage const & page : m_story_pages)
 		max_story_texts = std::max(max_story_texts, page.story_texts.size());
 
+	std::size_t max_decorations = 0;
+	for (StoryPage const & page : m_story_pages)
+		max_decorations = std::max(max_decorations, page.decorations.size());
+
 	for (std::size_t i = 0; i < max_story_texts; ++i)
 	{
 		auto story_text_label = std::make_unique<UIShadowedLabel>();
@@ -195,6 +189,24 @@ StoryScene::StoryScene(
 			StoryTextColor);
 		story_text_label->SetVisible(false);
 		m_story_text_labels.push_back(std::move(story_text_label));
+	}
+
+	for (std::size_t i = 0; i < max_decorations; ++i)
+	{
+		auto decoration = std::make_unique<UIShadowedDecoration>();
+		decoration->Init(
+			m_asset_manager,
+			m_renderer,
+			m_camera2d,
+			"story decoration " + std::to_string(i + 1),
+			decoration_tex_id,
+			Decorations::DecorationId::HorizontalDividerPawFlourish,
+			glm::vec2{ 0.0f } /*center*/,
+			1.0f /*scale*/,
+			StoryTextColor);
+		decoration->SetOpacity(0.0f);
+		decoration->SetVisible(false);
+		m_decorations.push_back(std::move(decoration));
 	}
 
 	apply_current_page();
@@ -220,6 +232,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 	{
 		m_page_time += dt;
 		update_story_texts();
+		update_decorations();
 
 		if (input.KeyJustPressed(Input::Key::Left) || input.KeyJustPressed('A'))
 		{
@@ -244,13 +257,13 @@ void StoryScene::DestroyPendingAssets() const
 
 void StoryScene::Render() const
 {
-	m_top_decoration.RenderOffscreenTexture();
-	m_bot_decoration.RenderOffscreenTexture();
 	m_fps_label.RenderOffscreenTexture();
 	m_controls_label.RenderOffscreenTexture();
 	m_page_number_label.RenderOffscreenTexture();
 	for (auto const & story_text_label : m_story_text_labels)
 		story_text_label->RenderOffscreenTexture();
+	for (auto const & decoration : m_decorations)
+		decoration->RenderOffscreenTexture();
 	m_renderer.Render();
 }
 
@@ -302,6 +315,24 @@ void StoryScene::apply_current_page()
 		story_text_label.SetVisible(true);
 	}
 
+	for (std::size_t i = 0; i < m_decorations.size(); ++i)
+	{
+		UIShadowedDecoration & decoration = *m_decorations[i];
+		if (i >= page.decorations.size())
+		{
+			decoration.SetVisible(false);
+			continue;
+		}
+
+		StoryDecoration const & story_decoration = page.decorations[i];
+		decoration.SetDecorationId(story_decoration.decoration_id);
+		decoration.SetCenter(story_decoration.center);
+		decoration.SetScale(story_decoration.scale);
+		decoration.SetColor(story_decoration.color);
+		decoration.SetOpacity(0.0f);
+		decoration.SetVisible(true);
+	}
+
 	m_page_number_label.SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 }
 
@@ -316,6 +347,20 @@ void StoryScene::update_story_texts()
 			? (m_page_time >= story_text.show_time ? 1.0f : 0.0f)
 			: std::clamp((m_page_time - story_text.show_time) / fade_duration, 0.0f, 1.0f);
 		m_story_text_labels[i]->SetOpacity(opacity);
+	}
+}
+
+void StoryScene::update_decorations()
+{
+	StoryPage const & page = m_story_pages[m_cur_bg_index];
+	for (std::size_t i = 0; i < page.decorations.size(); ++i)
+	{
+		StoryDecoration const & decoration = page.decorations[i];
+		const float fade_duration = std::max(decoration.fade_duration, 0.0f);
+		const float opacity = fade_duration == 0.0f
+			? (m_page_time >= decoration.show_time ? 1.0f : 0.0f)
+			: std::clamp((m_page_time - decoration.show_time) / fade_duration, 0.0f, 1.0f);
+		m_decorations[i]->SetOpacity(opacity);
 	}
 }
 

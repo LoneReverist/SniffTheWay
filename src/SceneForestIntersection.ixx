@@ -102,7 +102,7 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "gameplay_backgrounds" / BackgroundImage,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, bg_tex_id);
-	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
+	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
 	// 3d game world
 	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
@@ -117,13 +117,13 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	});
 
 	m_grid.Init(m_asset_manager);
-	m_grid.SetROId(m_renderer.CreateRenderObject("grid", m_grid.GetMeshId(), line_pipeline_id));
+	m_grid.SetROId(m_renderer.CreateRenderObject("grid", RenderLayer::Scene3d, m_grid.GetMeshId(), line_pipeline_id));
 
 	m_dog.Init(m_asset_manager, camera_dir, glm::vec2{ 0.0f, 5.0f });
-	m_renderer.CreateRenderObject("dog", m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
+	m_renderer.CreateRenderObject("dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
 	m_baby.Init(m_asset_manager, camera_dir, glm::vec2{ 0.0f, 5.0f });
-	m_renderer.CreateRenderObject("baby", m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
+	m_renderer.CreateRenderObject("baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
 	// ui
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
@@ -131,17 +131,17 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 	m_font_atlas = std::make_unique<FontAtlas>(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
-	m_story_shadow.SetROId(m_renderer.CreateUIRenderObject("story shadow", m_story_shadow.GetMeshId(), color_pipeline_id));
+	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", RenderLayer::UIShadow, m_story_shadow.GetMeshId(), color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, *m_font_atlas);
 
 	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_font_atlas,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_controls_label.SetROId(m_renderer.CreateUIRenderObject("controls label", m_controls_label.GetMeshId(), text_pipeline_id, m_controls_label.GetPipelineData()));
+	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), text_pipeline_id, m_controls_label.GetPipelineData()));
 
 	m_story_label.Init(m_asset_manager, StoryTexts[0], *m_font_atlas,
 		LabelFontSize, glm::vec2{ 960, 918 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_story_label.SetROId(m_renderer.CreateUIRenderObject("story label", m_story_label.GetMeshId(), text_pipeline_id, m_story_label.GetPipelineData()));
+	m_story_label.SetROId(m_renderer.CreateRenderObject("story label", RenderLayer::UIForeground, m_story_label.GetMeshId(), text_pipeline_id, m_story_label.GetPipelineData()));
 
 	ChangeSceneState(SceneState::Story);
 }

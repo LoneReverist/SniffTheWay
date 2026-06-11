@@ -27,6 +27,14 @@ export namespace SniffTheWay
 
 	constexpr glm::vec4 StoryTextColor{ 0.93f, 0.89f, 0.70f, 1.0f };
 
+	enum class RenderLayer : std::uint8_t
+	{
+		Background = 0,
+		Scene3d = 1,
+		UIShadow = 2,
+		UIForeground = 3,
+	};
+
 	enum class SceneState : std::uint8_t
 	{
 		Story,

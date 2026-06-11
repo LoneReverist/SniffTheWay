@@ -17,6 +17,7 @@ import Camera;
 import DecorationAtlas;
 import RenderObject;
 import SceneRenderer;
+import SniffTheWayConstants;
 import Texture2dPipeline;
 import TextureMaskPipeline;
 import UIDecoration;
@@ -129,8 +130,9 @@ void UIShadowedDecoration::Init(
 		m_mask_ro,
 		m_shadow_style);
 
-	m_decoration_ro_id = renderer.CreateUIRenderObject(
+	m_decoration_ro_id = renderer.CreateRenderObject(
 		m_name + " decoration",
+		SniffTheWay::RenderLayer::UIForeground,
 		m_decoration.GetMeshId(),
 		texture_pipeline_id,
 		m_decoration.GetPipelineData());

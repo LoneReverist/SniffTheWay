@@ -24,7 +24,10 @@ import RenderObject;
 import SceneRenderer;
 import ShadowBackdropPipeline;
 import ShadowCompositePipeline;
+import SniffTheWayConstants;
 import Vertex;
+
+using namespace SniffTheWay;
 
 namespace dh = Dreamhearth;
 
@@ -197,8 +200,9 @@ void UIElementShadowRenderer::Init(
 	m_sharp_vertical_blur_ro = RenderObject(m_name + " sharp shadow vertical blur", m_offscreen_quad_mesh_id, blur_pipeline_id);
 	m_sharp_vertical_blur_ro.SetObjectData(&m_sharp_vertical_blur_data);
 
-	m_shadow_backdrop_ro_id = renderer.CreateUIRenderObject(
+	m_shadow_backdrop_ro_id = renderer.CreateRenderObject(
 		m_name + " shadow backdrop",
+		RenderLayer::UIShadow,
 		m_shadow_backdrop_mesh_id,
 		shadow_backdrop_pipeline_id,
 		m_shadow_backdrop_data);
@@ -207,8 +211,9 @@ void UIElementShadowRenderer::Init(
 		.tex_id = m_blur_tex_id,
 		.color = m_style.color,
 	};
-	m_composite_ro_id = renderer.CreateUIRenderObject(
+	m_composite_ro_id = renderer.CreateRenderObject(
 		m_name + " shadow composite",
+		RenderLayer::UIShadow,
 		m_composite_quad_mesh_id,
 		shadow_composite_pipeline_id,
 		m_composite_data);
@@ -217,8 +222,9 @@ void UIElementShadowRenderer::Init(
 		.tex_id = m_sharp_blur_tex_id,
 		.color = m_style.color,
 	};
-	m_sharp_composite_ro_id = renderer.CreateUIRenderObject(
+	m_sharp_composite_ro_id = renderer.CreateRenderObject(
 		m_name + " sharp shadow composite",
+		RenderLayer::UIShadow,
 		m_composite_quad_mesh_id,
 		shadow_composite_pipeline_id,
 		m_sharp_composite_data);

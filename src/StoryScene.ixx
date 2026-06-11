@@ -118,7 +118,7 @@ StoryScene::StoryScene(
 	});
 	m_cur_bg_index = 0;
 	m_background.Init(m_asset_manager, m_bg_tex_ids[m_cur_bg_index]);
-	m_renderer.CreateRenderObject("background", m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
+	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
 	AssetId decoration_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / Decorations::TextureFileName,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);

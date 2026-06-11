@@ -18,6 +18,7 @@ import Camera;
 import FontAtlas;
 import RenderObject;
 import SceneRenderer;
+import SniffTheWayConstants;
 import TextMaskPipeline;
 import TextPipeline;
 import UIElementShadowRenderer;
@@ -143,8 +144,9 @@ void UIShadowedLabel::Init(
 		m_mask_ro,
 		m_shadow_style);
 
-	m_label_ro_id = renderer.CreateUIRenderObject(
+	m_label_ro_id = renderer.CreateRenderObject(
 		m_name + " label",
+		SniffTheWay::RenderLayer::UIForeground,
 		m_label.GetMeshId(),
 		text_pipeline_id,
 		m_label.GetPipelineData());

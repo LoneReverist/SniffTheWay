@@ -30,8 +30,7 @@ void main()
 
 	if (obj_data.color_mode == 1)
 	{
-		float shape_alpha = tex_color.a * max(max(tex_color.r, tex_color.g), tex_color.b);
-		out_frag_color = vec4(obj_data.color.rgb, obj_data.color.a * shape_alpha);
+		out_frag_color = vec4(obj_data.color.rgb, obj_data.color.a * tex_color.a);
 		return;
 	}
 

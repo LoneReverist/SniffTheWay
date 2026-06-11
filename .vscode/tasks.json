@@ -138,6 +138,43 @@
       }
     },
     {
+      "label": "Configure Debug Windows Clang",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-S",
+        "${workspaceFolder}",
+        "-B",
+        "${workspaceFolder}/build-clangwin",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DCMAKE_C_COMPILER=C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang.exe",
+        "-DCMAKE_CXX_COMPILER=C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang++.exe",
+        "-DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS=C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-scan-deps.exe",
+        "-DCMAKE_CXX_COMPILER_CLANG_RESOURCE_DIR=C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/lib/clang/20",
+        "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "-DVCPKG_TARGET_TRIPLET=x64-windows-static"
+      ],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": [
+            "/d", "/c", "call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul 2>&1 &&"
+          ]
+        }
+      },
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
       "label": "Build SniffTheWay Debug Windows",
       "type": "shell",
       "command": "cmake",
@@ -155,6 +192,36 @@
         }
       },
       "dependsOn": "Configure Debug Windows",
+      "group": "build",
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Build SniffTheWay Debug Windows Clang",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "${workspaceFolder}/build-clangwin",
+        "--target",
+        "SniffTheWay"
+      ],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": [
+            "/d", "/c", "call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul 2>&1 &&"
+          ]
+        }
+      },
+      "dependsOn": "Configure Debug Windows Clang",
       "group": "build",
       "problemMatcher": [
         "$msCompile"

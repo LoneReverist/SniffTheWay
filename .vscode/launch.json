@@ -50,6 +50,18 @@
             "console": "externalTerminal"
         },
         {
+            "name": "Debug Windows Clang SniffTheWay",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "Build SniffTheWay Debug Windows Clang",
+            "program": "${workspaceFolder}/build-clangwin/SniffTheWay.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
+        },
+        {
             "name": "Release Windows SniffTheWay",
             "type": "cppvsdbg",
             "request": "launch",

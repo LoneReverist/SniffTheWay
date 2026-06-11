@@ -6,11 +6,34 @@
 
 layout(set = 1, binding = 0) uniform sampler2D tex_sampler;
 
+#ifdef BUILD_VULKAN
+layout(push_constant) uniform ObjectData {
+	vec4 color;
+	int color_mode;
+} obj_data;
+
+#else // OpenGL
+layout(std140, binding = 9) uniform ObjectDataFS {
+	vec4 color;
+	int color_mode;
+} obj_data;
+
+#endif
+
 layout(location = 0) in vec2 in_uv;
 
 layout(location = 0) out vec4 out_frag_color;
 
 void main()
 {
-	out_frag_color = texture(tex_sampler, in_uv);
+	vec4 tex_color = texture(tex_sampler, in_uv);
+
+	if (obj_data.color_mode == 1)
+	{
+		float shape_alpha = tex_color.a * max(max(tex_color.r, tex_color.g), tex_color.b);
+		out_frag_color = vec4(obj_data.color.rgb, obj_data.color.a * shape_alpha);
+		return;
+	}
+
+	out_frag_color = tex_color * obj_data.color;
 }

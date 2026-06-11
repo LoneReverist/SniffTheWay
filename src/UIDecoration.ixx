@@ -42,11 +42,13 @@ public:
 		AssetId texture_id,
 		SniffTheWay::Decorations::DecorationId decoration_id,
 		glm::vec2 top_left,
-		float scale);
+		float scale,
+		glm::vec4 color = glm::vec4{ 1.0f });
 
 	void SetDecorationId(SniffTheWay::Decorations::DecorationId decoration_id);
 	void SetTopLeft(glm::vec2 top_left);
 	void SetScale(float scale);
+	void SetColor(glm::vec4 color);
 
 	void SetROId(AssetId ro_id) { m_ro_id = ro_id; }
 
@@ -77,7 +79,8 @@ void UIDecoration::Init(
 	AssetId texture_id,
 	SniffTheWay::Decorations::DecorationId decoration_id,
 	glm::vec2 top_left,
-	float scale)
+	float scale,
+	glm::vec4 color)
 {
 	m_asset_manager = &asset_manager;
 	m_decoration_id = decoration_id;
@@ -85,6 +88,8 @@ void UIDecoration::Init(
 	m_scale = scale;
 	m_pipeline_data = Texture2dPipeline::ObjectData{
 		.tex_id = texture_id,
+		.color = color,
+		.color_mode = Texture2dPipeline::ColorMode::ColorMask,
 	};
 
 	std::expected<dh::Mesh, dh::GraphicsError> mesh = create_mesh();
@@ -122,6 +127,11 @@ void UIDecoration::SetScale(float scale)
 
 	m_scale = scale;
 	update_mesh();
+}
+
+void UIDecoration::SetColor(glm::vec4 color)
+{
+	m_pipeline_data.color = color;
 }
 
 SniffTheWay::Decorations::DecorationInfo const & UIDecoration::GetDecorationInfo() const

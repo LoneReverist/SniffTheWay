@@ -137,7 +137,8 @@ StoryScene::StoryScene(
 		decoration_tex_id,
 		Decorations::DecorationId::HorizontalDividerPawFlourish,
 		decoration_top_left,
-		decoration_scale);
+		decoration_scale,
+		StoryTextColor);
 
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);

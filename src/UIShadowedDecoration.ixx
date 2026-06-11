@@ -33,12 +33,14 @@ public:
 		AssetId texture_id,
 		SniffTheWay::Decorations::DecorationId decoration_id,
 		glm::vec2 top_left,
-		float scale);
+		float scale,
+		glm::vec4 color);
 
 	void RenderOffscreenTexture() const;
 	void SetDecorationId(SniffTheWay::Decorations::DecorationId decoration_id);
 	void SetTopLeft(glm::vec2 top_left);
 	void SetScale(float scale);
+	void SetColor(glm::vec4 color);
 	void SetOpacity(float opacity);
 	void SetVisible(bool visible);
 
@@ -64,6 +66,7 @@ private:
 	SniffTheWay::Decorations::DecorationId m_decoration_id = SniffTheWay::Decorations::DecorationId::HorizontalDividerPawFlourish;
 	glm::vec2 m_top_left{ 0.0f };
 	float m_scale = 1.0f;
+	glm::vec4 m_color{ 1.0f };
 	float m_opacity = 1.0f;
 	ShadowStyle m_shadow_style;
 
@@ -80,7 +83,8 @@ void UIShadowedDecoration::Init(
 	AssetId texture_id,
 	SniffTheWay::Decorations::DecorationId decoration_id,
 	glm::vec2 top_left,
-	float scale)
+	float scale,
+	glm::vec4 color)
 {
 	m_asset_manager = &asset_manager;
 	m_renderer = &renderer;
@@ -89,6 +93,7 @@ void UIShadowedDecoration::Init(
 	m_decoration_id = decoration_id;
 	m_top_left = top_left;
 	m_scale = scale;
+	m_color = color;
 
 	const auto texture_pipeline_id = asset_manager.AddPipeline<Texture2dPipeline>(camera2d, asset_manager);
 	const auto texture_mask_pipeline_id = asset_manager.AddPipeline<TextureMaskPipeline>(
@@ -100,7 +105,8 @@ void UIShadowedDecoration::Init(
 		texture_id,
 		decoration_id,
 		top_left,
-		scale);
+		scale,
+		color);
 	m_mask_decoration.Init(
 		asset_manager,
 		texture_id,
@@ -188,9 +194,16 @@ void UIShadowedDecoration::SetScale(float scale)
 	update_layout();
 }
 
+void UIShadowedDecoration::SetColor(glm::vec4 color)
+{
+	m_color = color;
+	m_decoration.SetColor(glm::vec4{ color.r, color.g, color.b, color.a * m_opacity });
+}
+
 void UIShadowedDecoration::SetOpacity(float opacity)
 {
 	m_opacity = std::clamp(opacity, 0.0f, 1.0f);
+	m_decoration.SetColor(glm::vec4{ m_color.r, m_color.g, m_color.b, m_color.a * m_opacity });
 	m_shadow_renderer.SetOpacity(m_opacity);
 }
 

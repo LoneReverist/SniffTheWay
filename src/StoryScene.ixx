@@ -31,7 +31,7 @@ import IScene;
 import SceneRenderer;
 import SniffTheWayConstants;
 import UILabel;
-import UIShadowedText;
+import UIShadowedLabel;
 import Vertex;
 
 namespace dh = Dreamhearth;
@@ -95,9 +95,9 @@ private:
 	MeshId<TextureVertex2d> m_decoration_mesh_id;
 	AssetId m_decoration_ro_id;
 	FPSLabel m_fps_label;
-	UIShadowedText m_controls_label;
-	UIShadowedText m_page_number_label;
-	std::vector<std::unique_ptr<UIShadowedText>> m_story_text_labels;
+	UIShadowedLabel m_controls_label;
+	UIShadowedLabel m_page_number_label;
+	std::vector<std::unique_ptr<UIShadowedLabel>> m_story_text_labels;
 };
 
 StoryScene::StoryScene(
@@ -173,7 +173,7 @@ StoryScene::StoryScene(
 
 	for (std::size_t i = 0; i < max_story_texts; ++i)
 	{
-		auto story_text_label = std::make_unique<UIShadowedText>();
+		auto story_text_label = std::make_unique<UIShadowedLabel>();
 		story_text_label->Init(
 			m_asset_manager,
 			m_renderer,
@@ -275,7 +275,7 @@ void StoryScene::apply_current_page()
 	StoryPage const & page = m_story_pages[m_cur_bg_index];
 	for (std::size_t i = 0; i < m_story_text_labels.size(); ++i)
 	{
-		UIShadowedText & story_text_label = *m_story_text_labels[i];
+		UIShadowedLabel & story_text_label = *m_story_text_labels[i];
 		if (i >= page.story_texts.size())
 		{
 			story_text_label.SetVisible(false);

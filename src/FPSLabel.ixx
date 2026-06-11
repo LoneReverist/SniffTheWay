@@ -14,7 +14,7 @@ import FontAtlas;
 import SceneRenderer;
 import SniffTheWayConstants;
 import UILabel;
-import UIShadowedText;
+import UIShadowedLabel;
 
 export class FPSLabel
 {
@@ -24,7 +24,7 @@ public:
 	void RenderOffscreenTexture() const;
 
 private:
-	UIShadowedText m_text;
+	UIShadowedLabel m_label;
 
 	float m_frame_timer = 0.0f;
 	int m_frame_count = 0;
@@ -32,7 +32,7 @@ private:
 
 void FPSLabel::Init(AssetManager & asset_manager, SceneRenderer & renderer, Camera2d const & camera2d, FontAtlas const & font_atlas)
 {
-	m_text.Init(
+	m_label.Init(
 		asset_manager,
 		renderer,
 		camera2d,
@@ -52,7 +52,7 @@ void FPSLabel::Update(float dt)
 	if (m_frame_timer >= 1.0)
 	{
 		float fps = static_cast<float>(m_frame_count) / m_frame_timer;
-		m_text.SetText("FPS: " + std::to_string(static_cast<int>(fps)));
+		m_label.SetText("FPS: " + std::to_string(static_cast<int>(fps)));
 		m_frame_timer = 0.0;
 		m_frame_count = 0;
 	}
@@ -60,5 +60,5 @@ void FPSLabel::Update(float dt)
 
 void FPSLabel::RenderOffscreenTexture() const
 {
-	m_text.RenderOffscreenTexture();
+	m_label.RenderOffscreenTexture();
 }

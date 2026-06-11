@@ -1,4 +1,4 @@
-// UIShadowedText.ixx
+// UIShadowedLabel.ixx
 
 module;
 
@@ -8,7 +8,7 @@ module;
 
 #include <glm/glm.hpp>
 
-export module UIShadowedText;
+export module UIShadowedLabel;
 
 import Dreamhearth;
 
@@ -26,7 +26,7 @@ import Vertex;
 
 namespace dh = Dreamhearth;
 
-export class UIShadowedText
+export class UIShadowedLabel
 {
 public:
 	void Init(
@@ -81,7 +81,7 @@ private:
 	AssetId m_label_ro_id;
 };
 
-void UIShadowedText::Init(
+void UIShadowedLabel::Init(
 	AssetManager & asset_manager,
 	SceneRenderer & renderer,
 	Camera2d const & camera2d,
@@ -153,7 +153,7 @@ void UIShadowedText::Init(
 	update_layout();
 }
 
-UIShadowedText::ShadowStyle UIShadowedText::create_shadow_style(float font_size)
+UIShadowedLabel::ShadowStyle UIShadowedLabel::create_shadow_style(float font_size)
 {
 //	constexpr float ReferenceSmallFontSize = 36.0f;
 //	constexpr float ReferenceSmallAlphaBoost = 1.8f;
@@ -174,19 +174,19 @@ UIShadowedText::ShadowStyle UIShadowedText::create_shadow_style(float font_size)
 	};
 }
 
-void UIShadowedText::RenderOffscreenTexture() const
+void UIShadowedLabel::RenderOffscreenTexture() const
 {
 	m_shadow_renderer.RenderOffscreenTexture();
 }
 
-void UIShadowedText::SetText(std::string_view text)
+void UIShadowedLabel::SetText(std::string_view text)
 {
 	m_label.SetText(text);
 	m_mask_label.SetText(text);
 	update_layout();
 }
 
-void UIShadowedText::SetFontSize(float font_size)
+void UIShadowedLabel::SetFontSize(float font_size)
 {
 	m_label.SetFontSize(font_size);
 	m_mask_label.SetFontSize(font_size);
@@ -201,20 +201,20 @@ void UIShadowedText::SetFontSize(float font_size)
 	update_layout();
 }
 
-void UIShadowedText::SetTextColor(glm::vec4 text_color)
+void UIShadowedLabel::SetTextColor(glm::vec4 text_color)
 {
 	m_text_color = text_color;
 	m_label.SetTextColor(glm::vec4{ text_color.r, text_color.g, text_color.b, text_color.a * m_opacity });
 }
 
-void UIShadowedText::SetOpacity(float opacity)
+void UIShadowedLabel::SetOpacity(float opacity)
 {
 	m_opacity = std::clamp(opacity, 0.0f, 1.0f);
 	m_label.SetTextColor(glm::vec4{ m_text_color.r, m_text_color.g, m_text_color.b, m_text_color.a * m_opacity });
 	m_shadow_renderer.SetOpacity(m_opacity);
 }
 
-void UIShadowedText::SetOrigin(glm::vec2 origin)
+void UIShadowedLabel::SetOrigin(glm::vec2 origin)
 {
 	if (m_origin == origin)
 		return;
@@ -224,7 +224,7 @@ void UIShadowedText::SetOrigin(glm::vec2 origin)
 	update_layout();
 }
 
-void UIShadowedText::SetVisible(bool visible)
+void UIShadowedLabel::SetVisible(bool visible)
 {
 	if (!m_renderer)
 		return;
@@ -233,7 +233,7 @@ void UIShadowedText::SetVisible(bool visible)
 	m_renderer->Show(m_label_ro_id, visible);
 }
 
-void UIShadowedText::SetAlign(UILabel::Align align)
+void UIShadowedLabel::SetAlign(UILabel::Align align)
 {
 	if (m_align == align)
 		return;
@@ -244,7 +244,7 @@ void UIShadowedText::SetAlign(UILabel::Align align)
 	update_layout();
 }
 
-void UIShadowedText::update_layout()
+void UIShadowedLabel::update_layout()
 {
 	if (!m_asset_manager || !m_renderer)
 		return;

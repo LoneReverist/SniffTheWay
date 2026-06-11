@@ -30,8 +30,8 @@ import Input;
 import IScene;
 import SceneRenderer;
 import SniffTheWayConstants;
-import UIDecoration;
 import UILabel;
+import UIShadowedDecoration;
 import UIShadowedLabel;
 import Vertex;
 
@@ -91,8 +91,7 @@ private:
 	std::uint8_t m_cur_bg_index = 0;
 
 	std::unique_ptr<FontAtlas> m_font_atlas;
-	UIDecoration m_decoration;
-	AssetId m_decoration_ro_id;
+	UIShadowedDecoration m_decoration;
 	FPSLabel m_fps_label;
 	UIShadowedLabel m_controls_label;
 	UIShadowedLabel m_page_number_label;
@@ -132,16 +131,13 @@ StoryScene::StoryScene(
 	};
 	m_decoration.Init(
 		m_asset_manager,
+		m_renderer,
+		m_camera2d,
+		"story horizontal divider paw flourish",
 		decoration_tex_id,
 		Decorations::DecorationId::HorizontalDividerPawFlourish,
 		decoration_top_left,
 		decoration_scale);
-	m_decoration_ro_id = m_renderer.CreateRenderObject(
-		"story horizontal divider paw flourish",
-		m_decoration.GetMeshId(),
-		bg_pipeline_id,
-		m_decoration.GetPipelineData());
-	m_decoration.SetROId(m_decoration_ro_id);
 
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
@@ -243,6 +239,7 @@ void StoryScene::DestroyPendingAssets() const
 
 void StoryScene::Render() const
 {
+	m_decoration.RenderOffscreenTexture();
 	m_fps_label.RenderOffscreenTexture();
 	m_controls_label.RenderOffscreenTexture();
 	m_page_number_label.RenderOffscreenTexture();

@@ -1,0 +1,226 @@
+// UIShadowedDecoration.ixx
+
+module;
+
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <string_view>
+
+#include <glm/glm.hpp>
+
+export module UIShadowedDecoration;
+
+import AssetManager;
+import AssetPool;
+import Camera;
+import DecorationAtlas;
+import RenderObject;
+import SceneRenderer;
+import Texture2dPipeline;
+import TextureMaskPipeline;
+import UIDecoration;
+import UIElementShadowRenderer;
+
+export class UIShadowedDecoration
+{
+public:
+	void Init(
+		AssetManager & asset_manager,
+		SceneRenderer & renderer,
+		Camera2d const & camera2d,
+		std::string_view name,
+		AssetId texture_id,
+		SniffTheWay::Decorations::DecorationId decoration_id,
+		glm::vec2 top_left,
+		float scale);
+
+	void RenderOffscreenTexture() const;
+	void SetDecorationId(SniffTheWay::Decorations::DecorationId decoration_id);
+	void SetTopLeft(glm::vec2 top_left);
+	void SetScale(float scale);
+	void SetOpacity(float opacity);
+	void SetVisible(bool visible);
+
+	UIDecoration const & GetUIDecoration() const { return m_decoration; }
+
+private:
+	using ShadowStyle = UIElementShadowRenderer::Style;
+
+	static ShadowStyle create_shadow_style(float height);
+
+	void update_layout();
+
+private:
+	AssetManager * m_asset_manager = nullptr;
+	SceneRenderer * m_renderer = nullptr;
+
+	UIDecoration m_decoration;
+	UIDecoration m_mask_decoration;
+	UIElementShadowRenderer m_shadow_renderer;
+
+	std::string m_name;
+	AssetId m_texture_id;
+	SniffTheWay::Decorations::DecorationId m_decoration_id = SniffTheWay::Decorations::DecorationId::HorizontalDividerPawFlourish;
+	glm::vec2 m_top_left{ 0.0f };
+	float m_scale = 1.0f;
+	float m_opacity = 1.0f;
+	ShadowStyle m_shadow_style;
+
+	TextureMaskPipeline::ObjectData m_mask_data;
+	RenderObject m_mask_ro;
+	AssetId m_decoration_ro_id;
+};
+
+void UIShadowedDecoration::Init(
+	AssetManager & asset_manager,
+	SceneRenderer & renderer,
+	Camera2d const & camera2d,
+	std::string_view name,
+	AssetId texture_id,
+	SniffTheWay::Decorations::DecorationId decoration_id,
+	glm::vec2 top_left,
+	float scale)
+{
+	m_asset_manager = &asset_manager;
+	m_renderer = &renderer;
+	m_name = std::string{ name };
+	m_texture_id = texture_id;
+	m_decoration_id = decoration_id;
+	m_top_left = top_left;
+	m_scale = scale;
+
+	const auto texture_pipeline_id = asset_manager.AddPipeline<Texture2dPipeline>(camera2d, asset_manager);
+	const auto texture_mask_pipeline_id = asset_manager.AddPipeline<TextureMaskPipeline>(
+		m_shadow_renderer.GetOffscreenCamera(),
+		asset_manager);
+
+	m_decoration.Init(
+		asset_manager,
+		texture_id,
+		decoration_id,
+		top_left,
+		scale);
+	m_mask_decoration.Init(
+		asset_manager,
+		texture_id,
+		decoration_id,
+		glm::vec2{ 0.0f },
+		scale);
+
+	m_mask_data = TextureMaskPipeline::ObjectData{
+		.tex_id = texture_id,
+	};
+	m_mask_ro = RenderObject(m_name + " shadow mask", m_mask_decoration.GetMeshId(), texture_mask_pipeline_id);
+	m_mask_ro.SetObjectData(&m_mask_data);
+
+	m_shadow_style = create_shadow_style(m_decoration.GetBounds().Size().y);
+	m_shadow_renderer.Init(
+		asset_manager,
+		renderer,
+		camera2d,
+		m_name,
+		m_mask_ro,
+		m_shadow_style);
+
+	m_decoration_ro_id = renderer.CreateUIRenderObject(
+		m_name + " decoration",
+		m_decoration.GetMeshId(),
+		texture_pipeline_id,
+		m_decoration.GetPipelineData());
+	m_decoration.SetROId(m_decoration_ro_id);
+
+	update_layout();
+}
+
+UIShadowedDecoration::ShadowStyle UIShadowedDecoration::create_shadow_style(float height)
+{
+	return ShadowStyle{
+		.blur_radius = static_cast<int>(std::max(4.0f, height / 2.0f)),
+		.alpha_boost = 1.5f,
+		.sharp_blur_radius = 6,
+		.sharp_alpha_boost = 2.0f,
+		.offset = glm::vec2{ 0.0f },
+		.color = glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f },
+	};
+}
+
+void UIShadowedDecoration::RenderOffscreenTexture() const
+{
+	m_shadow_renderer.RenderOffscreenTexture();
+}
+
+void UIShadowedDecoration::SetDecorationId(SniffTheWay::Decorations::DecorationId decoration_id)
+{
+	if (m_decoration_id == decoration_id)
+		return;
+
+	m_decoration_id = decoration_id;
+	m_decoration.SetDecorationId(decoration_id);
+	m_mask_decoration.SetDecorationId(decoration_id);
+
+	m_shadow_style = create_shadow_style(m_decoration.GetBounds().Size().y);
+	m_shadow_renderer.SetStyle(m_shadow_style);
+	update_layout();
+}
+
+void UIShadowedDecoration::SetTopLeft(glm::vec2 top_left)
+{
+	if (m_top_left == top_left)
+		return;
+
+	m_top_left = top_left;
+	m_decoration.SetTopLeft(top_left);
+	update_layout();
+}
+
+void UIShadowedDecoration::SetScale(float scale)
+{
+	if (m_scale == scale)
+		return;
+
+	m_scale = scale;
+	m_decoration.SetScale(scale);
+	m_mask_decoration.SetScale(scale);
+
+	m_shadow_style = create_shadow_style(m_decoration.GetBounds().Size().y);
+	m_shadow_renderer.SetStyle(m_shadow_style);
+	update_layout();
+}
+
+void UIShadowedDecoration::SetOpacity(float opacity)
+{
+	m_opacity = std::clamp(opacity, 0.0f, 1.0f);
+	m_shadow_renderer.SetOpacity(m_opacity);
+}
+
+void UIShadowedDecoration::SetVisible(bool visible)
+{
+	if (!m_renderer)
+		return;
+
+	m_shadow_renderer.SetVisible(visible);
+	m_renderer->Show(m_decoration_ro_id, visible);
+}
+
+void UIShadowedDecoration::update_layout()
+{
+	if (!m_asset_manager || !m_renderer)
+		return;
+
+	UIDecoration::Bounds const & bounds = m_decoration.GetBounds();
+	const UIElementShadowRenderer::Bounds shadow_bounds{
+		.min = bounds.min,
+		.max = bounds.max,
+		.is_valid = bounds.is_valid
+	};
+	if (!bounds.is_valid)
+	{
+		m_shadow_renderer.SetBounds(shadow_bounds, 0.0f);
+		return;
+	}
+
+	const float padding = m_shadow_renderer.GetMaskPadding();
+	m_mask_decoration.SetTopLeft(glm::vec2{ padding });
+	m_shadow_renderer.SetBounds(shadow_bounds, padding);
+}

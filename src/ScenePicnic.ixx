@@ -62,12 +62,12 @@ private:
 		StoryDecoration{
 			.decoration_id = Decorations::DecorationId::HorizontalDividerPawFlourish,
 			.center = glm::vec2{ 1440.0f, 110.0f },
-			.show_time = 1.5f,
+			.show_time = 1.0f,
 		},
 		StoryDecoration{
 			.decoration_id = Decorations::DecorationId::ShortDividerPawArrows,
 			.center = glm::vec2{ 1440.0f, 760.0f },
-			.show_time = 6.0f,
+			.show_time = 6.5f,
 		},
 	};
 	// leaves in wind effect, text blown sideways, slight camera shake
@@ -75,15 +75,23 @@ private:
 		StoryText{
 			.text = "Then,",
 			.font_size = StorySmallFontSize,
-			.pos = glm::vec2{ 860, 250 },
+			.pos = glm::vec2{ 1200, 600 },
 			.align = UILabel::Align::Right,
 			.show_time = 0.75f,
 		},
 		StoryText{
 			.text = "WHOOSH!",
 			.font_size = StoryLargeFontSize,
-			.pos = glm::vec2{ 910, 250 },
+			.pos = glm::vec2{ 1250, 600 },
 			.align = UILabel::Align::Left,
+			.show_time = 1.5f,
+			.fade_duration = 0.25f,
+		},
+	};
+	static constexpr std::array<StoryDecoration, 1> GustOfWindDecorations{
+		StoryDecoration{
+			.decoration_id = Decorations::DecorationId::ShortDividerTripleDiamonds,
+			.center = glm::vec2{ 1440.0f, 650.0f },
 			.show_time = 1.5f,
 			.fade_duration = 0.25f,
 		},
@@ -138,7 +146,7 @@ private:
 	};
 	static constexpr std::array<StoryPage, 4> StoryPages{
 		StoryPage{ .bg_image_filename = "picnic.png", .story_texts = PicnicTexts, .decorations = PicnicDecorations },
-		StoryPage{ .bg_image_filename = "gust_of_wind.png", .story_texts = GustOfWindTexts },
+		StoryPage{ .bg_image_filename = "gust_of_wind.png", .story_texts = GustOfWindTexts, .decorations = GustOfWindDecorations },
 		StoryPage{ .bg_image_filename = "following_butterflies.png", .story_texts = FollowingButterfliesTexts },
 		StoryPage{ .bg_image_filename = "lost.png", .story_texts = LostTexts },
 	};

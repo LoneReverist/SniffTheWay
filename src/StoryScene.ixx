@@ -106,8 +106,8 @@ private:
 	FPSLabel m_fps_label;
 	UIShadowedLabel m_controls_label;
 	UIShadowedLabel m_page_number_label;
-	std::vector<std::unique_ptr<UIShadowedLabel>> m_story_text_labels;
-	std::vector<std::unique_ptr<UIShadowedDecoration>> m_decorations;
+	std::vector<UIShadowedLabel> m_story_labels;
+	std::vector<UIShadowedDecoration> m_decorations;
 };
 
 StoryScene::StoryScene(
@@ -173,10 +173,11 @@ StoryScene::StoryScene(
 	for (StoryPage const & page : m_story_pages)
 		max_decorations = std::max(max_decorations, page.decorations.size());
 
-	for (std::size_t i = 0; i < max_story_texts; ++i)
+	m_story_labels.resize(max_story_texts);
+	for (std::size_t i = 0; i < m_story_labels.size(); ++i)
 	{
-		auto story_text_label = std::make_unique<UIShadowedLabel>();
-		story_text_label->Init(
+		UIShadowedLabel & story_label = m_story_labels[i];
+		story_label.Init(
 			m_asset_manager,
 			m_renderer,
 			m_camera2d,
@@ -187,14 +188,14 @@ StoryScene::StoryScene(
 			glm::vec2{ 960, 250 } /*origin*/,
 			UILabel::Align::Center,
 			StoryTextColor);
-		story_text_label->SetVisible(false);
-		m_story_text_labels.push_back(std::move(story_text_label));
+		story_label.SetVisible(false);
 	}
 
-	for (std::size_t i = 0; i < max_decorations; ++i)
+	m_decorations.resize(max_decorations);
+	for (std::size_t i = 0; i < m_decorations.size(); ++i)
 	{
-		auto decoration = std::make_unique<UIShadowedDecoration>();
-		decoration->Init(
+		UIShadowedDecoration & decoration = m_decorations[i];
+		decoration.Init(
 			m_asset_manager,
 			m_renderer,
 			m_camera2d,
@@ -204,9 +205,8 @@ StoryScene::StoryScene(
 			glm::vec2{ 0.0f } /*center*/,
 			1.0f /*scale*/,
 			StoryTextColor);
-		decoration->SetOpacity(0.0f);
-		decoration->SetVisible(false);
-		m_decorations.push_back(std::move(decoration));
+		decoration.SetOpacity(0.0f);
+		decoration.SetVisible(false);
 	}
 
 	apply_current_page();
@@ -260,10 +260,10 @@ void StoryScene::Render() const
 	m_fps_label.RenderOffscreenTexture();
 	m_controls_label.RenderOffscreenTexture();
 	m_page_number_label.RenderOffscreenTexture();
-	for (auto const & story_text_label : m_story_text_labels)
-		story_text_label->RenderOffscreenTexture();
-	for (auto const & decoration : m_decorations)
-		decoration->RenderOffscreenTexture();
+	for (UIShadowedLabel const & story_label : m_story_labels)
+		story_label.RenderOffscreenTexture();
+	for (UIShadowedDecoration const & decoration : m_decorations)
+		decoration.RenderOffscreenTexture();
 	m_renderer.Render();
 }
 
@@ -296,28 +296,28 @@ void StoryScene::apply_current_page()
 	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
 
 	StoryPage const & page = m_story_pages[m_cur_bg_index];
-	for (std::size_t i = 0; i < m_story_text_labels.size(); ++i)
+	for (std::size_t i = 0; i < m_story_labels.size(); ++i)
 	{
-		UIShadowedLabel & story_text_label = *m_story_text_labels[i];
+		UIShadowedLabel & story_label = m_story_labels[i];
 		if (i >= page.story_texts.size())
 		{
-			story_text_label.SetVisible(false);
+			story_label.SetVisible(false);
 			continue;
 		}
 
 		StoryText const & story_text = page.story_texts[i];
-		story_text_label.SetText(story_text.text);
-		story_text_label.SetFontSize(story_text.font_size);
-		story_text_label.SetOrigin(story_text.pos);
-		story_text_label.SetAlign(story_text.align);
-		story_text_label.SetTextColor(story_text.color);
-		story_text_label.SetOpacity(0.0f);
-		story_text_label.SetVisible(true);
+		story_label.SetText(story_text.text);
+		story_label.SetFontSize(story_text.font_size);
+		story_label.SetOrigin(story_text.pos);
+		story_label.SetAlign(story_text.align);
+		story_label.SetTextColor(story_text.color);
+		story_label.SetOpacity(0.0f);
+		story_label.SetVisible(true);
 	}
 
 	for (std::size_t i = 0; i < m_decorations.size(); ++i)
 	{
-		UIShadowedDecoration & decoration = *m_decorations[i];
+		UIShadowedDecoration & decoration = m_decorations[i];
 		if (i >= page.decorations.size())
 		{
 			decoration.SetVisible(false);
@@ -346,7 +346,7 @@ void StoryScene::update_story_texts()
 		const float opacity = fade_duration == 0.0f
 			? (m_page_time >= story_text.show_time ? 1.0f : 0.0f)
 			: std::clamp((m_page_time - story_text.show_time) / fade_duration, 0.0f, 1.0f);
-		m_story_text_labels[i]->SetOpacity(opacity);
+		m_story_labels[i].SetOpacity(opacity);
 	}
 }
 
@@ -360,7 +360,7 @@ void StoryScene::update_decorations()
 		const float opacity = fade_duration == 0.0f
 			? (m_page_time >= decoration.show_time ? 1.0f : 0.0f)
 			: std::clamp((m_page_time - decoration.show_time) / fade_duration, 0.0f, 1.0f);
-		m_decorations[i]->SetOpacity(opacity);
+		m_decorations[i].SetOpacity(opacity);
 	}
 }
 

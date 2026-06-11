@@ -8,6 +8,7 @@ module;
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -58,7 +59,7 @@ public:
 		SceneRenderer & renderer,
 		Camera2d const & camera2d,
 		std::string_view name,
-		RenderObject const & mask_ro,
+		RenderObject mask_ro,
 		Style style);
 
 	void RenderOffscreenTexture() const;
@@ -97,7 +98,7 @@ private:
 private:
 	AssetManager * m_asset_manager = nullptr;
 	SceneRenderer * m_renderer = nullptr;
-	RenderObject const * m_mask_ro = nullptr;
+	RenderObject m_mask_ro;
 
 	Camera2d m_offscreen_camera2d{ true /*flip_screen_y*/ };
 
@@ -141,12 +142,12 @@ void UIElementShadowRenderer::Init(
 	SceneRenderer & renderer,
 	Camera2d const & camera2d,
 	std::string_view name,
-	RenderObject const & mask_ro,
+	RenderObject mask_ro,
 	Style style)
 {
 	m_asset_manager = &asset_manager;
 	m_renderer = &renderer;
-	m_mask_ro = &mask_ro;
+	m_mask_ro = std::move(mask_ro);
 	m_name = std::string{ name };
 	m_style = style;
 
@@ -232,7 +233,7 @@ void UIElementShadowRenderer::Init(
 
 void UIElementShadowRenderer::RenderOffscreenTexture() const
 {
-	if (!m_shadow_texture_dirty || !m_asset_manager || !m_renderer || !m_mask_ro)
+	if (!m_shadow_texture_dirty || !m_asset_manager || !m_renderer)
 		return;
 
 	dh::Texture const * mask_tex = m_asset_manager->GetTexture(m_mask_tex_id);
@@ -243,7 +244,7 @@ void UIElementShadowRenderer::RenderOffscreenTexture() const
 	if (!mask_tex || !blur_temp_tex || !blur_tex || !sharp_blur_temp_tex || !sharp_blur_tex)
 		return;
 
-	m_renderer->RenderToTexture(*mask_tex, std::span<RenderObject const>{ m_mask_ro, 1 }, glm::vec4{ 0.0f });
+	m_renderer->RenderToTexture(*mask_tex, std::span<RenderObject const>{ &m_mask_ro, 1 }, glm::vec4{ 0.0f });
 	m_renderer->RenderToTexture(*blur_temp_tex, std::span<RenderObject const>{ &m_horizontal_blur_ro, 1 }, glm::vec4{ 0.0f });
 	m_renderer->RenderToTexture(*blur_tex, std::span<RenderObject const>{ &m_vertical_blur_ro, 1 }, glm::vec4{ 0.0f });
 	m_renderer->RenderToTexture(*sharp_blur_temp_tex, std::span<RenderObject const>{ &m_sharp_horizontal_blur_ro, 1 }, glm::vec4{ 0.0f });

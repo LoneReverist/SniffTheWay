@@ -5,6 +5,7 @@ module;
 #include <algorithm>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <glm/glm.hpp>
 
@@ -78,7 +79,6 @@ private:
 	ShadowStyle m_shadow_style;
 
 	TextMaskPipeline::ObjectData m_mask_data;
-	RenderObject m_mask_ro;
 	AssetId m_label_ro_id;
 };
 
@@ -133,15 +133,15 @@ void UIShadowedLabel::Init(
 		.text_color = label_data.text_color,
 		.tex_id = label_data.tex_id,
 	};
-	m_mask_ro = RenderObject(m_name + " shadow mask", m_mask_label.GetMeshId(), text_mask_pipeline_id);
-	m_mask_ro.SetObjectData(&m_mask_data);
+	RenderObject mask_ro(m_name + " shadow mask", m_mask_label.GetMeshId(), text_mask_pipeline_id);
+	mask_ro.SetObjectData(&m_mask_data);
 
 	m_shadow_renderer.Init(
 		asset_manager,
 		renderer,
 		camera2d,
 		m_name,
-		m_mask_ro,
+		std::move(mask_ro),
 		m_shadow_style);
 
 	m_label_ro_id = renderer.CreateRenderObject(

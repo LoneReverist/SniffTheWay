@@ -6,6 +6,7 @@ module;
 #include <cmath>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <glm/glm.hpp>
 
@@ -72,7 +73,6 @@ private:
 	ShadowStyle m_shadow_style;
 
 	TextureMaskPipeline::ObjectData m_mask_data;
-	RenderObject m_mask_ro;
 	AssetId m_decoration_ro_id;
 };
 
@@ -118,8 +118,8 @@ void UIShadowedDecoration::Init(
 	m_mask_data = TextureMaskPipeline::ObjectData{
 		.tex_id = texture_id,
 	};
-	m_mask_ro = RenderObject(m_name + " shadow mask", m_mask_decoration.GetMeshId(), texture_mask_pipeline_id);
-	m_mask_ro.SetObjectData(&m_mask_data);
+	RenderObject mask_ro(m_name + " shadow mask", m_mask_decoration.GetMeshId(), texture_mask_pipeline_id);
+	mask_ro.SetObjectData(&m_mask_data);
 
 	m_shadow_style = create_shadow_style(m_decoration.GetBounds().Size().y);
 	m_shadow_renderer.Init(
@@ -127,7 +127,7 @@ void UIShadowedDecoration::Init(
 		renderer,
 		camera2d,
 		m_name,
-		m_mask_ro,
+		std::move(mask_ro),
 		m_shadow_style);
 
 	m_decoration_ro_id = renderer.CreateRenderObject(

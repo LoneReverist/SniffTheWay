@@ -13,6 +13,21 @@
 			}
 		},
 		{
+			"name": "x64-windows-clang-debug",
+			"description": "Debug Windows build using Ninja, vcpkg, and Visual Studio bundled Clang",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build-clangwin",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang.exe",
+				"CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang++.exe",
+				"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-scan-deps.exe",
+				"CMAKE_CXX_COMPILER_CLANG_RESOURCE_DIR": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/lib/clang/20",
+				"CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+				"VCPKG_TARGET_TRIPLET": "x64-windows-static"
+			}
+		},
+		{
 			"name": "x64-linux",
 			"description": "Linux build using vcpkg",
 			"generator": "Ninja",
@@ -35,6 +50,13 @@
 			"name": "x64-windows-static-debug",
 			"configurePreset": "x64-windows-static",
 			"configuration": "Debug",
+			"targets": [
+				"SniffTheWay"
+			]
+		},
+		{
+			"name": "x64-windows-clang-debug",
+			"configurePreset": "x64-windows-clang-debug",
 			"targets": [
 				"SniffTheWay"
 			]

@@ -10,6 +10,7 @@ module;
 #include <optional>
 #include <ranges>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -59,6 +60,12 @@ public:
 private:
 	bool page_forward();
 	void page_backward();
+	std::filesystem::path get_story_filepath() const;
+	void load_background_textures();
+	void ensure_story_label_count(std::size_t count);
+	void ensure_decoration_count(std::size_t count);
+	void ensure_story_ui_capacity();
+	void reload_story();
 	void apply_current_page();
 	void update_story_texts();
 	void update_decorations();
@@ -69,14 +76,16 @@ private:
 	Camera2d m_camera2d;
 	SceneState m_scene_state = SceneState::Paused;
 	SceneId m_next_scene_id = SceneId::Exit;
+	std::string m_story_id;
 	StoryPages m_story_pages;
+	std::uint8_t m_page_index = 0;
 	float m_page_time = 0.0f;
 
 	Background m_background;
 	std::vector<AssetId> m_bg_tex_ids;
-	std::uint8_t m_cur_bg_index = 0;
 
 	std::unique_ptr<FontAtlas> m_font_atlas;
+	AssetId m_decoration_tex_id;
 	FPSLabel m_fps_label;
 	UIShadowedLabel m_controls_label;
 	UIShadowedLabel m_page_number_label;
@@ -92,11 +101,12 @@ StoryScene::StoryScene(
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 	, m_next_scene_id{ next_scene_id }
+	, m_story_id{ std::move(story_id) }
 {
-	m_story_pages = StoryLoader::LoadPages(m_asset_manager.GetResourcesPath() / "story" / (story_id + ".json"));
+	m_story_pages = StoryLoader::LoadPages(get_story_filepath());
 	if (m_story_pages.empty())
 	{
-		std::cout << "StoryScene: No pages loaded for story '" << story_id << "'." << std::endl;
+		std::cout << "StoryScene: No pages loaded for story '" << m_story_id << "'." << std::endl;
 		m_story_pages.push_back(StoryPage{ .bg_image_filename = "picnic.png" });
 	}
 
@@ -104,15 +114,12 @@ StoryScene::StoryScene(
 
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
 
-	std::ranges::transform(m_story_pages, std::back_inserter(m_bg_tex_ids), [&](StoryPage const & page) {
-		return m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "story_backgrounds" / page.bg_image_filename,
-			dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	});
-	m_cur_bg_index = 0;
-	m_background.Init(m_asset_manager, m_bg_tex_ids[m_cur_bg_index]);
+	load_background_textures();
+	m_page_index = 0;
+	m_background.Init(m_asset_manager, m_bg_tex_ids[m_page_index]);
 	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
-	AssetId decoration_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / Decorations::TextureFileName,
+	m_decoration_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / Decorations::TextureFileName,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
@@ -132,7 +139,7 @@ StoryScene::StoryScene(
 		UILabel::Align::Center,
 		StoryTextColor);
 
-	std::string page_number_text = std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size());
+	std::string page_number_text = std::to_string(m_page_index + 1) + "/" + std::to_string(m_bg_tex_ids.size());
 	m_page_number_label.Init(
 		m_asset_manager,
 		m_renderer,
@@ -145,49 +152,7 @@ StoryScene::StoryScene(
 		UILabel::Align::Right,
 		StoryTextColor);
 
-	std::size_t max_story_texts = 0;
-	for (StoryPage const & page : m_story_pages)
-		max_story_texts = std::max(max_story_texts, page.story_texts.size());
-
-	std::size_t max_decorations = 0;
-	for (StoryPage const & page : m_story_pages)
-		max_decorations = std::max(max_decorations, page.decorations.size());
-
-	m_story_labels.resize(max_story_texts);
-	for (std::size_t i = 0; i < m_story_labels.size(); ++i)
-	{
-		UIShadowedLabel & story_label = m_story_labels[i];
-		story_label.Init(
-			m_asset_manager,
-			m_renderer,
-			m_camera2d,
-			"story " + std::to_string(i + 1),
-			"",
-			*m_font_atlas,
-			TitleFontSize,
-			glm::vec2{ 960, 250 } /*origin*/,
-			UILabel::Align::Center,
-			StoryTextColor);
-		story_label.SetVisible(false);
-	}
-
-	m_decorations.resize(max_decorations);
-	for (std::size_t i = 0; i < m_decorations.size(); ++i)
-	{
-		UIShadowedDecoration & decoration = m_decorations[i];
-		decoration.Init(
-			m_asset_manager,
-			m_renderer,
-			m_camera2d,
-			"story decoration " + std::to_string(i + 1),
-			decoration_tex_id,
-			Decorations::DecorationId::HorizontalDividerPawFlourish,
-			glm::vec2{ 0.0f } /*center*/,
-			1.0f /*scale*/,
-			StoryTextColor);
-		decoration.SetOpacity(0.0f);
-		decoration.SetVisible(false);
-	}
+	ensure_story_ui_capacity();
 
 	apply_current_page();
 
@@ -223,6 +188,11 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 			if (!page_forward())
 				return SceneTransition{ m_next_scene_id };
 		}
+
+#ifdef _DEBUG
+		if (input.KeyJustPressed('R'))
+			reload_story();
+#endif
 	}
 
 	m_fps_label.Update(dt);
@@ -254,28 +224,129 @@ void StoryScene::ChangeSceneState(SceneState new_state)
 
 bool StoryScene::page_forward()
 {
-	if (m_cur_bg_index + 1 >= m_bg_tex_ids.size())
+	if (m_page_index + 1 >= m_bg_tex_ids.size())
 		return false;
 
-	m_cur_bg_index++;
+	m_page_index++;
 	apply_current_page();
 	return true;
 }
 
 void StoryScene::page_backward()
 {
-	if (m_cur_bg_index > 0)
-		m_cur_bg_index--;
+	if (m_page_index > 0)
+		m_page_index--;
 
 	apply_current_page();
+}
+
+std::filesystem::path StoryScene::get_story_filepath() const
+{
+	return m_asset_manager.GetResourcesPath() / "story" / (m_story_id + ".json");
+}
+
+void StoryScene::load_background_textures()
+{
+	std::vector<AssetId> old_bg_tex_ids = std::move(m_bg_tex_ids);
+	m_bg_tex_ids.clear();
+	std::ranges::transform(m_story_pages, std::back_inserter(m_bg_tex_ids), [&](StoryPage const & page) {
+		return m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "story_backgrounds" / page.bg_image_filename,
+			dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	});
+
+	for (AssetId tex_id : old_bg_tex_ids)
+		m_asset_manager.RemoveTexture(tex_id);
+}
+
+void StoryScene::ensure_story_label_count(std::size_t count)
+{
+	const std::size_t old_size = m_story_labels.size();
+	if (old_size >= count)
+		return;
+
+	m_story_labels.resize(count);
+	for (std::size_t i = old_size; i < m_story_labels.size(); ++i)
+	{
+		UIShadowedLabel & story_label = m_story_labels[i];
+		story_label.Init(
+			m_asset_manager,
+			m_renderer,
+			m_camera2d,
+			"story " + std::to_string(i + 1),
+			"",
+			*m_font_atlas,
+			TitleFontSize,
+			glm::vec2{ 960, 250 } /*origin*/,
+			UILabel::Align::Center,
+			StoryTextColor);
+		story_label.SetVisible(false);
+	}
+}
+
+void StoryScene::ensure_decoration_count(std::size_t count)
+{
+	const std::size_t old_size = m_decorations.size();
+	if (old_size >= count)
+		return;
+
+	m_decorations.resize(count);
+	for (std::size_t i = old_size; i < m_decorations.size(); ++i)
+	{
+		UIShadowedDecoration & decoration = m_decorations[i];
+		decoration.Init(
+			m_asset_manager,
+			m_renderer,
+			m_camera2d,
+			"story decoration " + std::to_string(i + 1),
+			m_decoration_tex_id,
+			Decorations::DecorationId::HorizontalDividerPawFlourish,
+			glm::vec2{ 0.0f } /*center*/,
+			1.0f /*scale*/,
+			StoryTextColor);
+		decoration.SetOpacity(0.0f);
+		decoration.SetVisible(false);
+	}
+}
+
+void StoryScene::ensure_story_ui_capacity()
+{
+	std::size_t max_story_texts = 0;
+	for (StoryPage const & page : m_story_pages)
+		max_story_texts = std::max(max_story_texts, page.story_texts.size());
+
+	std::size_t max_decorations = 0;
+	for (StoryPage const & page : m_story_pages)
+		max_decorations = std::max(max_decorations, page.decorations.size());
+
+	ensure_story_label_count(max_story_texts);
+	ensure_decoration_count(max_decorations);
+}
+
+void StoryScene::reload_story()
+{
+	StoryPages reloaded_pages = StoryLoader::LoadPages(get_story_filepath());
+	if (reloaded_pages.empty())
+	{
+		std::cout << "StoryScene: Reload skipped because no pages loaded for story '" << m_story_id << "'." << std::endl;
+		return;
+	}
+
+	m_story_pages = std::move(reloaded_pages);
+	load_background_textures();
+	ensure_story_ui_capacity();
+
+	const std::size_t cur_page_index = std::min<std::size_t>(m_page_index, m_story_pages.size() - 1);
+	m_page_index = static_cast<std::uint8_t>(cur_page_index);
+	apply_current_page();
+	std::cout << "StoryScene: Reloaded story '" << m_story_id << "'." << std::endl;
 }
 
 void StoryScene::apply_current_page()
 {
 	m_page_time = 0.0f;
-	m_background.SetTextureId(m_bg_tex_ids[m_cur_bg_index]);
+	m_background.SetTextureId(m_bg_tex_ids[m_page_index]);
 
-	StoryPage const & page = m_story_pages[m_cur_bg_index];
+	StoryPage const & page = m_story_pages[m_page_index];
 	for (std::size_t i = 0; i < m_story_labels.size(); ++i)
 	{
 		UIShadowedLabel & story_label = m_story_labels[i];
@@ -313,12 +384,12 @@ void StoryScene::apply_current_page()
 		decoration.SetVisible(true);
 	}
 
-	m_page_number_label.SetText(std::to_string(m_cur_bg_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
+	m_page_number_label.SetText(std::to_string(m_page_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
 }
 
 void StoryScene::update_story_texts()
 {
-	StoryPage const & page = m_story_pages[m_cur_bg_index];
+	StoryPage const & page = m_story_pages[m_page_index];
 	for (std::size_t i = 0; i < page.story_texts.size(); ++i)
 	{
 		StoryText const & story_text = page.story_texts[i];
@@ -332,7 +403,7 @@ void StoryScene::update_story_texts()
 
 void StoryScene::update_decorations()
 {
-	StoryPage const & page = m_story_pages[m_cur_bg_index];
+	StoryPage const & page = m_story_pages[m_page_index];
 	for (std::size_t i = 0; i < page.decorations.size(); ++i)
 	{
 		StoryDecoration const & decoration = page.decorations[i];

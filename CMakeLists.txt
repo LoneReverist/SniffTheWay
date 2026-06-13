@@ -91,6 +91,11 @@ target_link_libraries(SniffTheWay PRIVATE
     glm::glm
     nlohmann_json::nlohmann_json
 )
+
+target_compile_definitions(SniffTheWay PRIVATE
+    $<$<CONFIG:Debug>:SNIFF_THE_WAY_DEV_RESOURCES_PATH="${CMAKE_SOURCE_DIR}/resources">
+)
+
 if(BUILD_VULKAN)
     target_link_libraries(SniffTheWay PRIVATE
         VulkanRenderer
@@ -104,7 +109,6 @@ elseif(BUILD_OPENGL)
 endif()
 
 add_custom_command(TARGET SniffTheWay POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/resources"
-    "$<TARGET_FILE_DIR:SniffTheWay>/resources"
+    COMMAND "$<$<CONFIG:Release>:${CMAKE_COMMAND};-E;copy_directory;${CMAKE_SOURCE_DIR}/resources;$<TARGET_FILE_DIR:SniffTheWay>/resources>"
+    COMMAND_EXPAND_LISTS
 )

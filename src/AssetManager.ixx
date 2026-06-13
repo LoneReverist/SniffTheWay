@@ -49,7 +49,13 @@ export class AssetManager
 public:
 	AssetManager(dh::RenderContext const & render_context)
 		: m_render_context{ render_context }
+#ifdef SNIFF_THE_WAY_DEV_RESOURCES_PATH
+		, m_resources_path{ SNIFF_THE_WAY_DEV_RESOURCES_PATH }
+		, m_shaders_path{ PlatformUtils::GetExecutableDir() / "resources" / "shaders" }
+#else
 		, m_resources_path{ PlatformUtils::GetExecutableDir() / "resources" }
+		, m_shaders_path{ m_resources_path / "shaders" }
+#endif
 	{}
 
 	template<IsVertex VertexT>
@@ -97,7 +103,7 @@ public:
 	dh::Texture const * GetTexture(AssetId id) const { return m_texture_pool.Get(id); }
 
 	std::filesystem::path const & GetResourcesPath() const { return m_resources_path; }
-	std::filesystem::path GetShadersPath() const { return m_resources_path / "shaders"; }
+	std::filesystem::path const & GetShadersPath() const { return m_shaders_path; }
 	std::filesystem::path GetTexturesPath() const { return m_resources_path / "textures"; }
 	std::filesystem::path GetFontsPath() const { return m_resources_path / "fonts"; }
 
@@ -114,6 +120,7 @@ private:
 private:
 	dh::RenderContext const & m_render_context;
 	std::filesystem::path m_resources_path;
+	std::filesystem::path m_shaders_path;
 
 	AssetPool<dh::Mesh> m_mesh_pool;
 	AssetPool<dh::Pipeline> m_pipeline_pool;
@@ -203,10 +210,8 @@ void AssetManager::UpdateMesh(
 template <typename PipelineT, typename... Args>
 PipelineId<PipelineT> AssetManager::AddPipeline(Args &&... args)
 {
-	std::filesystem::path shaders_path = m_resources_path / "shaders";
-
 	std::expected<dh::Pipeline, dh::GraphicsError> pipeline
-		= PipelineT::CreatePipeline(m_render_context, shaders_path, std::forward<Args>(args)...);
+		= PipelineT::CreatePipeline(m_render_context, m_shaders_path, std::forward<Args>(args)...);
 	if (!pipeline.has_value())
 	{
 		std::cout << "AssetManager::AddPipeline: Failed to create pipeline: " << pipeline.error().GetMessage().c_str() << std::endl;

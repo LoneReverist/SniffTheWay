@@ -30,28 +30,28 @@ private:
 	// warm fade in, slight floating motion on text, gentle ambient music
 	static constexpr std::array<StoryText, 4> PicnicTexts{
 		StoryText{
-			.text = "It was a perfect day\nfor a picnic.",
+			.text = "It was the perfect day\nfor a picnic.",
 			.font_size = StoryLargeFontSize,
 			.pos = glm::vec2{ 1440, 250 },
 			.align = UILabel::Align::Center,
 			.show_time = 1.5f,
 		},
 		StoryText{
-			.text = "A little baby.",
+			.text = "A curious baby.",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 1440, 460 },
 			.align = UILabel::Align::Center,
 			.show_time = 3.0f,
 		},
 		StoryText{
-			.text = "A loyal dog.",
+			.text = "A watchful dog.",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 1440, 560 },
 			.align = UILabel::Align::Center,
 			.show_time = 4.5f,
 		},
 		StoryText{
-			.text = "And a family together.",
+			.text = "And a family wrapped in sunshine.",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 1440, 660 },
 			.align = UILabel::Align::Center,
@@ -99,49 +99,56 @@ private:
 	// soft typewriter reveal, butterfly movement in scene
 	static constexpr std::array<StoryText, 3> FollowingButterfliesTexts{
 		StoryText{
-			.text = "While everyone looked away...",
+			.text = "While the grown-ups chased\nthe flying blanket,",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 250 },
 			.align = UILabel::Align::Center,
 			.show_time = 0.75f,
 		},
 		StoryText{
-			.text = "tiny footsteps wandered.",
+			.text = "small hands followed\nfluttering wings.",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 320 },
 			.align = UILabel::Align::Center,
 			.show_time = 2.25f,
 		},
 		StoryText{
-			.text = "And one brave nose followed close behind.",
+			.text = "And protective paws followed\nclose behind.",
 			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 390 },
+			.pos = glm::vec2{ 960, 430 },
 			.align = UILabel::Align::Center,
 			.show_time = 3.75f,
 		},
 	};
 	// music softens, longer silence before gameplay starts
-	static constexpr std::array<StoryText, 3> LostTexts{
+	static constexpr std::array<StoryText, 4> LostTexts{
 		StoryText{
-			.text = "When they stopped,",
+			.text = "When the butterflies drifted away,",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 250 },
 			.align = UILabel::Align::Center,
 			.show_time = 0.75f,
 		},
 		StoryText{
-			.text = "home was nowhere to be seen.",
+			.text = "the little one stopped.",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 320 },
 			.align = UILabel::Align::Center,
 			.show_time = 2.0f,
 		},
 		StoryText{
-			.text = "But the puppy stayed close.",
+			.text = "His parents were nowhere to be seen.",
 			.font_size = StoryMediumFontSize,
 			.pos = glm::vec2{ 960, 390 },
 			.align = UILabel::Align::Center,
 			.show_time = 4.0f,
+		},
+		StoryText{
+			.text = "But a loyal nose was there\nto guide him home.",
+			.font_size = StoryMediumFontSize,
+			.pos = glm::vec2{ 960, 480 },
+			.align = UILabel::Align::Center,
+			.show_time = 5.5f,
 		},
 	};
 	static constexpr std::array<StoryPage, 4> StoryPages{

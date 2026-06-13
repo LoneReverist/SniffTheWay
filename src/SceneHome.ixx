@@ -25,7 +25,7 @@ private:
 	// Emotional arc: Recognition -> relief -> reunion -> peace
 	// parents far away, hold this longer than usual.
 	static constexpr std::array<StoryText, 1> HomeTexts{
-		StoryText{ .text = "Then,<pause>something familiar.<pause>Home.<pause>", .font_size = TitleFontSize },
+		StoryText{ .text = "Then,<pause>out from the trees,<pause>there it was.<pause>Home.<pause>", .font_size = TitleFontSize },
 	};
 	// parents notice
 	static constexpr std::array<StoryText, 1> ParentsNoticeTexts{
@@ -33,11 +33,11 @@ private:
 	};
 	// mom hugs baby, dad hugs dog, Keep it simple. Let visuals carry emotion.
 	static constexpr std::array<StoryText, 1> ReunionTexts{
-		StoryText{ .text = "Safe again.<pause>Held tight.<pause>Loved deeply.<pause>", .font_size = TitleFontSize },
+		StoryText{ .text = "Arms wrapped tight.<pause>Happy tears fell.<pause>The little one was safe.<pause>The dog had brought him home.<pause>", .font_size = TitleFontSize },
 	};
 	// calm ending, family together by the fire
 	static constexpr std::array<StoryText, 1> SafeAgainTexts{
-		StoryText{ .text = "<pause>", .font_size = TitleFontSize },
+		StoryText{ .text = "That evening,<pause>the house glowed warm.<pause>The long day softened.<pause>The woods felt far away.<pause>", .font_size = TitleFontSize },
 	};
 	// dog and baby cuddled together
 	static constexpr std::array<StoryText, 1> DogByFireplaceTexts{

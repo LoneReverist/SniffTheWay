@@ -1,0 +1,40 @@
+{
+  "pages": [
+    {
+      "background": "dusk.png",
+      "texts": [
+        {
+          "text": "The sun slipped behind the hills.<pause>And the woods turned blue and quiet.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "exhausted.png",
+      "texts": [
+        {
+          "text": "The little one rubbed his tired eyes.<pause>His brave heart had carried him far.<pause>But even brave hearts need rest.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "night.png",
+      "texts": [
+        {
+          "text": "They curled up beneath the trees.<long pause>While the little one slept,<pause>the dog listened.<pause>He watched.<pause>He waited.<pause>And he stayed close.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "morning.png",
+      "texts": [
+        {
+          "text": "Morning warmed the leaves.<pause>The dog lifted his nose.<pause>And on the breeze came something familiar.<pause>The scent of home.",
+          "font_size": 64.0
+        }
+      ]
+    }
+  ]
+}

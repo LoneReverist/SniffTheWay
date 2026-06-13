@@ -1,0 +1,136 @@
+{
+  "pages": [
+    {
+      "background": "picnic.png",
+      "texts": [
+        {
+          "text": "It was the perfect day\nfor a picnic.",
+          "font_size": 80.0,
+          "pos": [1440.0, 250.0],
+          "align": "center",
+          "show_time": 1.5
+        },
+        {
+          "text": "A curious baby.",
+          "font_size": 56.0,
+          "pos": [1440.0, 460.0],
+          "align": "center",
+          "show_time": 3.0
+        },
+        {
+          "text": "A watchful dog.",
+          "font_size": 56.0,
+          "pos": [1440.0, 560.0],
+          "align": "center",
+          "show_time": 4.5
+        },
+        {
+          "text": "And a family wrapped in sunshine.",
+          "font_size": 56.0,
+          "pos": [1440.0, 660.0],
+          "align": "center",
+          "show_time": 6.0
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "horizontal_divider_paw_flourish",
+          "center": [1440.0, 110.0],
+          "show_time": 1.0
+        },
+        {
+          "decoration_id": "short_divider_paw_arrows",
+          "center": [1440.0, 760.0],
+          "show_time": 6.5
+        }
+      ]
+    },
+    {
+      "background": "gust_of_wind.png",
+      "texts": [
+        {
+          "text": "Then,",
+          "font_size": 36.0,
+          "pos": [1200.0, 600.0],
+          "align": "right",
+          "show_time": 0.75
+        },
+        {
+          "text": "WHOOSH!",
+          "font_size": 80.0,
+          "pos": [1250.0, 600.0],
+          "align": "left",
+          "show_time": 1.5,
+          "fade_duration": 0.25
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "short_divider_triple_diamonds",
+          "center": [1440.0, 650.0],
+          "show_time": 1.5,
+          "fade_duration": 0.25
+        }
+      ]
+    },
+    {
+      "background": "following_butterflies.png",
+      "texts": [
+        {
+          "text": "While the grown-ups chased\nthe flying blanket,",
+          "font_size": 56.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "small hands followed\nfluttering wings.",
+          "font_size": 56.0,
+          "pos": [960.0, 320.0],
+          "align": "center",
+          "show_time": 2.25
+        },
+        {
+          "text": "And protective paws followed\nclose behind.",
+          "font_size": 56.0,
+          "pos": [960.0, 430.0],
+          "align": "center",
+          "show_time": 3.75
+        }
+      ]
+    },
+    {
+      "background": "lost.png",
+      "texts": [
+        {
+          "text": "When the butterflies drifted away,",
+          "font_size": 56.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "the little one stopped.",
+          "font_size": 56.0,
+          "pos": [960.0, 320.0],
+          "align": "center",
+          "show_time": 2.0
+        },
+        {
+          "text": "His parents were nowhere to be seen.",
+          "font_size": 56.0,
+          "pos": [960.0, 390.0],
+          "align": "center",
+          "show_time": 4.0
+        },
+        {
+          "text": "But a loyal nose was there\nto guide him home.",
+          "font_size": 56.0,
+          "pos": [960.0, 480.0],
+          "align": "center",
+          "show_time": 5.5
+        }
+      ]
+    }
+  ]
+}

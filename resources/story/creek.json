@@ -1,0 +1,40 @@
+{
+  "pages": [
+    {
+      "background": "approaching_creek.png",
+      "texts": [
+        {
+          "text": "By afternoon, the trees pressed in.<pause>The path grew thin.<pause>And soon,\nit disappeared into a creek.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "baby_reluctant.png",
+      "texts": [
+        {
+          "text": "To the little one,\nthe water sounded enormous.<pause>Too cold.<pause>Too fast.<pause>Too wide to cross.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "crossing_creek.png",
+      "texts": [
+        {
+          "text": "But the dog lowered his nose<pause>and searched for the safest way.<pause>One careful step...<pause>then another.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "beyond_the_creek.png",
+      "texts": [
+        {
+          "text": "On the other bank,<pause>the little one smiled.<pause>And together,<pause>they kept going.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    }
+  ]
+}

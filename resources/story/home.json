@@ -1,0 +1,49 @@
+{
+  "pages": [
+    {
+      "background": "home.png",
+      "texts": [
+        {
+          "text": "Then,<pause>out from the trees,<pause>there it was.<pause>Home.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "parents_notice.png",
+      "texts": [
+        {
+          "text": "Voices called out.<pause>Feet hurried down the path.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "reunion.png",
+      "texts": [
+        {
+          "text": "Arms wrapped tight.<pause>Happy tears fell.<pause>The little one was safe.<pause>The dog had brought him home.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "safe_again.png",
+      "texts": [
+        {
+          "text": "That evening,<pause>the house glowed warm.<pause>The long day softened.<pause>The woods felt far away.<pause>",
+          "font_size": 64.0
+        }
+      ]
+    },
+    {
+      "background": "dog_by_fireplace.png",
+      "texts": [
+        {
+          "text": "A loyal nose.<pause>A brave heart.<pause>Home at last.",
+          "font_size": 64.0
+        }
+      ]
+    }
+  ]
+}

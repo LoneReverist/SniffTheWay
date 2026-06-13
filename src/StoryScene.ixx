@@ -3,13 +3,13 @@
 module;
 
 #include <algorithm>
+#include <cstdint>
 #include <filesystem>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <ranges>
-#include <span>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -30,6 +30,8 @@ import Input;
 import IScene;
 import SceneRenderer;
 import SniffTheWayConstants;
+import StoryData;
+import StoryLoader;
 import UILabel;
 import UIShadowedDecoration;
 import UIShadowedLabel;
@@ -38,40 +40,12 @@ import Vertex;
 namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
-export struct StoryText
-{
-	std::string_view text;
-	float font_size = LabelFontSize;
-	glm::vec2 pos{ 960.0f, 250.0f };
-	UILabel::Align align = UILabel::Align::Center;
-	float show_time = 0.0f;
-	float fade_duration = 0.5f;
-	glm::vec4 color = StoryTextColor;
-};
-
-export struct StoryDecoration
-{
-	Decorations::DecorationId decoration_id;
-	glm::vec2 center;
-	float scale = 1.5f;
-	float show_time = 0.0f;
-	float fade_duration = 0.5f;
-	glm::vec4 color = StoryTextColor;
-};
-
-export struct StoryPage
-{
-	std::string_view bg_image_filename;
-	std::span<StoryText const> story_texts;
-	std::span<StoryDecoration const> decorations;
-};
-
 export class StoryScene : public IScene
 {
 public:
 	explicit StoryScene(
 		dh::RenderContext const & render_context,
-		std::span<StoryPage const> story_pages,
+		std::string story_id,
 		SceneId next_scene_id);
 
 	void OnWindowResized(int width, int height) override;
@@ -95,7 +69,7 @@ private:
 	Camera2d m_camera2d;
 	SceneState m_scene_state = SceneState::Paused;
 	SceneId m_next_scene_id = SceneId::Exit;
-	std::span<StoryPage const> m_story_pages;
+	StoryPages m_story_pages;
 	float m_page_time = 0.0f;
 
 	Background m_background;
@@ -112,14 +86,20 @@ private:
 
 StoryScene::StoryScene(
 	dh::RenderContext const & render_context,
-	std::span<StoryPage const> story_pages,
+	std::string story_id,
 	SceneId next_scene_id)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
-	, m_story_pages{ story_pages }
 	, m_next_scene_id{ next_scene_id }
 {
+	m_story_pages = StoryLoader::LoadPages(m_asset_manager.GetResourcesPath() / "story" / (story_id + ".json"));
+	if (m_story_pages.empty())
+	{
+		std::cout << "StoryScene: No pages loaded for story '" << story_id << "'." << std::endl;
+		m_story_pages.push_back(StoryPage{ .bg_image_filename = "picnic.png" });
+	}
+
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);

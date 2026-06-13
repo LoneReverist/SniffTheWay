@@ -2,19 +2,12 @@
 
 module;
 
-#include <array>
-#include <string_view>
-
-#include <glm/glm.hpp>
-
 export module ScenePicnic;
 
 import Dreamhearth;
 
-import DecorationAtlas;
 import SniffTheWayConstants;
 import StoryScene;
-import UILabel;
 
 namespace dh = Dreamhearth;
 using namespace SniffTheWay;
@@ -25,142 +18,10 @@ public:
 	explicit ScenePicnic(dh::RenderContext const & render_context);
 
 private:
-	// Purpose: Establish love, safety, family bond, and the accidental separation.
-	// Emotional arc: Warmth -> distraction -> curiosity -> separation
-	// warm fade in, slight floating motion on text, gentle ambient music
-	static constexpr std::array<StoryText, 4> PicnicTexts{
-		StoryText{
-			.text = "It was the perfect day\nfor a picnic.",
-			.font_size = StoryLargeFontSize,
-			.pos = glm::vec2{ 1440, 250 },
-			.align = UILabel::Align::Center,
-			.show_time = 1.5f,
-		},
-		StoryText{
-			.text = "A curious baby.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 1440, 460 },
-			.align = UILabel::Align::Center,
-			.show_time = 3.0f,
-		},
-		StoryText{
-			.text = "A watchful dog.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 1440, 560 },
-			.align = UILabel::Align::Center,
-			.show_time = 4.5f,
-		},
-		StoryText{
-			.text = "And a family wrapped in sunshine.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 1440, 660 },
-			.align = UILabel::Align::Center,
-			.show_time = 6.0f,
-		},
-	};
-	static constexpr std::array<StoryDecoration, 2> PicnicDecorations{
-		StoryDecoration{
-			.decoration_id = Decorations::DecorationId::HorizontalDividerPawFlourish,
-			.center = glm::vec2{ 1440.0f, 110.0f },
-			.show_time = 1.0f,
-		},
-		StoryDecoration{
-			.decoration_id = Decorations::DecorationId::ShortDividerPawArrows,
-			.center = glm::vec2{ 1440.0f, 760.0f },
-			.show_time = 6.5f,
-		},
-	};
-	// leaves in wind effect, text blown sideways, slight camera shake
-	static constexpr std::array<StoryText, 2> GustOfWindTexts{
-		StoryText{
-			.text = "Then,",
-			.font_size = StorySmallFontSize,
-			.pos = glm::vec2{ 1200, 600 },
-			.align = UILabel::Align::Right,
-			.show_time = 0.75f,
-		},
-		StoryText{
-			.text = "WHOOSH!",
-			.font_size = StoryLargeFontSize,
-			.pos = glm::vec2{ 1250, 600 },
-			.align = UILabel::Align::Left,
-			.show_time = 1.5f,
-			.fade_duration = 0.25f,
-		},
-	};
-	static constexpr std::array<StoryDecoration, 1> GustOfWindDecorations{
-		StoryDecoration{
-			.decoration_id = Decorations::DecorationId::ShortDividerTripleDiamonds,
-			.center = glm::vec2{ 1440.0f, 650.0f },
-			.show_time = 1.5f,
-			.fade_duration = 0.25f,
-		},
-	};
-	// soft typewriter reveal, butterfly movement in scene
-	static constexpr std::array<StoryText, 3> FollowingButterfliesTexts{
-		StoryText{
-			.text = "While the grown-ups chased\nthe flying blanket,",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 250 },
-			.align = UILabel::Align::Center,
-			.show_time = 0.75f,
-		},
-		StoryText{
-			.text = "small hands followed\nfluttering wings.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 320 },
-			.align = UILabel::Align::Center,
-			.show_time = 2.25f,
-		},
-		StoryText{
-			.text = "And protective paws followed\nclose behind.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 430 },
-			.align = UILabel::Align::Center,
-			.show_time = 3.75f,
-		},
-	};
-	// music softens, longer silence before gameplay starts
-	static constexpr std::array<StoryText, 4> LostTexts{
-		StoryText{
-			.text = "When the butterflies drifted away,",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 250 },
-			.align = UILabel::Align::Center,
-			.show_time = 0.75f,
-		},
-		StoryText{
-			.text = "the little one stopped.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 320 },
-			.align = UILabel::Align::Center,
-			.show_time = 2.0f,
-		},
-		StoryText{
-			.text = "His parents were nowhere to be seen.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 390 },
-			.align = UILabel::Align::Center,
-			.show_time = 4.0f,
-		},
-		StoryText{
-			.text = "But a loyal nose was there\nto guide him home.",
-			.font_size = StoryMediumFontSize,
-			.pos = glm::vec2{ 960, 480 },
-			.align = UILabel::Align::Center,
-			.show_time = 5.5f,
-		},
-	};
-	static constexpr std::array<StoryPage, 4> StoryPages{
-		StoryPage{ .bg_image_filename = "picnic.png", .story_texts = PicnicTexts, .decorations = PicnicDecorations },
-		StoryPage{ .bg_image_filename = "gust_of_wind.png", .story_texts = GustOfWindTexts, .decorations = GustOfWindDecorations },
-		StoryPage{ .bg_image_filename = "following_butterflies.png", .story_texts = FollowingButterfliesTexts },
-		StoryPage{ .bg_image_filename = "lost.png", .story_texts = LostTexts },
-	};
 	static constexpr SceneId NextSceneId = SceneId::ForestPath;
 };
 
 ScenePicnic::ScenePicnic(dh::RenderContext const & render_context)
-	: StoryScene(render_context, StoryPages, NextSceneId)
+	: StoryScene(render_context, "picnic", NextSceneId)
 {
 }

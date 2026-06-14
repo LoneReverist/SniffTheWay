@@ -4,8 +4,32 @@
       "background": "home.png",
       "texts": [
         {
-          "text": "Then,<pause>out from the trees,<pause>there it was.<pause>Home.<pause>",
-          "font_size": 64.0
+          "text": "Then,",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "out from the trees,",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
+        },
+        {
+          "text": "there it was.",
+          "font_size": 64.0,
+          "pos": [960.0, 410.0],
+          "align": "center",
+          "show_time": 3.25
+        },
+        {
+          "text": "Home.",
+          "font_size": 64.0,
+          "pos": [960.0, 490.0],
+          "align": "center",
+          "show_time": 4.5
         }
       ]
     },
@@ -13,8 +37,18 @@
       "background": "parents_notice.png",
       "texts": [
         {
-          "text": "Voices called out.<pause>Feet hurried down the path.<pause>",
-          "font_size": 64.0
+          "text": "Voices called out.",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "Feet hurried down the path.",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
         }
       ]
     },
@@ -22,8 +56,32 @@
       "background": "reunion.png",
       "texts": [
         {
-          "text": "Arms wrapped tight.<pause>Happy tears fell.<pause>The little one was safe.<pause>The dog had brought him home.<pause>",
-          "font_size": 64.0
+          "text": "Arms wrapped tight.",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "Happy tears fell.",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
+        },
+        {
+          "text": "The little one was safe.",
+          "font_size": 64.0,
+          "pos": [960.0, 410.0],
+          "align": "center",
+          "show_time": 3.25
+        },
+        {
+          "text": "The dog had brought him home.",
+          "font_size": 64.0,
+          "pos": [960.0, 490.0],
+          "align": "center",
+          "show_time": 4.5
         }
       ]
     },
@@ -31,8 +89,32 @@
       "background": "safe_again.png",
       "texts": [
         {
-          "text": "That evening,<pause>the house glowed warm.<pause>The long day softened.<pause>The woods felt far away.<pause>",
-          "font_size": 64.0
+          "text": "That evening,",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "the house glowed warm.",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
+        },
+        {
+          "text": "The long day softened.",
+          "font_size": 64.0,
+          "pos": [960.0, 410.0],
+          "align": "center",
+          "show_time": 3.25
+        },
+        {
+          "text": "The woods felt far away.",
+          "font_size": 64.0,
+          "pos": [960.0, 490.0],
+          "align": "center",
+          "show_time": 4.5
         }
       ]
     },
@@ -40,8 +122,25 @@
       "background": "dog_by_fireplace.png",
       "texts": [
         {
-          "text": "A loyal nose.<pause>A brave heart.<pause>Home at last.",
-          "font_size": 64.0
+          "text": "A loyal nose.",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "A brave heart.",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
+        },
+        {
+          "text": "Home at last.",
+          "font_size": 64.0,
+          "pos": [960.0, 410.0],
+          "align": "center",
+          "show_time": 3.25
         }
       ]
     }

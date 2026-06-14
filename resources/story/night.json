@@ -4,8 +4,18 @@
       "background": "dusk.png",
       "texts": [
         {
-          "text": "The sun slipped behind the hills.<pause>And the woods turned blue and quiet.<pause>",
-          "font_size": 64.0
+          "text": "The sun slipped behind the hills.",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "And the woods turned blue and quiet.",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
         }
       ]
     },
@@ -13,8 +23,25 @@
       "background": "exhausted.png",
       "texts": [
         {
-          "text": "The little one rubbed his tired eyes.<pause>His brave heart had carried him far.<pause>But even brave hearts need rest.<pause>",
-          "font_size": 64.0
+          "text": "The little one rubbed his tired eyes.",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "His brave heart had carried him far.",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
+        },
+        {
+          "text": "But even brave hearts need rest.",
+          "font_size": 64.0,
+          "pos": [960.0, 410.0],
+          "align": "center",
+          "show_time": 3.25
         }
       ]
     },
@@ -22,8 +49,46 @@
       "background": "night.png",
       "texts": [
         {
-          "text": "They curled up beneath the trees.<long pause>While the little one slept,<pause>the dog listened.<pause>He watched.<pause>He waited.<pause>And he stayed close.<pause>",
-          "font_size": 64.0
+          "text": "They curled up beneath the trees.",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "While the little one slept,",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.5
+        },
+        {
+          "text": "the dog listened.",
+          "font_size": 64.0,
+          "pos": [960.0, 410.0],
+          "align": "center",
+          "show_time": 3.75
+        },
+        {
+          "text": "He watched.",
+          "font_size": 64.0,
+          "pos": [960.0, 490.0],
+          "align": "center",
+          "show_time": 5.0
+        },
+        {
+          "text": "He waited.",
+          "font_size": 64.0,
+          "pos": [960.0, 570.0],
+          "align": "center",
+          "show_time": 6.25
+        },
+        {
+          "text": "And he stayed close.",
+          "font_size": 64.0,
+          "pos": [960.0, 650.0],
+          "align": "center",
+          "show_time": 7.5
         }
       ]
     },
@@ -31,8 +96,32 @@
       "background": "morning.png",
       "texts": [
         {
-          "text": "Morning warmed the leaves.<pause>The dog lifted his nose.<pause>And on the breeze came something familiar.<pause>The scent of home.",
-          "font_size": 64.0
+          "text": "Morning warmed the leaves.",
+          "font_size": 64.0,
+          "pos": [960.0, 250.0],
+          "align": "center",
+          "show_time": 0.75
+        },
+        {
+          "text": "The dog lifted his nose.",
+          "font_size": 64.0,
+          "pos": [960.0, 330.0],
+          "align": "center",
+          "show_time": 2.0
+        },
+        {
+          "text": "And on the breeze came something familiar.",
+          "font_size": 64.0,
+          "pos": [960.0, 410.0],
+          "align": "center",
+          "show_time": 3.25
+        },
+        {
+          "text": "The scent of home.",
+          "font_size": 64.0,
+          "pos": [960.0, 490.0],
+          "align": "center",
+          "show_time": 4.5
         }
       ]
     }

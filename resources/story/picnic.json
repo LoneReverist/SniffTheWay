@@ -77,24 +77,24 @@
       "background": "following_butterflies.png",
       "texts": [
         {
-          "text": "While the grown-ups chased\nthe flying blanket,",
+          "text": "While their parents chased the flying blanket,",
           "font_size": 56.0,
-          "pos": [960.0, 250.0],
-          "align": "center",
+          "pos": [100.0, 250.0],
+          "align": "left",
           "show_time": 0.75
         },
         {
-          "text": "small hands followed\nfluttering wings.",
+          "text": "small hands followed fluttering wings.",
           "font_size": 56.0,
-          "pos": [960.0, 320.0],
-          "align": "center",
+          "pos": [100.0, 340.0],
+          "align": "left",
           "show_time": 2.25
         },
         {
-          "text": "And protective paws followed\nclose behind.",
+          "text": "And protective paws followed close behind.",
           "font_size": 56.0,
-          "pos": [960.0, 430.0],
-          "align": "center",
+          "pos": [100.0, 430.0],
+          "align": "left",
           "show_time": 3.75
         }
       ]
@@ -103,30 +103,30 @@
       "background": "lost.png",
       "texts": [
         {
-          "text": "When the butterflies drifted away,",
+          "text": "When the little one stopped,",
           "font_size": 56.0,
-          "pos": [960.0, 250.0],
+          "pos": [960.0, 200.0],
           "align": "center",
           "show_time": 0.75
         },
         {
-          "text": "the little one stopped.",
+          "text": "his parents were nowhere to be seen.",
           "font_size": 56.0,
-          "pos": [960.0, 320.0],
+          "pos": [960.0, 270.0],
           "align": "center",
           "show_time": 2.0
         },
         {
-          "text": "His parents were nowhere to be seen.",
+          "text": "He felt small and scared,",
           "font_size": 56.0,
-          "pos": [960.0, 390.0],
+          "pos": [960.0, 340.0],
           "align": "center",
           "show_time": 4.0
         },
         {
-          "text": "But a loyal nose was there\nto guide him home.",
+          "text": "but a loyal nose was there to guide him home.",
           "font_size": 56.0,
-          "pos": [960.0, 480.0],
+          "pos": [960.0, 410.0],
           "align": "center",
           "show_time": 5.5
         }

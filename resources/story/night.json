@@ -1,7 +1,7 @@
 {
   "pages": [
     {
-      "background": "dusk.png",
+      "background": "3_1_dusk.png",
       "texts": [
         {
           "text": "The sun slipped behind the hills.",
@@ -20,7 +20,7 @@
       ]
     },
     {
-      "background": "exhausted.png",
+      "background": "3_2_exhausted.png",
       "texts": [
         {
           "text": "The little one rubbed his tired eyes.",
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "background": "night.png",
+      "background": "3_3_night.png",
       "texts": [
         {
           "text": "They curled up beneath the trees.",
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "background": "morning.png",
+      "background": "3_4_morning.png",
       "texts": [
         {
           "text": "Morning warmed the leaves.",

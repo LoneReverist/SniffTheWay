@@ -1,7 +1,7 @@
 {
   "pages": [
     {
-      "background": "approaching_creek.png",
+      "background": "2_1_approaching_creek.png",
       "texts": [
         {
           "text": "By afternoon, the trees pressed in.",
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "background": "baby_reluctant.png",
+      "background": "2_2_baby_reluctant.png",
       "texts": [
         {
           "text": "To the little one,\nthe water sounded enormous.",
@@ -60,7 +60,7 @@
       ]
     },
     {
-      "background": "crossing_creek.png",
+      "background": "2_3_crossing_creek.png",
       "texts": [
         {
           "text": "But the dog lowered his nose",
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "background": "beyond_the_creek.png",
+      "background": "2_4_beyond_the_creek.png",
       "texts": [
         {
           "text": "On the other bank,",

@@ -1,7 +1,7 @@
 {
   "pages": [
     {
-      "background": "home.png",
+      "background": "4_1_home.png",
       "texts": [
         {
           "text": "Then,",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "background": "parents_notice.png",
+      "background": "4_2_parents_notice.png",
       "texts": [
         {
           "text": "Voices called out.",
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "background": "reunion.png",
+      "background": "4_3_reunion.png",
       "texts": [
         {
           "text": "Arms wrapped tight.",
@@ -86,7 +86,7 @@
       ]
     },
     {
-      "background": "safe_again.png",
+      "background": "4_4_safe_again.png",
       "texts": [
         {
           "text": "That evening,",
@@ -119,7 +119,7 @@
       ]
     },
     {
-      "background": "dog_by_fireplace.png",
+      "background": "4_5_by_the_fireplace.png",
       "texts": [
         {
           "text": "A loyal nose.",

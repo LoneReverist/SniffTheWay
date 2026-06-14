@@ -1,7 +1,7 @@
 {
   "pages": [
     {
-      "background": "picnic.png",
+      "background": "1_1_picnic.png",
       "texts": [
         {
           "text": "It was the perfect day\nfor a picnic.",
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "background": "gust_of_wind.png",
+      "background": "1_2_gust_of_wind.png",
       "texts": [
         {
           "text": "Then,",
@@ -74,7 +74,7 @@
       ]
     },
     {
-      "background": "following_butterflies.png",
+      "background": "1_3_following_butterflies.png",
       "texts": [
         {
           "text": "While their parents chased the flying blanket,",
@@ -100,7 +100,7 @@
       ]
     },
     {
-      "background": "lost.png",
+      "background": "1_4_lost.png",
       "texts": [
         {
           "text": "When the little one stopped,",

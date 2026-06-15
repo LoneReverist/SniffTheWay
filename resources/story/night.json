@@ -25,21 +25,21 @@
         {
           "text": "The little one rubbed his tired eyes.",
           "font_size": 64.0,
-          "pos": [960.0, 250.0],
+          "pos": [960.0, 150.0],
           "align": "center",
           "show_time": 0.75
         },
         {
           "text": "His brave heart had carried him far.",
           "font_size": 64.0,
-          "pos": [960.0, 330.0],
+          "pos": [960.0, 230.0],
           "align": "center",
           "show_time": 2.0
         },
         {
           "text": "But even brave hearts need rest.",
           "font_size": 64.0,
-          "pos": [960.0, 410.0],
+          "pos": [960.0, 310.0],
           "align": "center",
           "show_time": 3.25
         }
@@ -51,43 +51,43 @@
         {
           "text": "They curled up beneath the trees.",
           "font_size": 64.0,
-          "pos": [960.0, 250.0],
+          "pos": [960.0, 180.0],
           "align": "center",
           "show_time": 0.75
         },
         {
-          "text": "While the little one slept,",
+          "text": "And while the little one slept,",
           "font_size": 64.0,
-          "pos": [960.0, 330.0],
+          "pos": [960.0, 260.0],
           "align": "center",
           "show_time": 2.5
         },
         {
-          "text": "the dog listened.",
+          "text": "the dog stayed close.",
           "font_size": 64.0,
-          "pos": [960.0, 410.0],
+          "pos": [960.0, 340.0],
           "align": "center",
           "show_time": 3.75
         },
         {
+          "text": "He listened.",
+          "font_size": 64.0,
+          "pos": [1250.0, 550.0],
+          "align": "left",
+          "show_time": 5.0
+        },
+        {
           "text": "He watched.",
           "font_size": 64.0,
-          "pos": [960.0, 490.0],
-          "align": "center",
-          "show_time": 5.0
+          "pos": [1250.0, 630.0],
+          "align": "left",
+          "show_time": 6.25
         },
         {
           "text": "He waited.",
           "font_size": 64.0,
-          "pos": [960.0, 570.0],
-          "align": "center",
-          "show_time": 6.25
-        },
-        {
-          "text": "And he stayed close.",
-          "font_size": 64.0,
-          "pos": [960.0, 650.0],
-          "align": "center",
+          "pos": [1250.0, 710.0],
+          "align": "left",
           "show_time": 7.5
         }
       ]
@@ -98,30 +98,37 @@
         {
           "text": "Morning warmed the leaves.",
           "font_size": 64.0,
-          "pos": [960.0, 250.0],
-          "align": "center",
+          "pos": [180.0, 200.0],
+          "align": "left",
           "show_time": 0.75
         },
         {
           "text": "The dog lifted his nose.",
           "font_size": 64.0,
-          "pos": [960.0, 330.0],
-          "align": "center",
+          "pos": [180.0, 280.0],
+          "align": "left",
           "show_time": 2.0
         },
         {
-          "text": "And on the breeze came something familiar.",
+          "text": "And on the breeze",
           "font_size": 64.0,
-          "pos": [960.0, 410.0],
-          "align": "center",
+          "pos": [1120.0, 590.0],
+          "align": "left",
           "show_time": 3.25
+        },
+        {
+          "text": "came something familiar.",
+          "font_size": 64.0,
+          "pos": [1120.0, 670.0],
+          "align": "left",
+          "show_time": 4.5
         },
         {
           "text": "The scent of home.",
           "font_size": 64.0,
-          "pos": [960.0, 490.0],
-          "align": "center",
-          "show_time": 4.5
+          "pos": [1120.0, 750.0],
+          "align": "left",
+          "show_time": 5.75
         }
       ]
     }

@@ -4,7 +4,7 @@
       "background": "2_1_approaching_creek.png",
       "texts": [
         {
-          "text": "By afternoon, the trees pressed in.",
+          "text": "By evening, the trees pressed in.",
           "font_size": 64.0,
           "pos": [960.0, 250.0],
           "align": "center",
@@ -18,7 +18,7 @@
           "show_time": 2.0
         },
         {
-          "text": "And soon,\nit disappeared into a creek.",
+          "text": "And soon, it disappeared into a creek.",
           "font_size": 64.0,
           "pos": [960.0, 410.0],
           "align": "center",
@@ -30,32 +30,39 @@
       "background": "2_2_baby_reluctant.png",
       "texts": [
         {
-          "text": "To the little one,\nthe water sounded enormous.",
+          "text": "To the little one,",
           "font_size": 64.0,
-          "pos": [960.0, 250.0],
+          "pos": [960.0, 220.0],
           "align": "center",
           "show_time": 0.75
         },
         {
-          "text": "Too cold.",
+          "text": "the water sounded enormous.",
           "font_size": 64.0,
-          "pos": [960.0, 390.0],
+          "pos": [960.0, 300.0],
           "align": "center",
           "show_time": 2.0
         },
         {
-          "text": "Too fast.",
+          "text": "Too cold.",
           "font_size": 64.0,
-          "pos": [960.0, 470.0],
+          "pos": [470.0, 700.0],
           "align": "center",
           "show_time": 3.25
         },
         {
-          "text": "Too wide to cross.",
+          "text": "Too fast.",
           "font_size": 64.0,
-          "pos": [960.0, 550.0],
+          "pos": [1500.0, 700.0],
           "align": "center",
           "show_time": 4.5
+        },
+        {
+          "text": "Too wide to cross.",
+          "font_size": 64.0,
+          "pos": [1010.0, 880.0],
+          "align": "center",
+          "show_time": 5.75
         }
       ]
     },
@@ -63,14 +70,14 @@
       "background": "2_3_crossing_creek.png",
       "texts": [
         {
-          "text": "But the dog lowered his nose",
+          "text": "But the dog pressed on,",
           "font_size": 64.0,
           "pos": [960.0, 250.0],
           "align": "center",
           "show_time": 0.75
         },
         {
-          "text": "and searched for the safest way.",
+          "text": "and the little one bravely followed.",
           "font_size": 64.0,
           "pos": [960.0, 330.0],
           "align": "center",
@@ -79,15 +86,15 @@
         {
           "text": "One careful step...",
           "font_size": 64.0,
-          "pos": [960.0, 410.0],
-          "align": "center",
+          "pos": [850.0, 780.0],
+          "align": "right",
           "show_time": 3.25
         },
         {
           "text": "then another.",
           "font_size": 64.0,
-          "pos": [960.0, 490.0],
-          "align": "center",
+          "pos": [1000.0, 900.0],
+          "align": "right",
           "show_time": 4.5
         }
       ]
@@ -98,29 +105,29 @@
         {
           "text": "On the other bank,",
           "font_size": 64.0,
-          "pos": [960.0, 250.0],
+          "pos": [700.0, 350.0],
           "align": "center",
           "show_time": 0.75
         },
         {
-          "text": "the little one smiled.",
+          "text": "the boy smiled.",
           "font_size": 64.0,
-          "pos": [960.0, 330.0],
+          "pos": [700.0, 430.0],
           "align": "center",
           "show_time": 2.0
         },
         {
           "text": "And together,",
           "font_size": 64.0,
-          "pos": [960.0, 410.0],
-          "align": "center",
+          "pos": [1200.0, 710.0],
+          "align": "left",
           "show_time": 3.25
         },
         {
-          "text": "they kept going.",
+          "text": "they continued on.",
           "font_size": 64.0,
-          "pos": [960.0, 490.0],
-          "align": "center",
+          "pos": [1200.0, 790.0],
+          "align": "left",
           "show_time": 4.5
         }
       ]

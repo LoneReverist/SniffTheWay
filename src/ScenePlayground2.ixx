@@ -64,6 +64,8 @@ private:
 
 	Background m_background;
 	Polygon2d m_bounds;
+	Polygon2d m_playground_bounds;
+	Polygon2d m_creek_bounds;
 	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
@@ -104,6 +106,18 @@ ScenePlayground2::ScenePlayground2(dh::RenderContext const & render_context)
 		{2.0f, -4.0f},
 		{2.0f, -2.0f},
 		{-2.0f, -2.0f},
+	});
+	m_playground_bounds.SetVertices({
+		{-2.0f, -4.0f},
+		{-1.75f, -4.0f},
+		{-1.75f, -2.0f},
+		{-2.0f, -2.0f},
+	});
+	m_creek_bounds.SetVertices({
+		{1.75f, -4.0f},
+		{2.0f, -4.0f},
+		{2.0f, -2.0f},
+		{1.75f, -2.0f},
 	});
 
 	m_grid.Init(m_asset_manager);
@@ -158,10 +172,14 @@ std::optional<SceneTransition> ScenePlayground2::Update(float dt, Input const & 
 	m_dog.Update(dt, input, m_bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].x < -1.75)
-		return SceneTransition{ SceneId::Playground };
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].x > 1.75)
-		return SceneTransition{ SceneId::Creek };
+	if (m_scene_state == SceneState::Gameplay)
+	{
+		const glm::vec2 dog_pos = m_dog.GetPipelineData().model[3];
+		if (m_playground_bounds.Contains(dog_pos))
+			return SceneTransition{ SceneId::Playground };
+		if (m_creek_bounds.Contains(dog_pos))
+			return SceneTransition{ SceneId::Creek };
+	}
 
 	return std::nullopt;
 }

@@ -73,6 +73,7 @@ private:
 
 	Background m_background;
 	Polygon2d m_bounds;
+	Polygon2d m_home_bounds;
 	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
@@ -114,6 +115,12 @@ SceneForestIntersection::SceneForestIntersection(dh::RenderContext const & rende
 		{0.5f, -4.0f},
 		{1.0f, 10.0f},
 		{-1.0f, 10.0f},
+	});
+	m_home_bounds.SetVertices({
+		{-0.55f, -4.0f},
+		{0.55f, -4.0f},
+		{0.55f, -3.75f},
+		{-0.55f, -3.75f},
 	});
 
 	m_grid.Init(m_asset_manager);
@@ -172,8 +179,12 @@ std::optional<SceneTransition> SceneForestIntersection::Update(float dt, Input c
 	m_dog.Update(dt, input, m_bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y < -3.75)
-		return SceneTransition{ SceneId::Home };
+	if (m_scene_state == SceneState::Gameplay)
+	{
+		const glm::vec2 dog_pos = m_dog.GetPipelineData().model[3];
+		if (m_home_bounds.Contains(dog_pos))
+			return SceneTransition{ SceneId::Home };
+	}
 
 	return std::nullopt;
 }

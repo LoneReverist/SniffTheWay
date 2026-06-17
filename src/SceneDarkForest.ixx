@@ -76,6 +76,7 @@ private:
 
 	Background m_background;
 	Polygon2d m_bounds;
+	Polygon2d m_night_bounds;
 	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
@@ -117,6 +118,12 @@ SceneDarkForest::SceneDarkForest(dh::RenderContext const & render_context)
 		{0.5f, -4.0f},
 		{1.0f, 10.0f},
 		{-1.0f, 10.0f},
+	});
+	m_night_bounds.SetVertices({
+		{-1.05f, 9.75f},
+		{1.05f, 9.75f},
+		{1.05f, 10.0f},
+		{-1.05f, 10.0f},
 	});
 
 	m_grid.Init(m_asset_manager);
@@ -175,8 +182,12 @@ std::optional<SceneTransition> SceneDarkForest::Update(float dt, Input const & i
 	m_dog.Update(dt, input, m_bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
-	if (m_scene_state == SceneState::Gameplay && m_dog.GetPipelineData().model[3].y > 9.75)
-		return SceneTransition{ SceneId::Night };
+	if (m_scene_state == SceneState::Gameplay)
+	{
+		const glm::vec2 dog_pos = m_dog.GetPipelineData().model[3];
+		if (m_night_bounds.Contains(dog_pos))
+			return SceneTransition{ SceneId::Night };
+	}
 
 	return std::nullopt;
 }

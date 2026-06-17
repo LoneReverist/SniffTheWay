@@ -46,8 +46,7 @@ export class StoryScene : public IScene
 public:
 	explicit StoryScene(
 		dh::RenderContext const & render_context,
-		std::string story_id,
-		SceneId next_scene_id);
+		std::string story_id);
 
 	void OnWindowResized(int width, int height) override;
 
@@ -75,9 +74,8 @@ private:
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
 	SceneState m_scene_state = SceneState::Paused;
-	SceneId m_next_scene_id = SceneId::Exit;
 	std::string m_story_id;
-	StoryPages m_story_pages;
+	StorySceneData m_scene_data;
 	std::uint8_t m_page_index = 0;
 	float m_page_time = 0.0f;
 
@@ -95,19 +93,17 @@ private:
 
 StoryScene::StoryScene(
 	dh::RenderContext const & render_context,
-	std::string story_id,
-	SceneId next_scene_id)
+	std::string story_id)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
-	, m_next_scene_id{ next_scene_id }
 	, m_story_id{ std::move(story_id) }
 {
-	m_story_pages = StoryLoader::LoadPages(get_story_filepath());
-	if (m_story_pages.empty())
+	m_scene_data = StoryLoader::LoadSceneData(get_story_filepath());
+	if (m_scene_data.pages.empty())
 	{
 		std::cout << "StoryScene: No pages loaded for story '" << m_story_id << "'." << std::endl;
-		m_story_pages.push_back(StoryPage{ .bg_image_filename = "picnic.png" });
+		m_scene_data.pages.push_back(StoryPage{ .bg_image_filename = "picnic.png" });
 	}
 
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
@@ -186,7 +182,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 		if (input.KeyJustPressed(Input::Key::Space) || input.KeyJustPressed(Input::Key::Right) || input.KeyJustPressed('D'))
 		{
 			if (!page_forward())
-				return SceneTransition{ m_next_scene_id };
+				return SceneTransition{ m_scene_data.next_scene_id };
 		}
 
 #ifdef _DEBUG
@@ -249,7 +245,7 @@ void StoryScene::load_background_textures()
 {
 	std::vector<AssetId> old_bg_tex_ids = std::move(m_bg_tex_ids);
 	m_bg_tex_ids.clear();
-	std::ranges::transform(m_story_pages, std::back_inserter(m_bg_tex_ids), [&](StoryPage const & page) {
+	std::ranges::transform(m_scene_data.pages, std::back_inserter(m_bg_tex_ids), [&](StoryPage const & page) {
 		return m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "story_backgrounds" / page.bg_image_filename,
 			dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	});
@@ -311,11 +307,11 @@ void StoryScene::ensure_decoration_count(std::size_t count)
 void StoryScene::ensure_story_ui_capacity()
 {
 	std::size_t max_story_texts = 0;
-	for (StoryPage const & page : m_story_pages)
+	for (StoryPage const & page : m_scene_data.pages)
 		max_story_texts = std::max(max_story_texts, page.story_texts.size());
 
 	std::size_t max_decorations = 0;
-	for (StoryPage const & page : m_story_pages)
+	for (StoryPage const & page : m_scene_data.pages)
 		max_decorations = std::max(max_decorations, page.decorations.size());
 
 	ensure_story_label_count(max_story_texts);
@@ -324,18 +320,18 @@ void StoryScene::ensure_story_ui_capacity()
 
 void StoryScene::reload_story()
 {
-	StoryPages reloaded_pages = StoryLoader::LoadPages(get_story_filepath());
-	if (reloaded_pages.empty())
+	StorySceneData reloaded_scene_data = StoryLoader::LoadSceneData(get_story_filepath());
+	if (reloaded_scene_data.pages.empty())
 	{
 		std::cout << "StoryScene: Reload skipped because no pages loaded for story '" << m_story_id << "'." << std::endl;
 		return;
 	}
 
-	m_story_pages = std::move(reloaded_pages);
+	m_scene_data = std::move(reloaded_scene_data);
 	load_background_textures();
 	ensure_story_ui_capacity();
 
-	const std::size_t cur_page_index = std::min<std::size_t>(m_page_index, m_story_pages.size() - 1);
+	const std::size_t cur_page_index = std::min<std::size_t>(m_page_index, m_scene_data.pages.size() - 1);
 	m_page_index = static_cast<std::uint8_t>(cur_page_index);
 	apply_current_page();
 	std::cout << "StoryScene: Reloaded story '" << m_story_id << "'." << std::endl;
@@ -346,7 +342,7 @@ void StoryScene::apply_current_page()
 	m_page_time = 0.0f;
 	m_background.SetTextureId(m_bg_tex_ids[m_page_index]);
 
-	StoryPage const & page = m_story_pages[m_page_index];
+	StoryPage const & page = m_scene_data.pages[m_page_index];
 	for (std::size_t i = 0; i < m_story_labels.size(); ++i)
 	{
 		UIShadowedLabel & story_label = m_story_labels[i];
@@ -389,7 +385,7 @@ void StoryScene::apply_current_page()
 
 void StoryScene::update_story_texts()
 {
-	StoryPage const & page = m_story_pages[m_page_index];
+	StoryPage const & page = m_scene_data.pages[m_page_index];
 	for (std::size_t i = 0; i < page.story_texts.size(); ++i)
 	{
 		StoryText const & story_text = page.story_texts[i];
@@ -403,7 +399,7 @@ void StoryScene::update_story_texts()
 
 void StoryScene::update_decorations()
 {
-	StoryPage const & page = m_story_pages[m_page_index];
+	StoryPage const & page = m_scene_data.pages[m_page_index];
 	for (std::size_t i = 0; i < page.decorations.size(); ++i)
 	{
 		StoryDecoration const & decoration = page.decorations[i];

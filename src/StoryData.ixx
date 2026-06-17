@@ -41,4 +41,8 @@ export struct StoryPage
 	std::vector<StoryDecoration> decorations;
 };
 
-export using StoryPages = std::vector<StoryPage>;
+export struct StorySceneData
+{
+	SniffTheWay::SceneId next_scene_id = SniffTheWay::SceneId::Exit;
+	std::vector<StoryPage> pages;
+};

@@ -13,6 +13,7 @@ module;
 export module StoryLoader;
 
 import DecorationAtlas;
+import SniffTheWayConstants;
 import StoryData;
 import UILabel;
 
@@ -89,21 +90,31 @@ StoryDecoration parse_story_decoration(json const & j)
 
 export namespace StoryLoader
 {
-	StoryPages LoadPages(std::filesystem::path const & filepath)
+	StorySceneData LoadSceneData(std::filesystem::path const & filepath)
 	{
-		StoryPages story_pages;
+		StorySceneData scene_data;
 
 		std::ifstream file(filepath);
 		if (!file)
 		{
 			std::cout << "StoryLoader: Failed to open story file: " << filepath << std::endl;
-			return story_pages;
+			return scene_data;
 		}
 
 		json root;
 		try
 		{
 			file >> root;
+
+			const std::string next_scene_id = root.value("next_scene_id", std::string{ "exit" });
+			if (std::optional<SniffTheWay::SceneId> scene_id = SniffTheWay::SceneIdFromString(next_scene_id))
+			{
+				scene_data.next_scene_id = *scene_id;
+			}
+			else
+			{
+				std::cout << "StoryLoader: Unknown next scene id '" << next_scene_id << "' in " << filepath << ". Using exit." << std::endl;
+			}
 
 			for (json const & page_json : root.at("pages"))
 			{
@@ -116,15 +127,15 @@ export namespace StoryLoader
 				for (json const & decoration_json : page_json.value("decorations", json::array()))
 					page.decorations.push_back(parse_story_decoration(decoration_json));
 
-				story_pages.push_back(std::move(page));
+				scene_data.pages.push_back(std::move(page));
 			}
 		}
 		catch (std::exception const & ex)
 		{
 			std::cout << "StoryLoader: Failed to parse story file " << filepath << ": " << ex.what() << std::endl;
-			story_pages.clear();
+			scene_data.pages.clear();
 		}
 
-		return story_pages;
+		return scene_data;
 	}
 }

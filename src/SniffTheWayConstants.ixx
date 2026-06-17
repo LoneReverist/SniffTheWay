@@ -3,6 +3,8 @@
 module;
 
 #include <cstdint>
+#include <optional>
+#include <string_view>
 
 #include <glm/vec4.hpp>
 
@@ -55,4 +57,59 @@ export namespace SniffTheWay
 		ForestIntersection,
 		Home,
 	};
+
+	constexpr std::string_view ToString(SceneId scene_id)
+	{
+		switch (scene_id)
+		{
+		case SceneId::Exit:
+			return "exit";
+		case SceneId::Picnic:
+			return "picnic";
+		case SceneId::ForestPath:
+			return "forest_path";
+		case SceneId::Playground:
+			return "playground";
+		case SceneId::Playground2:
+			return "playground2";
+		case SceneId::Creek:
+			return "creek";
+		case SceneId::DarkForest:
+			return "dark_forest";
+		case SceneId::Night:
+			return "night";
+		case SceneId::ForestIntersection:
+			return "forest_intersection";
+		case SceneId::Home:
+			return "home";
+		}
+
+		return "exit";
+	}
+
+	constexpr std::optional<SceneId> SceneIdFromString(std::string_view scene_id)
+	{
+		if (scene_id == "exit")
+			return SceneId::Exit;
+		if (scene_id == "picnic")
+			return SceneId::Picnic;
+		if (scene_id == "forest_path")
+			return SceneId::ForestPath;
+		if (scene_id == "playground")
+			return SceneId::Playground;
+		if (scene_id == "playground2")
+			return SceneId::Playground2;
+		if (scene_id == "creek")
+			return SceneId::Creek;
+		if (scene_id == "dark_forest")
+			return SceneId::DarkForest;
+		if (scene_id == "night")
+			return SceneId::Night;
+		if (scene_id == "forest_intersection")
+			return SceneId::ForestIntersection;
+		if (scene_id == "home")
+			return SceneId::Home;
+
+		return std::nullopt;
+	}
 }

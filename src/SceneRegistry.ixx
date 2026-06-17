@@ -28,36 +28,36 @@ using namespace SniffTheWay;
 export class SceneRegistry
 {
 public:
-    using CreateSceneFn = std::function<std::unique_ptr<IScene>(dh::RenderContext const &)>;
+	using CreateSceneFn = std::function<std::unique_ptr<IScene>(SceneTransition const &, dh::RenderContext const &)>;
 
     SceneRegistry();
 
     std::unique_ptr<IScene> Create(SceneTransition trans, dh::RenderContext const & ctx) const;
 
 private:
-    std::unordered_map<SceneId, CreateSceneFn> m_create_scene_fns;
+	std::unordered_map<SceneId, CreateSceneFn> m_create_scene_fns;
 };
 
 SceneRegistry::SceneRegistry()
 {
 	m_create_scene_fns[SceneId::Picnic] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<ScenePicnic>(ctx); };
+		[](SceneTransition const &, dh::RenderContext const & ctx) { return std::make_unique<ScenePicnic>(ctx); };
 	m_create_scene_fns[SceneId::ForestPath] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<SceneForestPath>(ctx); };
+		[](SceneTransition const & trans, dh::RenderContext const & ctx) { return std::make_unique<SceneForestPath>(ctx, trans); };
 	m_create_scene_fns[SceneId::Playground] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<ScenePlayground>(ctx); };
+		[](SceneTransition const & trans, dh::RenderContext const & ctx) { return std::make_unique<ScenePlayground>(ctx, trans); };
 	m_create_scene_fns[SceneId::Playground2] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<ScenePlayground2>(ctx); };
+		[](SceneTransition const & trans, dh::RenderContext const & ctx) { return std::make_unique<ScenePlayground2>(ctx, trans); };
 	m_create_scene_fns[SceneId::Creek] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<SceneCreek>(ctx); };
+		[](SceneTransition const &, dh::RenderContext const & ctx) { return std::make_unique<SceneCreek>(ctx); };
 	m_create_scene_fns[SceneId::DarkForest] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<SceneDarkForest>(ctx); };
+		[](SceneTransition const & trans, dh::RenderContext const & ctx) { return std::make_unique<SceneDarkForest>(ctx, trans); };
 	m_create_scene_fns[SceneId::Night] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<SceneNight>(ctx); };
+		[](SceneTransition const &, dh::RenderContext const & ctx) { return std::make_unique<SceneNight>(ctx); };
 	m_create_scene_fns[SceneId::ForestIntersection] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<SceneForestIntersection>(ctx); };
+		[](SceneTransition const & trans, dh::RenderContext const & ctx) { return std::make_unique<SceneForestIntersection>(ctx, trans); };
 	m_create_scene_fns[SceneId::Home] =
-		[](dh::RenderContext const & ctx) { return std::make_unique<SceneHome>(ctx); };
+		[](SceneTransition const &, dh::RenderContext const & ctx) { return std::make_unique<SceneHome>(ctx); };
 }
 
 std::unique_ptr<IScene> SceneRegistry::Create(SceneTransition trans, dh::RenderContext const & ctx) const
@@ -67,5 +67,5 @@ std::unique_ptr<IScene> SceneRegistry::Create(SceneTransition trans, dh::RenderC
 		return nullptr;
 
 	CreateSceneFn const & create_scene_fn = iter->second;
-	return create_scene_fn(ctx);
+	return create_scene_fn(trans, ctx);
 }

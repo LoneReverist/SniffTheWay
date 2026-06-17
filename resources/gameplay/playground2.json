@@ -16,6 +16,8 @@
   "adjacent_scenes": [
     {
       "scene_id": "playground",
+      "dog_spawn": [-1.5, -3.0],
+      "baby_spawn": [-1.75, -2.25],
       "collider": [
         [-2.0, -4.0],
         [-1.75, -4.0],
@@ -25,6 +27,8 @@
     },
     {
       "scene_id": "creek",
+      "dog_spawn": [1.5, -3.0],
+      "baby_spawn": [1.75, -2.25],
       "collider": [
         [1.75, -4.0],
         [2.0, -4.0],

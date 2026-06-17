@@ -41,6 +41,8 @@
   "adjacent_scenes": [
     {
       "scene_id": "night",
+      "dog_spawn": [0.0, 9.5],
+      "baby_spawn": [-0.5, 9.0],
       "collider": [
         [-1.05, 9.75],
         [1.05, 9.75],

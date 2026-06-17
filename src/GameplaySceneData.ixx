@@ -17,6 +17,8 @@ export struct GameplayAdjacentScene
 {
 	SniffTheWay::SceneId scene_id = SniffTheWay::SceneId::Exit;
 	Polygon2d collider;
+	glm::vec2 dog_spawn_pos{ 0.0f };
+	glm::vec2 baby_spawn_pos{ 0.0f };
 };
 
 export struct GameplaySceneData

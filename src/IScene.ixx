@@ -12,6 +12,7 @@ import SniffTheWayConstants;
 export struct SceneTransition
 {
 	SniffTheWay::SceneId next_scene_id;
+	std::optional<SniffTheWay::SceneId> previous_scene_id = std::nullopt;
 };
 
 export class IScene

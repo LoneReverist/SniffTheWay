@@ -7,6 +7,7 @@ module;
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -46,7 +47,7 @@ using namespace SniffTheWay;
 export class GameplayScene : public IScene
 {
 public:
-	explicit GameplayScene(dh::RenderContext const & render_context, SceneId scene_id);
+	explicit GameplayScene(dh::RenderContext const & render_context, SceneId scene_id, SceneTransition const & transition);
 
 	void OnWindowResized(int width, int height) override;
 
@@ -58,6 +59,7 @@ public:
 
 private:
 	std::filesystem::path get_gameplay_filepath() const;
+	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
 	void create_story_labels(PipelineId<TextPipeline> text_pipeline_id);
 
 private:
@@ -81,7 +83,7 @@ private:
 	UIDarkBackdrop m_story_shadow;
 };
 
-GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId scene_id)
+GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId scene_id, SceneTransition const & transition)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
@@ -115,10 +117,12 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	m_grid.Init(m_asset_manager);
 	m_grid.SetROId(m_renderer.CreateRenderObject("grid", RenderLayer::Scene3d, m_grid.GetMeshId(), line_pipeline_id));
 
-	m_dog.Init(m_asset_manager, camera_dir, m_scene_data.dog_spawn_pos);
+	const auto [dog_spawn_pos, baby_spawn_pos] = get_spawn_positions(transition);
+
+	m_dog.Init(m_asset_manager, camera_dir, dog_spawn_pos);
 	m_renderer.CreateRenderObject("dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
-	m_baby.Init(m_asset_manager, camera_dir, m_scene_data.baby_spawn_pos);
+	m_baby.Init(m_asset_manager, camera_dir, baby_spawn_pos);
 	m_renderer.CreateRenderObject("baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
@@ -169,7 +173,7 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		for (GameplayAdjacentScene const & adjacent_scene : m_scene_data.adjacent_scenes)
 		{
 			if (adjacent_scene.collider.Contains(dog_pos))
-				return SceneTransition{ adjacent_scene.scene_id };
+				return SceneTransition{ adjacent_scene.scene_id, m_scene_id };
 		}
 	}
 
@@ -205,6 +209,20 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 std::filesystem::path GameplayScene::get_gameplay_filepath() const
 {
 	return m_asset_manager.GetResourcesPath() / "gameplay" / (std::string{ ToString(m_scene_id) } + ".json");
+}
+
+std::pair<glm::vec2, glm::vec2> GameplayScene::get_spawn_positions(SceneTransition const & transition) const
+{
+	if (transition.previous_scene_id.has_value())
+	{
+		for (GameplayAdjacentScene const & adjacent_scene : m_scene_data.adjacent_scenes)
+		{
+			if (adjacent_scene.scene_id == transition.previous_scene_id.value())
+				return { adjacent_scene.dog_spawn_pos, adjacent_scene.baby_spawn_pos };
+		}
+	}
+
+	return { m_scene_data.dog_spawn_pos, m_scene_data.baby_spawn_pos };
 }
 
 void GameplayScene::create_story_labels(PipelineId<TextPipeline> text_pipeline_id)

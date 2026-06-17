@@ -102,6 +102,10 @@ GameplayAdjacentScene parse_gameplay_adjacent_scene(json const & j)
 
 	if (j.contains("collider"))
 		adjacent_scene.collider = parse_gameplay_polygon(j["collider"]);
+	if (j.contains("dog_spawn"))
+		adjacent_scene.dog_spawn_pos = parse_gameplay_vec2(j["dog_spawn"], adjacent_scene.dog_spawn_pos);
+	if (j.contains("baby_spawn"))
+		adjacent_scene.baby_spawn_pos = parse_gameplay_vec2(j["baby_spawn"], adjacent_scene.baby_spawn_pos);
 
 	return adjacent_scene;
 }

@@ -6,9 +6,11 @@ export module SceneCreek;
 
 import Dreamhearth;
 
+import SniffTheWayConstants;
 import StoryScene;
 
 namespace dh = Dreamhearth;
+using namespace SniffTheWay;
 
 export class SceneCreek : public StoryScene
 {
@@ -17,6 +19,6 @@ public:
 };
 
 SceneCreek::SceneCreek(dh::RenderContext const & render_context)
-	: StoryScene(render_context, "creek")
+	: StoryScene(render_context, SceneId::Creek)
 {
 }

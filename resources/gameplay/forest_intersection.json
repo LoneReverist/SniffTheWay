@@ -1,0 +1,52 @@
+{
+  "id": "forest_intersection",
+  "background": "forest_intersection.png",
+  "initial_state": "story",
+  "bounds": [
+    [-0.5, -4.0],
+    [0.5, -4.0],
+    [1.0, 10.0],
+    [-1.0, 10.0]
+  ],
+  "default_spawn": {
+    "dog": [0.0, 5.0],
+    "baby": [0.0, 5.0]
+  },
+  "story_texts": [
+    {
+      "text": "Find the way home.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "Closer.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "The scent feels warm.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "Almost there.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    }
+  ],
+  "adjacent_scenes": [
+    {
+      "scene_id": "home",
+      "collider": [
+        [-0.55, -4.0],
+        [0.55, -4.0],
+        [0.55, -3.75],
+        [-0.55, -3.75]
+      ]
+    }
+  ]
+}

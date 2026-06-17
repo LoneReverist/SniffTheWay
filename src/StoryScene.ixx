@@ -46,7 +46,7 @@ export class StoryScene : public IScene
 public:
 	explicit StoryScene(
 		dh::RenderContext const & render_context,
-		std::string story_id);
+		SceneId scene_id);
 
 	void OnWindowResized(int width, int height) override;
 
@@ -74,7 +74,7 @@ private:
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
 	SceneState m_scene_state = SceneState::Paused;
-	std::string m_story_id;
+	SceneId m_scene_id = SceneId::Exit;
 	StorySceneData m_scene_data;
 	std::uint8_t m_page_index = 0;
 	float m_page_time = 0.0f;
@@ -93,16 +93,16 @@ private:
 
 StoryScene::StoryScene(
 	dh::RenderContext const & render_context,
-	std::string story_id)
+	SceneId scene_id)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
-	, m_story_id{ std::move(story_id) }
+	, m_scene_id{ scene_id }
 {
 	m_scene_data = StoryLoader::LoadSceneData(get_story_filepath());
 	if (m_scene_data.pages.empty())
 	{
-		std::cout << "StoryScene: No pages loaded for story '" << m_story_id << "'." << std::endl;
+		std::cout << "StoryScene: No pages loaded for story '" << ToString(m_scene_id) << "'." << std::endl;
 		m_scene_data.pages.push_back(StoryPage{ .bg_image_filename = "picnic.png" });
 	}
 
@@ -238,7 +238,7 @@ void StoryScene::page_backward()
 
 std::filesystem::path StoryScene::get_story_filepath() const
 {
-	return m_asset_manager.GetResourcesPath() / "story" / (m_story_id + ".json");
+	return m_asset_manager.GetResourcesPath() / "story" / (std::string{ ToString(m_scene_id) } + ".json");
 }
 
 void StoryScene::load_background_textures()
@@ -323,7 +323,7 @@ void StoryScene::reload_story()
 	StorySceneData reloaded_scene_data = StoryLoader::LoadSceneData(get_story_filepath());
 	if (reloaded_scene_data.pages.empty())
 	{
-		std::cout << "StoryScene: Reload skipped because no pages loaded for story '" << m_story_id << "'." << std::endl;
+		std::cout << "StoryScene: Reload skipped because no pages loaded for story '" << ToString(m_scene_id) << "'." << std::endl;
 		return;
 	}
 
@@ -334,7 +334,7 @@ void StoryScene::reload_story()
 	const std::size_t cur_page_index = std::min<std::size_t>(m_page_index, m_scene_data.pages.size() - 1);
 	m_page_index = static_cast<std::uint8_t>(cur_page_index);
 	apply_current_page();
-	std::cout << "StoryScene: Reloaded story '" << m_story_id << "'." << std::endl;
+	std::cout << "StoryScene: Reloaded story '" << ToString(m_scene_id) << "'." << std::endl;
 }
 
 void StoryScene::apply_current_page()

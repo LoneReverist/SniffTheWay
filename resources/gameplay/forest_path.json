@@ -1,0 +1,58 @@
+{
+  "id": "forest_path",
+  "background": "forest_path.png",
+  "initial_state": "story",
+  "bounds": [
+    [-0.5, -4.0],
+    [0.5, -4.0],
+    [1.0, 10.0],
+    [-1.0, 10.0]
+  ],
+  "default_spawn": {
+    "dog": [0.0, 5.0],
+    "baby": [-1.0, 5.5]
+  },
+  "story_texts": [
+    {
+      "text": "Follow the scent.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "Sniff...",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "Something feels familiar.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "Not this way.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "So many smells...<pause>But none feel like home.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    }
+  ],
+  "adjacent_scenes": [
+    {
+      "scene_id": "playground",
+      "collider": [
+        [-0.55, -4.0],
+        [0.55, -4.0],
+        [0.55, -3.75],
+        [-0.55, -3.75]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "dark_forest",
+  "background": "dark_forest.png",
+  "initial_state": "story",
+  "bounds": [
+    [-0.5, -4.0],
+    [0.5, -4.0],
+    [1.0, 10.0],
+    [-1.0, 10.0]
+  ],
+  "default_spawn": {
+    "dog": [0.0, -3.0],
+    "baby": [-1.0, -3.5]
+  },
+  "story_texts": [
+    {
+      "text": "Keep moving forward.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "The woods feel quieter now.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "Stay close.",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    },
+    {
+      "text": "Stronger\u2026",
+      "font_size": 36.0,
+      "pos": [960.0, 918.0],
+      "align": "center"
+    }
+  ],
+  "adjacent_scenes": [
+    {
+      "scene_id": "night",
+      "collider": [
+        [-1.05, 9.75],
+        [1.05, 9.75],
+        [1.05, 10.0],
+        [-1.05, 10.0]
+      ]
+    }
+  ]
+}

@@ -6,9 +6,11 @@ export module SceneNight;
 
 import Dreamhearth;
 
+import SniffTheWayConstants;
 import StoryScene;
 
 namespace dh = Dreamhearth;
+using namespace SniffTheWay;
 
 export class SceneNight : public StoryScene
 {
@@ -17,6 +19,6 @@ public:
 };
 
 SceneNight::SceneNight(dh::RenderContext const & render_context)
-	: StoryScene(render_context, "night")
+	: StoryScene(render_context, SceneId::Night)
 {
 }

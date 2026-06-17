@@ -6,9 +6,11 @@ export module ScenePicnic;
 
 import Dreamhearth;
 
+import SniffTheWayConstants;
 import StoryScene;
 
 namespace dh = Dreamhearth;
+using namespace SniffTheWay;
 
 export class ScenePicnic : public StoryScene
 {
@@ -17,6 +19,6 @@ public:
 };
 
 ScenePicnic::ScenePicnic(dh::RenderContext const & render_context)
-	: StoryScene(render_context, "picnic")
+	: StoryScene(render_context, SceneId::Picnic)
 {
 }

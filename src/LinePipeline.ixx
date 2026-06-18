@@ -58,6 +58,11 @@ std::expected<dh::Pipeline, dh::GraphicsError> LinePipeline::CreatePipeline(
 	builder.SetVertexType<VertexT>();
     builder.SetInstanceType<LineInstance>();
 	builder.SetVSUniformTypes<ViewProjUniform, ViewportUniform>();
+	builder.SetDepthTestOptions(dh::DepthTestOptions{
+		.enable_depth_test = true,
+		.enable_depth_write = false,
+		.depth_compare_op = dh::DepthCompareOp::LESS_OR_EQUAL
+		});
 	builder.SetBlendOptions(dh::BlendOptions{
 		.enable_blend = true,
 		.src_factor = dh::BlendFactor::SRC_ALPHA,

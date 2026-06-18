@@ -23,14 +23,15 @@ import Texture2dPipeline;
 import Camera;
 import ColorPipeline;
 import Dog;
-import EditorGrid;
 import FontAtlas;
 import FPSLabel;
+#ifdef _DEBUG
+import GameplaySceneEditor;
+#endif
 import GameplaySceneData;
 import GameplaySceneLoader;
 import Input;
 import IScene;
-import LinePipeline;
 import SceneRenderer;
 import SniffTheWayConstants;
 import SpritePipeline;
@@ -75,7 +76,6 @@ private:
 
 	Background m_background;
 	AssetId m_bg_tex_id;
-	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
 
@@ -85,6 +85,10 @@ private:
 	UILabel m_controls_label;
 	std::vector<UILabel> m_story_labels;
 	UIDarkBackdrop m_story_shadow;
+
+#ifdef _DEBUG
+	GameplaySceneEditor m_editor;
+#endif
 };
 
 GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId scene_id, SceneTransition const & transition)
@@ -102,7 +106,6 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	}
 
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
-	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
 	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
 	m_text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
@@ -117,9 +120,6 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
 	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
 	m_camera3d.Init(camera_pos, camera_dir);
-
-	m_grid.Init(m_asset_manager);
-	m_grid.SetROId(m_renderer.CreateRenderObject("grid", RenderLayer::Scene3d, m_grid.GetMeshId(), line_pipeline_id));
 
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_spawn_positions(transition);
 
@@ -144,6 +144,10 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 
 	create_story_labels(m_text_pipeline_id);
 
+#ifdef _DEBUG
+	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_scene_data);
+#endif
+
 	ChangeSceneState(m_scene_data.initial_state);
 }
 
@@ -165,14 +169,8 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 		ChangeSceneState(SceneState::Gameplay);
 
-#ifdef _DEBUG
-	if (input.KeyJustPressed('R'))
-		reload_scene_data();
-#endif
-
 	m_camera3d.Update(dt, input);
 	m_fps_label.Update(dt);
-	m_grid.Update(input, m_renderer, m_scene_state);
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
@@ -185,6 +183,13 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 				return SceneTransition{ adjacent_scene.scene_id, m_scene_id };
 		}
 	}
+
+#ifdef _DEBUG
+	if (input.KeyJustPressed('R'))
+		reload_scene_data();
+
+	m_editor.Update(input, m_renderer, m_scene_state);
+#endif
 
 	return std::nullopt;
 }
@@ -204,7 +209,6 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 {
 	m_scene_state = new_state;
 
-	m_grid.OnSceneStateChanged(m_scene_state, m_renderer);
 	m_dog.OnSceneStateChanged(m_scene_state);
 	m_baby.OnSceneStateChanged(m_scene_state);
 
@@ -213,6 +217,10 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 	m_renderer.Show(m_story_shadow.GetROId(), show_story_ui);
 	for (UILabel const & story_label : m_story_labels)
 		m_renderer.Show(story_label.GetROId(), show_story_ui);
+
+#ifdef _DEBUG
+	m_editor.OnSceneStateChanged(m_scene_state, m_renderer);
+#endif
 }
 
 std::filesystem::path GameplayScene::get_gameplay_filepath() const
@@ -232,7 +240,13 @@ void GameplayScene::reload_scene_data()
 	m_scene_data = std::move(reloaded_scene_data);
 	reload_background_texture();
 	apply_story_labels();
+
+#ifdef _DEBUG
+	m_editor.Reload(m_asset_manager, m_renderer);
+#endif
+
 	ChangeSceneState(m_scene_state);
+	
 	std::cout << "GameplayScene: Reloaded gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
 }
 

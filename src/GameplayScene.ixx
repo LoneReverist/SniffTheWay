@@ -4,7 +4,6 @@ module;
 
 #include <filesystem>
 #include <iostream>
-#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -80,7 +79,7 @@ private:
 	Dog m_dog;
 	Baby m_baby;
 
-	std::unique_ptr<FontAtlas> m_font_atlas;
+	FontAtlas m_font_atlas;
 	PipelineId<TextPipeline> m_text_pipeline_id;
 	FPSLabel m_fps_label;
 	UILabel m_controls_label;
@@ -132,14 +131,14 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
-	m_font_atlas = std::make_unique<FontAtlas>(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
+	m_font_atlas.Init(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", RenderLayer::UIShadow, m_story_shadow.GetMeshId(), color_pipeline_id));
 
-	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, *m_font_atlas);
+	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
 
-	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_font_atlas,
+	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", m_font_atlas,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
 	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), m_text_pipeline_id, m_controls_label.GetPipelineData()));
 
@@ -302,7 +301,7 @@ void GameplayScene::create_story_labels(PipelineId<TextPipeline> text_pipeline_i
 	m_story_labels.resize(1);
 	StoryText const & story_text = m_scene_data.story_texts[0];
 	UILabel & story_label = m_story_labels[0];
-	story_label.Init(m_asset_manager, story_text.text, *m_font_atlas,
+	story_label.Init(m_asset_manager, story_text.text, m_font_atlas,
 		story_text.font_size, story_text.pos, story_text.align, story_text.color);
 	story_label.SetROId(m_renderer.CreateRenderObject("story label " + std::to_string(1),
 		RenderLayer::UIForeground, story_label.GetMeshId(), text_pipeline_id, story_label.GetPipelineData()));
@@ -312,7 +311,7 @@ void GameplayScene::create_story_labels(PipelineId<TextPipeline> text_pipeline_i
 //	{
 //		StoryText const & story_text = m_scene_data.story_texts[i];
 //		UILabel & story_label = m_story_labels[i];
-//		story_label.Init(m_asset_manager, story_text.text, *m_font_atlas,
+//		story_label.Init(m_asset_manager, story_text.text, m_font_atlas,
 //			story_text.font_size, story_text.pos, story_text.align, story_text.color);
 //		story_label.SetROId(m_renderer.CreateRenderObject("story label " + std::to_string(i + 1),
 //			RenderLayer::UIForeground, story_label.GetMeshId(), text_pipeline_id, story_label.GetPipelineData()));

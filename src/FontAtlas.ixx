@@ -32,9 +32,11 @@ public:
 	};
 
 public:
-	explicit FontAtlas(AssetId texture_id, std::filesystem::path const & json_path)
-		: m_texture_id(texture_id)
+	FontAtlas() = default;
+
+	void Init(AssetId texture_id, std::filesystem::path const & json_path)
 	{
+		m_texture_id = texture_id;
 		init_glyphs(json_path);
 	}
 
@@ -53,6 +55,10 @@ public:
 private:
 	void init_glyphs(std::filesystem::path const & json_path)
 	{
+		m_px_range = 0.0f;
+		m_line_height = 1.0f;
+		m_glyphs.clear();
+
 		std::ifstream file(json_path);
 		if (!file)
 			throw std::runtime_error("Failed to open JSON file: " + json_path.string());

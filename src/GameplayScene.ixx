@@ -59,6 +59,9 @@ public:
 
 private:
 	std::filesystem::path get_gameplay_filepath() const;
+	void reload_scene_data();
+	void reload_background_texture();
+	void apply_story_labels();
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
 	void create_story_labels(PipelineId<TextPipeline> text_pipeline_id);
 
@@ -72,11 +75,13 @@ private:
 	GameplaySceneData m_scene_data;
 
 	Background m_background;
+	AssetId m_bg_tex_id;
 	EditorGrid m_grid;
 	Dog m_dog;
 	Baby m_baby;
 
 	std::unique_ptr<FontAtlas> m_font_atlas;
+	PipelineId<TextPipeline> m_text_pipeline_id;
 	FPSLabel m_fps_label;
 	UILabel m_controls_label;
 	std::vector<UILabel> m_story_labels;
@@ -101,13 +106,13 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	const auto line_pipeline_id = m_asset_manager.AddPipeline<LinePipeline>(m_camera3d);
 	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
-	const auto text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
+	m_text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
 
-	AssetId bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "gameplay_backgrounds" / m_scene_data.bg_image_filename,
+	m_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "gameplay_backgrounds" / m_scene_data.bg_image_filename,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
-	m_background.Init(m_asset_manager, bg_tex_id);
+	m_background.Init(m_asset_manager, m_bg_tex_id);
 	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
 	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
@@ -136,9 +141,9 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 
 	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", *m_font_atlas,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), text_pipeline_id, m_controls_label.GetPipelineData()));
+	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), m_text_pipeline_id, m_controls_label.GetPipelineData()));
 
-	create_story_labels(text_pipeline_id);
+	create_story_labels(m_text_pipeline_id);
 
 	ChangeSceneState(m_scene_data.initial_state);
 }
@@ -160,6 +165,11 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 		ChangeSceneState(SceneState::Gameplay);
+
+#ifdef _DEBUG
+	if (input.KeyJustPressed('R'))
+		reload_scene_data();
+#endif
 
 	m_camera3d.Update(dt, input);
 	m_fps_label.Update(dt);
@@ -209,6 +219,65 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 std::filesystem::path GameplayScene::get_gameplay_filepath() const
 {
 	return m_asset_manager.GetResourcesPath() / "gameplay" / (std::string{ ToString(m_scene_id) } + ".json");
+}
+
+void GameplayScene::reload_scene_data()
+{
+	GameplaySceneData reloaded_scene_data = GameplaySceneLoader::LoadSceneData(get_gameplay_filepath());
+	if (reloaded_scene_data.bg_image_filename.empty())
+	{
+		std::cout << "GameplayScene: Reload skipped because no data loaded for gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
+		return;
+	}
+
+	m_scene_data = std::move(reloaded_scene_data);
+	reload_background_texture();
+	apply_story_labels();
+	ChangeSceneState(m_scene_state);
+	std::cout << "GameplayScene: Reloaded gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
+}
+
+void GameplayScene::reload_background_texture()
+{
+	AssetId old_bg_tex_id = m_bg_tex_id;
+	AssetId new_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "gameplay_backgrounds" / m_scene_data.bg_image_filename,
+		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
+	if (!new_bg_tex_id.IsValid())
+	{
+		std::cout << "GameplayScene: Keeping previous background because reload failed for '" << m_scene_data.bg_image_filename << "'." << std::endl;
+		return;
+	}
+
+	m_bg_tex_id = new_bg_tex_id;
+	m_background.SetTextureId(m_bg_tex_id);
+
+	if (old_bg_tex_id.IsValid())
+		m_asset_manager.RemoveTexture(old_bg_tex_id);
+}
+
+void GameplayScene::apply_story_labels()
+{
+	if (m_story_labels.empty())
+	{
+		if (!m_scene_data.story_texts.empty())
+			create_story_labels(m_text_pipeline_id);
+		return;
+	}
+
+	if (m_scene_data.story_texts.empty())
+	{
+		m_renderer.Show(m_story_labels[0].GetROId(), false);
+		return;
+	}
+
+	StoryText const & story_text = m_scene_data.story_texts[0];
+	UILabel & story_label = m_story_labels[0];
+	story_label.SetText(story_text.text);
+	story_label.SetFontSize(story_text.font_size);
+	story_label.SetOrigin(story_text.pos);
+	story_label.SetAlign(story_text.align);
+	story_label.SetTextColor(story_text.color);
+	m_renderer.Show(story_label.GetROId(), m_scene_state == SceneState::Story);
 }
 
 std::pair<glm::vec2, glm::vec2> GameplayScene::get_spawn_positions(SceneTransition const & transition) const

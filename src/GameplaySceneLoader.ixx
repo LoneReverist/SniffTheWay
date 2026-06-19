@@ -4,6 +4,7 @@ module;
 
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -19,7 +20,7 @@ import SniffTheWayConstants;
 import StoryData;
 import UILabel;
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 glm::vec2 parse_gameplay_vec2(json const & j, glm::vec2 fallback)
 {
@@ -110,6 +111,119 @@ GameplayAdjacentScene parse_gameplay_adjacent_scene(json const & j)
 	return adjacent_scene;
 }
 
+json serialize_gameplay_vec2(glm::vec2 value)
+{
+	return json::array({ value.x, value.y });
+}
+
+json serialize_gameplay_vec4(glm::vec4 value)
+{
+	return json::array({ value.x, value.y, value.z, value.w });
+}
+
+json serialize_gameplay_polygon(Polygon2d const & polygon)
+{
+	json vertices = json::array();
+	for (glm::vec2 const & vertex : polygon.GetVertices())
+		vertices.push_back(serialize_gameplay_vec2(vertex));
+
+	return vertices;
+}
+
+std::string serialize_gameplay_scene_state(SniffTheWay::SceneState state)
+{
+	switch (state)
+	{
+	case SniffTheWay::SceneState::Story:
+		return "story";
+	case SniffTheWay::SceneState::Paused:
+		return "paused";
+	case SniffTheWay::SceneState::Gameplay:
+		return "gameplay";
+	}
+
+	return "gameplay";
+}
+
+std::string serialize_gameplay_align(UILabel::Align align)
+{
+	switch (align)
+	{
+	case UILabel::Align::Left:
+		return "left";
+	case UILabel::Align::Right:
+		return "right";
+	case UILabel::Align::Center:
+		return "center";
+	}
+
+	return "center";
+}
+
+json serialize_gameplay_story_text(StoryText const & story_text)
+{
+	return json{
+		{ "text", story_text.text },
+		{ "font_size", story_text.font_size },
+		{ "pos", serialize_gameplay_vec2(story_text.pos) },
+		{ "align", serialize_gameplay_align(story_text.align) },
+		{ "show_time", story_text.show_time },
+		{ "fade_duration", story_text.fade_duration },
+		{ "color", serialize_gameplay_vec4(story_text.color) }
+	};
+}
+
+json serialize_gameplay_adjacent_scene(GameplayAdjacentScene const & adjacent_scene)
+{
+	return json{
+		{ "scene_id", std::string{ SniffTheWay::ToString(adjacent_scene.scene_id) } },
+		{ "dog_spawn", serialize_gameplay_vec2(adjacent_scene.dog_spawn_pos) },
+		{ "baby_spawn", serialize_gameplay_vec2(adjacent_scene.baby_spawn_pos) },
+		{ "collider", serialize_gameplay_polygon(adjacent_scene.collider) }
+	};
+}
+
+json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json existing_root = json::object())
+{
+	json root = json::object();
+	if (existing_root.contains("id"))
+		root["id"] = existing_root["id"];
+
+	root["background"] = scene_data.bg_image_filename;
+	root["initial_state"] = serialize_gameplay_scene_state(scene_data.initial_state);
+	root["bounds"] = serialize_gameplay_polygon(scene_data.bounds);
+	root["default_spawn"] = json{
+		{ "dog", serialize_gameplay_vec2(scene_data.dog_spawn_pos) },
+		{ "baby", serialize_gameplay_vec2(scene_data.baby_spawn_pos) }
+	};
+
+	json adjacent_scenes = json::array();
+	for (GameplayAdjacentScene const & adjacent_scene : scene_data.adjacent_scenes)
+		adjacent_scenes.push_back(serialize_gameplay_adjacent_scene(adjacent_scene));
+	root["adjacent_scenes"] = std::move(adjacent_scenes);
+
+	json story_texts = json::array();
+	for (StoryText const & story_text : scene_data.story_texts)
+		story_texts.push_back(serialize_gameplay_story_text(story_text));
+	root["story_texts"] = std::move(story_texts);
+
+	for (auto const & [key, value] : existing_root.items())
+	{
+		if (key != "id" &&
+			key != "background" &&
+			key != "initial_state" &&
+			key != "bounds" &&
+			key != "default_spawn" &&
+			key != "story_texts" &&
+			key != "adjacent_scenes")
+		{
+			root[key] = value;
+		}
+	}
+
+	return root;
+}
+
 export namespace GameplaySceneLoader
 {
 	GameplaySceneData LoadSceneData(std::filesystem::path const & filepath)
@@ -153,5 +267,47 @@ export namespace GameplaySceneLoader
 		}
 
 		return scene_data;
+	}
+
+	bool SaveSceneData(std::filesystem::path const & filepath, GameplaySceneData const & scene_data)
+	{
+		json root = json::object();
+		{
+			std::ifstream in_file(filepath);
+			if (in_file)
+			{
+				try
+				{
+					in_file >> root;
+					if (!root.is_object())
+						root = json::object();
+				}
+				catch (std::exception const & ex)
+				{
+					std::cout << "GameplaySceneLoader: Existing gameplay scene file could not be parsed before save: "
+						<< filepath << ": " << ex.what() << std::endl;
+					root = json::object();
+				}
+			}
+		}
+
+		root = serialize_gameplay_scene_data(scene_data, std::move(root));
+
+		std::ofstream out_file(filepath);
+		if (!out_file)
+		{
+			std::cout << "GameplaySceneLoader: Failed to open gameplay scene file for writing: " << filepath << std::endl;
+			return false;
+		}
+
+		out_file << std::setw(2) << root << '\n';
+		if (!out_file)
+		{
+			std::cout << "GameplaySceneLoader: Failed to write gameplay scene file: " << filepath << std::endl;
+			return false;
+		}
+
+		std::cout << "GameplaySceneLoader: Saved gameplay scene file: " << filepath << std::endl;
+		return true;
 	}
 }

@@ -146,7 +146,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	create_story_labels(m_text_pipeline_id);
 
 #ifdef _DEBUG
-	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_scene_data);
+	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_scene_data, get_gameplay_filepath());
 #endif
 
 	ChangeSceneState(m_scene_data.initial_state);

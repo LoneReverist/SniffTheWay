@@ -23,6 +23,8 @@ public:
 		Left    = 263, // GLFW_KEY_LEFT
 		Down    = 264, // GLFW_KEY_DOWN
 		Up      = 265, // GLFW_KEY_UP
+		LeftControl = 341, // GLFW_KEY_LEFT_CONTROL
+		RightControl = 345, // GLFW_KEY_RIGHT_CONTROL
 	};
 
 	enum class Action : int

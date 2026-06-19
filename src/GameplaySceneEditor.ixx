@@ -3,7 +3,9 @@
 module;
 
 #include <cstddef>
+#include <filesystem>
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -17,6 +19,7 @@ import AssetPool;
 import Camera;
 import EditorGrid;
 import GameplaySceneData;
+import GameplaySceneLoader;
 import Input;
 import LinePipeline;
 import Polygon2d;
@@ -35,7 +38,8 @@ public:
 		AssetManager & asset_manager,
 		SceneRenderer & renderer,
 		Camera3d const & camera,
-		GameplaySceneData & scene_data);
+		GameplaySceneData & scene_data,
+		std::filesystem::path scene_filepath);
 
 	bool Update(
 		Input const & input,
@@ -59,11 +63,13 @@ private:
 	void begin_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	void cancel_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	void apply_draft(AssetManager & asset_manager, SceneRenderer & renderer);
+	void save_scene_data(AssetManager & asset_manager, SceneRenderer & renderer);
 	std::vector<LineInstance> create_edge_lines(std::vector<glm::vec2> const & vertices, bool close_edges) const;
 	std::vector<LineInstance> create_point_lines(std::vector<glm::vec2> const & vertices) const;
 
 private:
 	GameplaySceneData * m_scene_data = nullptr;
+	std::filesystem::path m_scene_filepath;
 	EditorGrid m_grid;
 	bool m_is_editing = false;
 	std::vector<glm::vec2> m_draft_vertices;
@@ -77,9 +83,11 @@ void GameplaySceneEditor::Init(
 	AssetManager & asset_manager,
 	SceneRenderer & renderer,
 	Camera3d const & camera,
-	GameplaySceneData & scene_data)
+	GameplaySceneData & scene_data,
+	std::filesystem::path scene_filepath)
 {
 	m_scene_data = &scene_data;
+	m_scene_filepath = std::move(scene_filepath);
 	
 	auto const line_pipeline_id = asset_manager.AddPipeline<LinePipeline>(camera);
 
@@ -107,6 +115,13 @@ bool GameplaySceneEditor::Update(
 
 	if (scene_state != SceneState::Gameplay)
 		return false;
+
+	const bool ctrl_is_down = input.KeyIsDown(Input::Key::LeftControl) || input.KeyIsDown(Input::Key::RightControl);
+	if (ctrl_is_down && input.KeyJustPressed('S'))
+	{
+		save_scene_data(asset_manager, renderer);
+		return true;
+	}
 
 	if (input.KeyJustPressed('B'))
 	{
@@ -234,6 +249,17 @@ void GameplaySceneEditor::apply_draft(AssetManager & asset_manager, SceneRendere
 	m_draft_vertices.clear();
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	show_bounds(renderer, true);
+}
+
+void GameplaySceneEditor::save_scene_data(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (!m_scene_data)
+		return;
+
+	if (m_is_editing && m_draft_vertices.size() >= 3)
+		apply_draft(asset_manager, renderer);
+
+	GameplaySceneLoader::SaveSceneData(m_scene_filepath, *m_scene_data);
 }
 
 MeshId<Vertex2d> GameplaySceneEditor::create_line_mesh(AssetManager & asset_manager, std::vector<LineInstance> const & lines) const

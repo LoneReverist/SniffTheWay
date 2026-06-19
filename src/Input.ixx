@@ -18,12 +18,16 @@ public:
 		Space   = 32,  // GLFW_KEY_SPACE
 		Esc     = 256, // GLFW_KEY_ESCAPE
 		Enter   = 257, // GLFW_KEY_ENTER
+		Tab     = 258, // GLFW_KEY_TAB
 		Backspace = 259, // GLFW_KEY_BACKSPACE
+		Delete  = 261, // GLFW_KEY_DELETE
 		Right   = 262, // GLFW_KEY_RIGHT
 		Left    = 263, // GLFW_KEY_LEFT
 		Down    = 264, // GLFW_KEY_DOWN
 		Up      = 265, // GLFW_KEY_UP
+		LeftShift = 340, // GLFW_KEY_LEFT_SHIFT
 		LeftControl = 341, // GLFW_KEY_LEFT_CONTROL
+		RightShift = 344, // GLFW_KEY_RIGHT_SHIFT
 		RightControl = 345, // GLFW_KEY_RIGHT_CONTROL
 	};
 

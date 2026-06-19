@@ -252,6 +252,8 @@ void GameplayScene::reload_scene_data()
 	m_scene_data = std::move(reloaded_scene_data);
 	reload_background_texture();
 	apply_story_labels();
+	m_dog.Reload(m_camera3d.GetDir(), m_scene_data.dog_spawn_pos);
+	m_baby.Reload(m_camera3d.GetDir(), m_scene_data.baby_spawn_pos);
 
 #ifdef _DEBUG
 	m_editor.Reload(m_asset_manager, m_renderer);

@@ -37,8 +37,10 @@ public:
 		AssetManager & asset_manager,
 		glm::vec3 const & camera_dir,
 		glm::vec2 const & initial_pos);
-    void Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state);
+	void Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
+	void Reload(glm::vec3 const & camera_dir, glm::vec2 pos);
+	void SetPosition(glm::vec2 pos);
 	void SetOpacity(float opacity);
 
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
@@ -159,6 +161,26 @@ void Dog::OnSceneStateChanged(SceneState new_state)
 {
 	if (new_state != SceneState::Gameplay)
 		m_state = State::Idle;
+}
+
+void Dog::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
+{
+	m_state = State::Idle;
+	facing_right = true;
+	m_animation_timer = 0.0f;
+	m_sprite_sheet.SetCurrentFrame(0);
+	m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+
+	glm::vec3 up_dir = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 target_dir = -camera_dir;
+	float angle = glm::acos(glm::dot(up_dir, target_dir));
+	m_pipeline_data.model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
+	SetPosition(pos);
+}
+
+void Dog::SetPosition(glm::vec2 pos)
+{
+	m_pipeline_data.model[3] = glm::vec4(pos, 0.0f, 1.0f);
 }
 
 void Dog::SetOpacity(float opacity)

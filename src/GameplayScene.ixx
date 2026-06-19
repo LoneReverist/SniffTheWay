@@ -70,6 +70,7 @@ private:
 	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
 	Camera2d m_camera2d;
+	glm::ivec4 m_game_viewport{ 0, 0, 0, 0 };
 	SceneState m_scene_state = SceneState::Paused;
 	SceneId m_scene_id = SceneId::Exit;
 	GameplaySceneData m_scene_data;
@@ -155,6 +156,7 @@ void GameplayScene::OnWindowResized(int width, int height)
 {
 	int game_width = static_cast<int>(height * 16.0f / 9.0f);
 	int x_offset = (width - game_width) / 2;
+	m_game_viewport = glm::ivec4{ x_offset, 0, game_width, height };
 	m_renderer.SetViewport(x_offset, 0, game_width, height);
 
 	m_camera3d.SetViewportSize(game_width, height);
@@ -163,14 +165,28 @@ void GameplayScene::OnWindowResized(int width, int height)
 
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
 {
-	if (input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{ SceneId::Exit };
-
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 		ChangeSceneState(SceneState::Gameplay);
 
 	m_camera3d.Update(dt, input);
 	m_fps_label.Update(dt);
+
+#ifdef _DEBUG
+	const bool editor_consumed_input = m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
+
+	if (!editor_consumed_input && input.KeyJustPressed('R'))
+		reload_scene_data();
+
+	if (!editor_consumed_input && input.KeyJustPressed(Input::Key::Esc))
+		return SceneTransition{ SceneId::Exit };
+
+	if (editor_consumed_input || m_editor.IsEditing())
+		return std::nullopt;
+#else
+	if (input.KeyJustPressed(Input::Key::Esc))
+		return SceneTransition{ SceneId::Exit };
+#endif
+
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
@@ -183,13 +199,6 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 				return SceneTransition{ adjacent_scene.scene_id, m_scene_id };
 		}
 	}
-
-#ifdef _DEBUG
-	if (input.KeyJustPressed('R'))
-		reload_scene_data();
-
-	m_editor.Update(input, m_renderer, m_scene_state);
-#endif
 
 	return std::nullopt;
 }

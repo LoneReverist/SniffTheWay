@@ -88,6 +88,17 @@ int main()
 			else if (action == static_cast<int>(Input::Action::Release))
 				input.SetKey(key, false /*pressed*/);
 		});
+	window.SetOnMouseButtonEvent([&input](int button, int action, int /*mods*/)
+		{
+			if (action == static_cast<int>(Input::Action::Press))
+				input.SetMouseButton(button, true /*pressed*/);
+			else if (action == static_cast<int>(Input::Action::Release))
+				input.SetMouseButton(button, false /*pressed*/);
+		});
+	window.SetOnCursorPos([&input](float x_pixels, float y_pixels)
+		{
+			input.SetMousePos(x_pixels, y_pixels);
+		});
 
 	std::cout << "Running app..." << std::endl;
 

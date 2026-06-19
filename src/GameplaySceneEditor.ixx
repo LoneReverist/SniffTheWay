@@ -78,6 +78,25 @@ private:
 		AssetId points_ro_id;
 	};
 
+	enum class SpawnOwner
+	{
+		Default,
+		AdjacentScene,
+	};
+
+	enum class SpawnCharacter
+	{
+		Dog,
+		Baby,
+	};
+
+	struct SpawnEditTarget
+	{
+		SpawnOwner owner = SpawnOwner::Default;
+		SpawnCharacter character = SpawnCharacter::Dog;
+		std::size_t adjacent_index = 0;
+	};
+
 private:
 	MeshId<Vertex2d> create_line_mesh(AssetManager & asset_manager, std::vector<LineInstance> const & lines) const;
 	PolygonOverlay create_polygon_overlay(
@@ -109,21 +128,29 @@ private:
 		bool close_edges);
 	void rebuild_adjacent_overlays(AssetManager & asset_manager, SceneRenderer & renderer);
 	void rebuild_adjacent_overlay(AssetManager & asset_manager, SceneRenderer & renderer, std::size_t index);
+	void rebuild_spawn_markers(AssetManager & asset_manager, SceneRenderer & renderer);
 	void show_bounds(SceneRenderer & renderer, bool show);
 	void show_adjacent_bounds(SceneRenderer & renderer, bool show);
+	void show_spawn_markers(SceneRenderer & renderer, bool show);
 	void show_polygon_editing_label(SceneRenderer & renderer, bool show);
 	void begin_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer, PolygonEditTarget target);
 	void cancel_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	bool apply_polygon_draft(AssetManager & asset_manager, SceneRenderer & renderer);
 	void add_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 vertex);
 	void remove_last_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer);
+	void begin_spawn_editing(AssetManager & asset_manager, SceneRenderer & renderer, SpawnEditTarget target);
+	void cancel_spawn_editing(AssetManager & asset_manager, SceneRenderer & renderer);
+	void set_spawn_position(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 pos);
 	void select_next_adjacent_scene(AssetManager & asset_manager, SceneRenderer & renderer);
 	void create_adjacent_scene(AssetManager & asset_manager, SceneRenderer & renderer);
 	void delete_selected_adjacent_scene(AssetManager & asset_manager, SceneRenderer & renderer);
 	bool has_selected_adjacent_scene() const;
 	PolygonEditTarget selected_adjacent_target() const;
+	SpawnEditTarget selected_adjacent_spawn_target(SpawnCharacter character) const;
 	std::vector<glm::vec2> get_target_vertices(PolygonEditTarget target) const;
 	void set_target_vertices(PolygonEditTarget target, std::vector<glm::vec2> vertices);
+	glm::vec2 get_spawn_position(SpawnEditTarget target) const;
+	void set_spawn_position(SpawnEditTarget target, glm::vec2 pos);
 	void update_polygon_editing_label();
 	std::string create_editor_label_text() const;
 	bool save_scene_data() const;
@@ -136,6 +163,13 @@ private:
 		std::vector<glm::vec2> const & vertices,
 		glm::vec4 color,
 		float thickness) const;
+	std::vector<LineInstance> create_spawn_marker_lines() const;
+	void append_spawn_marker_lines(
+		std::vector<LineInstance> & lines,
+		glm::vec2 pos,
+		glm::vec4 color,
+		float size,
+		float thickness) const;
 
 private:
 	GameplaySceneData * m_scene_data = nullptr;
@@ -145,10 +179,14 @@ private:
 	PipelineId<LinePipeline> m_line_pipeline_id;
 	bool m_is_editing_polygon = false;
 	std::optional<PolygonEditTarget> m_edit_target;
+	bool m_is_editing_spawn = false;
+	std::optional<SpawnEditTarget> m_spawn_edit_target;
 	std::optional<std::size_t> m_selected_adjacent_scene_index;
 	std::vector<glm::vec2> m_draft_vertices;
 	PolygonOverlay m_bounds_overlay;
 	std::vector<PolygonOverlay> m_adjacent_scene_overlays;
+	MeshId<Vertex2d> m_spawn_markers_mesh_id;
+	AssetId m_spawn_markers_ro_id;
 };
 
 namespace
@@ -165,6 +203,16 @@ namespace
 	constexpr glm::vec4 SelectedAdjacentPointColor{ 0.1f, 1.0f, 0.25f, 1.0f };
 	constexpr glm::vec4 DraftEdgeColor{ 1.0f, 0.55f, 0.08f, 0.95f };
 	constexpr glm::vec4 DraftPointColor{ 1.0f, 0.15f, 0.1f, 1.0f };
+	constexpr glm::vec4 DefaultDogSpawnColor{ 0.15f, 0.45f, 1.0f, 1.0f };
+	constexpr glm::vec4 DefaultBabySpawnColor{ 1.0f, 0.25f, 0.85f, 1.0f };
+	constexpr glm::vec4 AdjacentDogSpawnColor{ 0.25f, 0.85f, 1.0f, 0.8f };
+	constexpr glm::vec4 AdjacentBabySpawnColor{ 0.85f, 0.45f, 1.0f, 0.8f };
+	constexpr glm::vec4 SelectedSpawnColor{ 0.2f, 1.0f, 0.45f, 1.0f };
+	constexpr glm::vec4 EditingSpawnColor{ 1.0f, 0.55f, 0.08f, 1.0f };
+	constexpr float SpawnMarkerSize = 0.16f;
+	constexpr float SpawnMarkerThickness = 10.0f;
+	constexpr float SelectedSpawnMarkerSize = 0.22f;
+	constexpr float SelectedSpawnMarkerThickness = 14.0f;
 }
 
 void GameplaySceneEditor::Init(
@@ -198,6 +246,10 @@ void GameplaySceneEditor::Init(
 
 	rebuild_adjacent_overlays(asset_manager, renderer);
 
+	m_spawn_markers_mesh_id = create_line_mesh(asset_manager, create_spawn_marker_lines());
+	m_spawn_markers_ro_id = renderer.CreateRenderObject("spawn markers", RenderLayer::Scene3d, m_spawn_markers_mesh_id, m_line_pipeline_id);
+	renderer.Show(m_spawn_markers_ro_id, false);
+
 	m_polygon_editing_label.Init(asset_manager, create_editor_label_text(), font_atlas,
 		LabelFontSize, glm::vec2{ 32.0f, 64.0f }, UILabel::Align::Left, StoryTextColor);
 	m_polygon_editing_label.SetROId(renderer.CreateRenderObject("editing polygon label",
@@ -225,6 +277,22 @@ void GameplaySceneEditor::Update(
 			apply_polygon_draft(asset_manager, renderer);
 		save_scene_data();
 		return;
+	}
+
+	if (m_is_editing_spawn)
+	{
+		if (input.MouseButtonJustPressed(Input::MouseButton::Right))
+		{
+			cancel_spawn_editing(asset_manager, renderer);
+			return;
+		}
+
+		if (input.MouseButtonJustPressed(Input::MouseButton::Left))
+		{
+			if (std::optional<glm::vec2> ground_pos = camera.ScreenPointToGround(input.GetMousePos(), viewport))
+				set_spawn_position(asset_manager, renderer, *ground_pos);
+			return;
+		}
 	}
 
 	if (m_is_editing_polygon)
@@ -285,16 +353,73 @@ void GameplaySceneEditor::Update(
 		delete_selected_adjacent_scene(asset_manager, renderer);
 		return;
 	}
+
+	if (input.KeyJustPressed('1'))
+	{
+		if (m_is_editing_spawn
+			&& m_spawn_edit_target
+			&& m_spawn_edit_target->owner == SpawnOwner::Default
+			&& m_spawn_edit_target->character == SpawnCharacter::Dog)
+			cancel_spawn_editing(asset_manager, renderer);
+		else
+			begin_spawn_editing(asset_manager, renderer, SpawnEditTarget{
+				.owner = SpawnOwner::Default,
+				.character = SpawnCharacter::Dog
+			});
+		return;
+	}
+
+	if (input.KeyJustPressed('2'))
+	{
+		if (m_is_editing_spawn
+			&& m_spawn_edit_target
+			&& m_spawn_edit_target->owner == SpawnOwner::Default
+			&& m_spawn_edit_target->character == SpawnCharacter::Baby)
+			cancel_spawn_editing(asset_manager, renderer);
+		else
+			begin_spawn_editing(asset_manager, renderer, SpawnEditTarget{
+				.owner = SpawnOwner::Default,
+				.character = SpawnCharacter::Baby
+			});
+		return;
+	}
+
+	if (input.KeyJustPressed('3'))
+	{
+		if (m_is_editing_spawn
+			&& m_spawn_edit_target
+			&& m_spawn_edit_target->owner == SpawnOwner::AdjacentScene
+			&& m_spawn_edit_target->character == SpawnCharacter::Dog)
+			cancel_spawn_editing(asset_manager, renderer);
+		else if (has_selected_adjacent_scene())
+			begin_spawn_editing(asset_manager, renderer, selected_adjacent_spawn_target(SpawnCharacter::Dog));
+		return;
+	}
+
+	if (input.KeyJustPressed('4'))
+	{
+		if (m_is_editing_spawn
+			&& m_spawn_edit_target
+			&& m_spawn_edit_target->owner == SpawnOwner::AdjacentScene
+			&& m_spawn_edit_target->character == SpawnCharacter::Baby)
+			cancel_spawn_editing(asset_manager, renderer);
+		else if (has_selected_adjacent_scene())
+			begin_spawn_editing(asset_manager, renderer, selected_adjacent_spawn_target(SpawnCharacter::Baby));
+		return;
+	}
 }
 
 void GameplaySceneEditor::OnSceneStateChanged(SceneState new_state, AssetManager & asset_manager, SceneRenderer & renderer)
 {
 	if (new_state == SceneState::Gameplay && m_is_editing_polygon)
 		cancel_polygon_editing(asset_manager, renderer);
+	if (new_state == SceneState::Gameplay && m_is_editing_spawn)
+		cancel_spawn_editing(asset_manager, renderer);
 
 	m_grid.OnSceneStateChanged(new_state, renderer);
 	show_bounds(renderer, new_state == SceneState::Editing);
 	show_adjacent_bounds(renderer, new_state == SceneState::Editing);
+	show_spawn_markers(renderer, new_state == SceneState::Editing);
 	update_polygon_editing_label();
 	show_polygon_editing_label(renderer, new_state == SceneState::Editing);
 }
@@ -306,12 +431,15 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 
 	m_is_editing_polygon = false;
 	m_edit_target.reset();
+	m_is_editing_spawn = false;
+	m_spawn_edit_target.reset();
 	m_draft_vertices.clear();
 	if (m_selected_adjacent_scene_index && *m_selected_adjacent_scene_index >= m_scene_data->adjacent_scenes.size())
 		m_selected_adjacent_scene_index.reset();
 
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	rebuild_adjacent_overlays(asset_manager, renderer);
+	rebuild_spawn_markers(asset_manager, renderer);
 	update_polygon_editing_label();
 }
 
@@ -463,6 +591,19 @@ void GameplaySceneEditor::rebuild_adjacent_overlay(AssetManager & asset_manager,
 		AdjacentPointThickness);
 }
 
+void GameplaySceneEditor::rebuild_spawn_markers(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	MeshId<Vertex2d> old_spawn_markers_mesh_id = m_spawn_markers_mesh_id;
+	m_spawn_markers_mesh_id = create_line_mesh(asset_manager, create_spawn_marker_lines());
+
+	RenderObject * spawn_markers_ro = renderer.GetRenderObject(m_spawn_markers_ro_id);
+	if (spawn_markers_ro)
+		spawn_markers_ro->SetMeshId(m_spawn_markers_mesh_id);
+
+	if (old_spawn_markers_mesh_id.IsValid())
+		asset_manager.RemoveMesh(old_spawn_markers_mesh_id);
+}
+
 void GameplaySceneEditor::show_bounds(SceneRenderer & renderer, bool show)
 {
 	show_polygon_overlay(renderer, m_bounds_overlay, show);
@@ -477,6 +618,11 @@ void GameplaySceneEditor::show_adjacent_bounds(SceneRenderer & renderer, bool sh
 	}
 }
 
+void GameplaySceneEditor::show_spawn_markers(SceneRenderer & renderer, bool show)
+{
+	renderer.Show(m_spawn_markers_ro_id, show);
+}
+
 void GameplaySceneEditor::show_polygon_editing_label(SceneRenderer & renderer, bool show)
 {
 	renderer.Show(m_polygon_editing_label.GetROId(), show);
@@ -487,6 +633,8 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	if (target.kind == PolygonEditTargetKind::AdjacentScene && (!m_scene_data || target.adjacent_index >= m_scene_data->adjacent_scenes.size()))
 		return;
 
+	if (m_is_editing_spawn)
+		cancel_spawn_editing(asset_manager, renderer);
 	if (m_is_editing_polygon)
 		cancel_polygon_editing(asset_manager, renderer);
 
@@ -494,7 +642,10 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	m_edit_target = target;
 	m_draft_vertices = get_target_vertices(target);
 	if (target.kind == PolygonEditTargetKind::AdjacentScene)
+	{
 		m_selected_adjacent_scene_index = target.adjacent_index;
+		rebuild_spawn_markers(asset_manager, renderer);
+	}
 
 	if (target.kind == PolygonEditTargetKind::SceneBounds)
 		rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
@@ -504,6 +655,7 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	update_polygon_editing_label();
 	show_bounds(renderer, true);
 	show_adjacent_bounds(renderer, true);
+	show_spawn_markers(renderer, true);
 	show_polygon_editing_label(renderer, true);
 }
 
@@ -521,6 +673,7 @@ void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, S
 
 	show_bounds(renderer, true);
 	show_adjacent_bounds(renderer, true);
+	show_spawn_markers(renderer, true);
 	update_polygon_editing_label();
 	show_polygon_editing_label(renderer, true);
 }
@@ -540,6 +693,7 @@ bool GameplaySceneEditor::apply_polygon_draft(AssetManager & asset_manager, Scen
 	rebuild_adjacent_overlays(asset_manager, renderer);
 	show_bounds(renderer, true);
 	show_adjacent_bounds(renderer, true);
+	show_spawn_markers(renderer, true);
 	update_polygon_editing_label();
 	show_polygon_editing_label(renderer, true);
 	return true;
@@ -569,6 +723,51 @@ void GameplaySceneEditor::remove_last_draft_vertex(AssetManager & asset_manager,
 		rebuild_adjacent_overlay(asset_manager, renderer, m_edit_target->adjacent_index);
 }
 
+void GameplaySceneEditor::begin_spawn_editing(AssetManager & asset_manager, SceneRenderer & renderer, SpawnEditTarget target)
+{
+	if (target.owner == SpawnOwner::AdjacentScene && (!m_scene_data || target.adjacent_index >= m_scene_data->adjacent_scenes.size()))
+		return;
+
+	if (m_is_editing_polygon)
+		cancel_polygon_editing(asset_manager, renderer);
+	if (m_is_editing_spawn)
+		cancel_spawn_editing(asset_manager, renderer);
+
+	m_is_editing_spawn = true;
+	m_spawn_edit_target = target;
+	if (target.owner == SpawnOwner::AdjacentScene)
+		m_selected_adjacent_scene_index = target.adjacent_index;
+
+	rebuild_spawn_markers(asset_manager, renderer);
+	update_polygon_editing_label();
+	show_spawn_markers(renderer, true);
+	show_polygon_editing_label(renderer, true);
+}
+
+void GameplaySceneEditor::cancel_spawn_editing(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	m_is_editing_spawn = false;
+	m_spawn_edit_target.reset();
+	rebuild_spawn_markers(asset_manager, renderer);
+	update_polygon_editing_label();
+	show_spawn_markers(renderer, true);
+	show_polygon_editing_label(renderer, true);
+}
+
+void GameplaySceneEditor::set_spawn_position(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 pos)
+{
+	if (!m_spawn_edit_target)
+		return;
+
+	set_spawn_position(*m_spawn_edit_target, pos);
+	m_is_editing_spawn = false;
+	m_spawn_edit_target.reset();
+	rebuild_spawn_markers(asset_manager, renderer);
+	update_polygon_editing_label();
+	show_spawn_markers(renderer, true);
+	show_polygon_editing_label(renderer, true);
+}
+
 void GameplaySceneEditor::select_next_adjacent_scene(AssetManager & asset_manager, SceneRenderer & renderer)
 {
 	if (!m_scene_data || m_scene_data->adjacent_scenes.empty())
@@ -579,6 +778,8 @@ void GameplaySceneEditor::select_next_adjacent_scene(AssetManager & asset_manage
 
 	if (m_is_editing_polygon)
 		cancel_polygon_editing(asset_manager, renderer);
+	if (m_is_editing_spawn)
+		cancel_spawn_editing(asset_manager, renderer);
 
 	if (!m_selected_adjacent_scene_index)
 		m_selected_adjacent_scene_index = 0;
@@ -586,6 +787,7 @@ void GameplaySceneEditor::select_next_adjacent_scene(AssetManager & asset_manage
 		m_selected_adjacent_scene_index = (*m_selected_adjacent_scene_index + 1) % m_scene_data->adjacent_scenes.size();
 
 	rebuild_adjacent_overlays(asset_manager, renderer);
+	rebuild_spawn_markers(asset_manager, renderer);
 	update_polygon_editing_label();
 }
 
@@ -596,10 +798,13 @@ void GameplaySceneEditor::create_adjacent_scene(AssetManager & asset_manager, Sc
 
 	if (m_is_editing_polygon)
 		cancel_polygon_editing(asset_manager, renderer);
+	if (m_is_editing_spawn)
+		cancel_spawn_editing(asset_manager, renderer);
 
 	m_scene_data->adjacent_scenes.emplace_back();
 	m_selected_adjacent_scene_index = m_scene_data->adjacent_scenes.size() - 1;
 	rebuild_adjacent_overlays(asset_manager, renderer);
+	rebuild_spawn_markers(asset_manager, renderer);
 	begin_polygon_editing(asset_manager, renderer, selected_adjacent_target());
 }
 
@@ -610,6 +815,8 @@ void GameplaySceneEditor::delete_selected_adjacent_scene(AssetManager & asset_ma
 
 	if (m_is_editing_polygon)
 		cancel_polygon_editing(asset_manager, renderer);
+	if (m_is_editing_spawn)
+		cancel_spawn_editing(asset_manager, renderer);
 
 	std::size_t const erased_index = *m_selected_adjacent_scene_index;
 	m_scene_data->adjacent_scenes.erase(m_scene_data->adjacent_scenes.begin() + static_cast<std::ptrdiff_t>(erased_index));
@@ -619,6 +826,7 @@ void GameplaySceneEditor::delete_selected_adjacent_scene(AssetManager & asset_ma
 		m_selected_adjacent_scene_index = m_scene_data->adjacent_scenes.size() - 1;
 
 	rebuild_adjacent_overlays(asset_manager, renderer);
+	rebuild_spawn_markers(asset_manager, renderer);
 	update_polygon_editing_label();
 }
 
@@ -633,6 +841,15 @@ GameplaySceneEditor::PolygonEditTarget GameplaySceneEditor::selected_adjacent_ta
 {
 	return PolygonEditTarget{
 		.kind = PolygonEditTargetKind::AdjacentScene,
+		.adjacent_index = m_selected_adjacent_scene_index.value_or(0)
+	};
+}
+
+GameplaySceneEditor::SpawnEditTarget GameplaySceneEditor::selected_adjacent_spawn_target(SpawnCharacter character) const
+{
+	return SpawnEditTarget{
+		.owner = SpawnOwner::AdjacentScene,
+		.character = character,
 		.adjacent_index = m_selected_adjacent_scene_index.value_or(0)
 	};
 }
@@ -660,6 +877,49 @@ void GameplaySceneEditor::set_target_vertices(PolygonEditTarget target, std::vec
 		m_scene_data->adjacent_scenes[target.adjacent_index].collider.SetVertices(std::move(vertices));
 }
 
+glm::vec2 GameplaySceneEditor::get_spawn_position(SpawnEditTarget target) const
+{
+	if (!m_scene_data)
+		return glm::vec2{ 0.0f };
+
+	if (target.owner == SpawnOwner::Default)
+		return target.character == SpawnCharacter::Dog
+			? m_scene_data->dog_spawn_pos
+			: m_scene_data->baby_spawn_pos;
+
+	if (target.adjacent_index >= m_scene_data->adjacent_scenes.size())
+		return glm::vec2{ 0.0f };
+
+	GameplayAdjacentScene const & adjacent_scene = m_scene_data->adjacent_scenes[target.adjacent_index];
+	return target.character == SpawnCharacter::Dog
+		? adjacent_scene.dog_spawn_pos
+		: adjacent_scene.baby_spawn_pos;
+}
+
+void GameplaySceneEditor::set_spawn_position(SpawnEditTarget target, glm::vec2 pos)
+{
+	if (!m_scene_data)
+		return;
+
+	if (target.owner == SpawnOwner::Default)
+	{
+		if (target.character == SpawnCharacter::Dog)
+			m_scene_data->dog_spawn_pos = pos;
+		else
+			m_scene_data->baby_spawn_pos = pos;
+		return;
+	}
+
+	if (target.adjacent_index >= m_scene_data->adjacent_scenes.size())
+		return;
+
+	GameplayAdjacentScene & adjacent_scene = m_scene_data->adjacent_scenes[target.adjacent_index];
+	if (target.character == SpawnCharacter::Dog)
+		adjacent_scene.dog_spawn_pos = pos;
+	else
+		adjacent_scene.baby_spawn_pos = pos;
+}
+
 void GameplaySceneEditor::update_polygon_editing_label()
 {
 	m_polygon_editing_label.SetText(create_editor_label_text());
@@ -667,6 +927,31 @@ void GameplaySceneEditor::update_polygon_editing_label()
 
 std::string GameplaySceneEditor::create_editor_label_text() const
 {
+	if (m_is_editing_spawn && m_spawn_edit_target)
+	{
+		std::string owner_text = "default";
+		if (m_spawn_edit_target->owner == SpawnOwner::AdjacentScene)
+		{
+			owner_text = "adjacent";
+			if (m_scene_data && m_spawn_edit_target->adjacent_index < m_scene_data->adjacent_scenes.size())
+			{
+				GameplayAdjacentScene const & adjacent_scene = m_scene_data->adjacent_scenes[m_spawn_edit_target->adjacent_index];
+				owner_text = "adjacent #" + std::to_string(m_spawn_edit_target->adjacent_index + 1)
+					+ ": " + std::string{ ToString(adjacent_scene.scene_id) };
+			}
+		}
+
+		std::string const character_text = m_spawn_edit_target->character == SpawnCharacter::Dog ? "dog" : "baby";
+		return "Editing " + owner_text + " " + character_text + " spawn\n"
+			"[Left Click] Place spawn\n"
+			"[Right Click] Cancel\n"
+			"[1] Default dog spawn\n"
+			"[2] Default baby spawn\n"
+			"[3] Adjacent dog spawn\n"
+			"[4] Adjacent baby spawn\n"
+			"[Ctrl+S] Save";
+	}
+
 	if (!m_is_editing_polygon || !m_edit_target)
 	{
 		std::string selected_adjacent_text = "none";
@@ -684,6 +969,10 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			"[A] Edit selected adjacent\n"
 			"[Shift+A] New adjacent\n"
 			"[Delete] Delete selected adjacent\n"
+			"[1] Default dog spawn\n"
+			"[2] Default baby spawn\n"
+			"[3] Adjacent dog spawn\n"
+			"[4] Adjacent baby spawn\n"
 			"[Ctrl+S] Save\n"
 			"[R] Reload";
 	}
@@ -780,6 +1069,91 @@ std::vector<LineInstance> GameplaySceneEditor::create_edge_lines(
 	}
 
 	return lines;
+}
+
+std::vector<LineInstance> GameplaySceneEditor::create_spawn_marker_lines() const
+{
+	std::vector<LineInstance> lines;
+	if (!m_scene_data)
+		return lines;
+
+	auto append_marker = [&](SpawnEditTarget target, glm::vec4 base_color)
+	{
+		bool const is_selected_adjacent = target.owner == SpawnOwner::AdjacentScene
+			&& m_selected_adjacent_scene_index
+			&& *m_selected_adjacent_scene_index == target.adjacent_index;
+		bool const is_editing_this = m_is_editing_spawn
+			&& m_spawn_edit_target
+			&& m_spawn_edit_target->owner == target.owner
+			&& m_spawn_edit_target->character == target.character
+			&& (target.owner == SpawnOwner::Default || m_spawn_edit_target->adjacent_index == target.adjacent_index);
+
+		glm::vec4 const color = is_editing_this
+			? EditingSpawnColor
+			: is_selected_adjacent ? SelectedSpawnColor : base_color;
+		float const size = is_editing_this || is_selected_adjacent ? SelectedSpawnMarkerSize : SpawnMarkerSize;
+		float const thickness = is_editing_this || is_selected_adjacent ? SelectedSpawnMarkerThickness : SpawnMarkerThickness;
+		append_spawn_marker_lines(lines, get_spawn_position(target), color, size, thickness);
+	};
+
+	append_marker(SpawnEditTarget{
+		.owner = SpawnOwner::Default,
+		.character = SpawnCharacter::Dog
+	}, DefaultDogSpawnColor);
+	append_marker(SpawnEditTarget{
+		.owner = SpawnOwner::Default,
+		.character = SpawnCharacter::Baby
+	}, DefaultBabySpawnColor);
+
+	for (std::size_t i = 0; i < m_scene_data->adjacent_scenes.size(); ++i)
+	{
+		append_marker(SpawnEditTarget{
+			.owner = SpawnOwner::AdjacentScene,
+			.character = SpawnCharacter::Dog,
+			.adjacent_index = i
+		}, AdjacentDogSpawnColor);
+		append_marker(SpawnEditTarget{
+			.owner = SpawnOwner::AdjacentScene,
+			.character = SpawnCharacter::Baby,
+			.adjacent_index = i
+		}, AdjacentBabySpawnColor);
+	}
+
+	return lines;
+}
+
+void GameplaySceneEditor::append_spawn_marker_lines(
+	std::vector<LineInstance> & lines,
+	glm::vec2 pos,
+	glm::vec4 color,
+	float size,
+	float thickness) const
+{
+	const float z = 0.02f;
+	lines.push_back(LineInstance{
+		.p0 = { pos.x - size, pos.y, z },
+		.p1 = { pos.x + size, pos.y, z },
+		.thickness = thickness,
+		.color = color
+	});
+	lines.push_back(LineInstance{
+		.p0 = { pos.x, pos.y - size, z },
+		.p1 = { pos.x, pos.y + size, z },
+		.thickness = thickness,
+		.color = color
+	});
+	lines.push_back(LineInstance{
+		.p0 = { pos.x - size * 0.7f, pos.y - size * 0.7f, z },
+		.p1 = { pos.x + size * 0.7f, pos.y + size * 0.7f, z },
+		.thickness = thickness * 0.7f,
+		.color = color
+	});
+	lines.push_back(LineInstance{
+		.p0 = { pos.x - size * 0.7f, pos.y + size * 0.7f, z },
+		.p1 = { pos.x + size * 0.7f, pos.y - size * 0.7f, z },
+		.thickness = thickness * 0.7f,
+		.color = color
+	});
 }
 
 std::vector<LineInstance> GameplaySceneEditor::create_point_lines(

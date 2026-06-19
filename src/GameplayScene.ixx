@@ -122,6 +122,10 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
 	m_camera3d.Init(camera_pos, camera_dir);
 
+#ifdef _DEBUG
+	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_scene_data, get_gameplay_filepath());
+#endif
+
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_spawn_positions(transition);
 
 	m_dog.Init(m_asset_manager, camera_dir, dog_spawn_pos);
@@ -144,10 +148,6 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), m_text_pipeline_id, m_controls_label.GetPipelineData()));
 
 	create_story_labels(m_text_pipeline_id);
-
-#ifdef _DEBUG
-	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_scene_data, get_gameplay_filepath());
-#endif
 
 	ChangeSceneState(m_scene_data.initial_state);
 }
@@ -173,6 +173,9 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 #ifdef _DEBUG
 	const bool editor_consumed_input = m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
+	const float character_opacity = m_editor.IsEditing() ? 0.3f : 1.0f;
+	m_dog.SetOpacity(character_opacity);
+	m_baby.SetOpacity(character_opacity);
 
 	if (!editor_consumed_input && input.KeyJustPressed('R'))
 		reload_scene_data();

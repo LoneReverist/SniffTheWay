@@ -39,6 +39,7 @@ public:
 		glm::vec2 const & initial_pos);
 	void Update(float dt, Dog const * dog, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
+	void SetOpacity(float opacity);
 
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
 	SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
@@ -148,4 +149,9 @@ void Baby::OnSceneStateChanged(SceneState new_state)
 {
 	if (new_state != SceneState::Gameplay)
 		m_state = State::Idle;
+}
+
+void Baby::SetOpacity(float opacity)
+{
+	m_pipeline_data.tint.a = opacity;
 }

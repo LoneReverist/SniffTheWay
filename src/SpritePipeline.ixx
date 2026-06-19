@@ -29,6 +29,7 @@ public:
 	{
 		glm::mat4 model{ 1.0f };
 		glm::vec4 frame_uvs{ 0.0f }; // x = min_u, y = max_u, z = min_v, w = max_v
+		glm::vec4 tint{ 1.0f };
 		AssetId tex_id;
 	};
 
@@ -55,6 +56,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 	struct ObjectDataFS
 	{
 		alignas(16) glm::vec4 frame_uvs{ 0.0f };
+		alignas(16) glm::vec4 tint{ 1.0f };
 	};
 
 	dh::PipelineBuilder builder{ render_context };
@@ -105,7 +107,8 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 					.model = data->model
 				},
 				ObjectDataFS{
-					.frame_uvs = data->frame_uvs
+					.frame_uvs = data->frame_uvs,
+					.tint = data->tint
 				});
 		});
 

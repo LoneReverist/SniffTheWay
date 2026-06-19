@@ -9,11 +9,13 @@ layout(set = 1, binding = 0) uniform sampler2D tex_sampler;
 #ifdef BUILD_VULKAN
 layout(push_constant) uniform ObjectData {
 	layout(offset = 64) vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
+	layout(offset = 80) vec4 tint;
 } obj_data;
 
 #else // OpenGL
 layout(std140, binding = 9) uniform ObjectDataFS {
 	vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
+	vec4 tint;
 } obj_data;
 
 #endif
@@ -28,7 +30,9 @@ void main()
 	float u = mix(obj_data.frame_uvs.x, obj_data.frame_uvs.y, in_uv.x);
 	float v = mix(obj_data.frame_uvs.z, obj_data.frame_uvs.w, in_uv.y);
 	
-	out_frag_color = texture(tex_sampler, vec2(u, v));
-	if (out_frag_color.a == 0.0)
+	vec4 tex_color = texture(tex_sampler, vec2(u, v));
+	if (tex_color.a == 0.0)
 		discard;
+
+	out_frag_color = tex_color * obj_data.tint;
 }

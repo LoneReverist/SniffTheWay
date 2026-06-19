@@ -59,6 +59,35 @@ export namespace SniffTheWay
 		Home,
 	};
 
+	constexpr bool IsStoryScene(SceneId scene_id)
+	{
+		switch (scene_id)
+		{
+		case SceneId::Picnic:
+		case SceneId::Creek:
+		case SceneId::Night:
+		case SceneId::Home:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	constexpr bool IsGameplayScene(SceneId scene_id)
+	{
+		switch (scene_id)
+		{
+		case SceneId::ForestPath:
+		case SceneId::Playground:
+		case SceneId::Playground2:
+		case SceneId::DarkForest:
+		case SceneId::ForestIntersection:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	constexpr std::string_view ToString(SceneId scene_id)
 	{
 		switch (scene_id)

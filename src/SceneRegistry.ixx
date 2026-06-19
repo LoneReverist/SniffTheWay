@@ -26,24 +26,11 @@ public:
 
 std::unique_ptr<IScene> SceneRegistry::Create(SceneTransition trans, dh::RenderContext const & ctx) const
 {
-	switch (trans.next_scene_id)
-	{
-	case SceneId::Picnic:
-	case SceneId::Creek:
-	case SceneId::Night:
-	case SceneId::Home:
+	if (IsStoryScene(trans.next_scene_id))
 		return std::make_unique<StoryScene>(ctx, trans.next_scene_id);
 
-	case SceneId::ForestPath:
-	case SceneId::Playground:
-	case SceneId::Playground2:
-	case SceneId::DarkForest:
-	case SceneId::ForestIntersection:
+	if (IsGameplayScene(trans.next_scene_id))
 		return std::make_unique<GameplayScene>(ctx, trans.next_scene_id, trans);
-
-	case SceneId::Exit:
-		return nullptr;
-	}
 
 	return nullptr;
 }

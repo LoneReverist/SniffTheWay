@@ -149,7 +149,9 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 
 	create_story_labels(m_text_pipeline_id);
 
-	ChangeSceneState(m_scene_data.initial_state);
+	const bool arrived_from_gameplay_scene = transition.previous_scene_id.has_value()
+		&& IsGameplayScene(transition.previous_scene_id.value());
+	ChangeSceneState(arrived_from_gameplay_scene ? SceneState::Gameplay : m_scene_data.initial_state);
 }
 
 void GameplayScene::OnWindowResized(int width, int height)

@@ -181,7 +181,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 		if (input.KeyJustPressed(Input::Key::Space) || input.KeyJustPressed(Input::Key::Right) || input.KeyJustPressed('D'))
 		{
 			if (!page_forward())
-				return SceneTransition{ m_scene_data.next_scene_id };
+				return SceneTransition{ m_scene_data.next_scene_id, m_scene_id };
 		}
 
 #ifdef _DEBUG

@@ -138,6 +138,8 @@ std::string serialize_gameplay_scene_state(SniffTheWay::SceneState state)
 		return "story";
 	case SniffTheWay::SceneState::Paused:
 		return "paused";
+	case SniffTheWay::SceneState::Editing:
+		return "gameplay";
 	case SniffTheWay::SceneState::Gameplay:
 		return "gameplay";
 	}

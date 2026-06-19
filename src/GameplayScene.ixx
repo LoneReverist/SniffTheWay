@@ -106,24 +106,28 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 		m_scene_data.bg_image_filename = "playground.png";
 	}
 
+	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
+
+	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
+	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
+	m_camera3d.Init(camera_pos, camera_dir);
+
+	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
+		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
+	m_font_atlas.Init(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
+
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
 	m_text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
-
-	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
 
 	m_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "gameplay_backgrounds" / m_scene_data.bg_image_filename,
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	m_background.Init(m_asset_manager, m_bg_tex_id);
 	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
-	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
-	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
-	m_camera3d.Init(camera_pos, camera_dir);
-
 #ifdef _DEBUG
-	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_scene_data, get_gameplay_filepath());
+	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_font_atlas, m_text_pipeline_id, m_scene_data, get_gameplay_filepath());
 #endif
 
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_spawn_positions(transition);
@@ -133,10 +137,6 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 
 	m_baby.Init(m_asset_manager, camera_dir, baby_spawn_pos);
 	m_renderer.CreateRenderObject("baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
-
-	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
-		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
-	m_font_atlas.Init(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", RenderLayer::UIShadow, m_story_shadow.GetMeshId(), color_pipeline_id));
@@ -165,6 +165,9 @@ void GameplayScene::OnWindowResized(int width, int height)
 
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
 {
+	if (input.KeyJustPressed(Input::Key::Esc))
+		return SceneTransition{ SceneId::Exit };
+
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 		ChangeSceneState(SceneState::Gameplay);
 
@@ -172,22 +175,16 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 	m_fps_label.Update(dt);
 
 #ifdef _DEBUG
-	const bool editor_consumed_input = m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
-	const float character_opacity = m_editor.IsEditing() ? 0.3f : 1.0f;
-	m_dog.SetOpacity(character_opacity);
-	m_baby.SetOpacity(character_opacity);
-
-	if (!editor_consumed_input && input.KeyJustPressed('R'))
-		reload_scene_data();
-
-	if (!editor_consumed_input && input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{ SceneId::Exit };
-
-	if (editor_consumed_input || m_editor.IsEditing())
+	if ((m_scene_state == SceneState::Gameplay || m_scene_state == SceneState::Editing) && input.KeyJustPressed('E'))
+	{
+		ChangeSceneState(m_scene_state == SceneState::Editing ? SceneState::Gameplay : SceneState::Editing);
 		return std::nullopt;
-#else
-	if (input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{ SceneId::Exit };
+	}
+
+	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
+
+	if (input.KeyJustPressed('R'))
+		reload_scene_data();
 #endif
 
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
@@ -231,7 +228,10 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 		m_renderer.Show(story_label.GetROId(), show_story_ui);
 
 #ifdef _DEBUG
-	m_editor.OnSceneStateChanged(m_scene_state, m_renderer);
+	m_editor.OnSceneStateChanged(m_scene_state, m_asset_manager, m_renderer);
+	const float character_opacity = m_scene_state == SceneState::Editing ? 0.3f : 1.0f;
+	m_dog.SetOpacity(character_opacity);
+	m_baby.SetOpacity(character_opacity);
 #endif
 }
 
@@ -257,7 +257,10 @@ void GameplayScene::reload_scene_data()
 	m_editor.Reload(m_asset_manager, m_renderer);
 #endif
 
-	ChangeSceneState(m_scene_state);
+	if (m_scene_state == SceneState::Editing)
+		ChangeSceneState(SceneState::Gameplay);
+	else
+		ChangeSceneState(m_scene_state);
 	
 	std::cout << "GameplayScene: Reloaded gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
 }

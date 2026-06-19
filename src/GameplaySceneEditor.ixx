@@ -18,6 +18,7 @@ import AssetManager;
 import AssetPool;
 import Camera;
 import EditorGrid;
+import FontAtlas;
 import GameplaySceneData;
 import GameplaySceneLoader;
 import Input;
@@ -26,6 +27,8 @@ import Polygon2d;
 import RenderObject;
 import SceneRenderer;
 import SniffTheWayConstants;
+import TextPipeline;
+import UILabel;
 import Vertex;
 
 namespace dh = Dreamhearth;
@@ -38,19 +41,20 @@ public:
 		AssetManager & asset_manager,
 		SceneRenderer & renderer,
 		Camera3d const & camera,
+		FontAtlas const & font_atlas,
+		PipelineId<TextPipeline> text_pipeline_id,
 		GameplaySceneData & scene_data,
 		std::filesystem::path scene_filepath);
 
-	bool Update(
+	void Update(
 		Input const & input,
 		AssetManager & asset_manager,
 		SceneRenderer & renderer,
 		Camera3d const & camera,
 		glm::ivec4 viewport,
 		SceneState scene_state);
-	void OnSceneStateChanged(SceneState new_state, SceneRenderer & renderer);
+	void OnSceneStateChanged(SceneState new_state, AssetManager & asset_manager, SceneRenderer & renderer);
 	void Reload(AssetManager & asset_manager, SceneRenderer & renderer);
-	bool IsEditing() const { return m_is_editing; }
 
 private:
 	MeshId<Vertex2d> create_line_mesh(AssetManager & asset_manager, std::vector<LineInstance> const & lines) const;
@@ -60,10 +64,13 @@ private:
 		std::vector<glm::vec2> const & vertices,
 		bool close_edges);
 	void show_bounds(SceneRenderer & renderer, bool show);
-	void begin_editing(AssetManager & asset_manager, SceneRenderer & renderer);
-	void cancel_editing(AssetManager & asset_manager, SceneRenderer & renderer);
-	void apply_draft(AssetManager & asset_manager, SceneRenderer & renderer);
-	void save_scene_data(AssetManager & asset_manager, SceneRenderer & renderer);
+	void show_bounds_editing_label(SceneRenderer & renderer, bool show);
+	void begin_bounds_editing(AssetManager & asset_manager, SceneRenderer & renderer);
+	void cancel_bounds_editing(AssetManager & asset_manager, SceneRenderer & renderer);
+	bool apply_bounds_draft(AssetManager & asset_manager, SceneRenderer & renderer);
+	void add_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 vertex);
+	void remove_last_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer);
+	bool save_scene_data() const;
 	std::vector<LineInstance> create_edge_lines(std::vector<glm::vec2> const & vertices, bool close_edges) const;
 	std::vector<LineInstance> create_point_lines(std::vector<glm::vec2> const & vertices) const;
 
@@ -71,7 +78,8 @@ private:
 	GameplaySceneData * m_scene_data = nullptr;
 	std::filesystem::path m_scene_filepath;
 	EditorGrid m_grid;
-	bool m_is_editing = false;
+	UILabel m_bounds_editing_label;
+	bool m_is_editing_bounds = false;
 	std::vector<glm::vec2> m_draft_vertices;
 	MeshId<Vertex2d> m_bounds_edges_mesh_id;
 	MeshId<Vertex2d> m_bounds_points_mesh_id;
@@ -83,6 +91,8 @@ void GameplaySceneEditor::Init(
 	AssetManager & asset_manager,
 	SceneRenderer & renderer,
 	Camera3d const & camera,
+	FontAtlas const & font_atlas,
+	PipelineId<TextPipeline> text_pipeline_id,
 	GameplaySceneData & scene_data,
 	std::filesystem::path scene_filepath)
 {
@@ -101,9 +111,15 @@ void GameplaySceneEditor::Init(
 	m_bounds_points_mesh_id = create_line_mesh(asset_manager, create_point_lines(m_scene_data->bounds.GetVertices()));
 	m_bounds_points_ro_id = renderer.CreateRenderObject("scene bounds vertices", RenderLayer::Scene3d, m_bounds_points_mesh_id, line_pipeline_id);
 	renderer.Show(m_bounds_points_ro_id, false);
+
+	m_bounds_editing_label.Init(asset_manager, "Editing bounds", font_atlas,
+		LabelFontSize, glm::vec2{ 32.0f, 64.0f }, UILabel::Align::Left, StoryTextColor);
+	m_bounds_editing_label.SetROId(renderer.CreateRenderObject("editing bounds label",
+		RenderLayer::UIForeground, m_bounds_editing_label.GetMeshId(), text_pipeline_id, m_bounds_editing_label.GetPipelineData()));
+	renderer.Show(m_bounds_editing_label.GetROId(), false);
 }
 
-bool GameplaySceneEditor::Update(
+void GameplaySceneEditor::Update(
 	Input const & input,
 	AssetManager & asset_manager,
 	SceneRenderer & renderer,
@@ -111,74 +127,60 @@ bool GameplaySceneEditor::Update(
 	glm::ivec4 viewport,
 	SceneState scene_state)
 {
-	m_grid.Update(input, renderer, scene_state);
+	if (scene_state != SceneState::Editing)
+		return;
 
-	if (scene_state != SceneState::Gameplay)
-		return false;
+	m_grid.Update(input, renderer, scene_state);
 
 	const bool ctrl_is_down = input.KeyIsDown(Input::Key::LeftControl) || input.KeyIsDown(Input::Key::RightControl);
 	if (ctrl_is_down && input.KeyJustPressed('S'))
 	{
-		save_scene_data(asset_manager, renderer);
-		return true;
+		if (m_is_editing_bounds && m_draft_vertices.size() >= 3)
+			apply_bounds_draft(asset_manager, renderer);
+		save_scene_data();
+		return;
 	}
 
 	if (input.KeyJustPressed('B'))
 	{
-		if (m_is_editing)
-			cancel_editing(asset_manager, renderer);
+		if (m_is_editing_bounds)
+			cancel_bounds_editing(asset_manager, renderer);
 		else
-			begin_editing(asset_manager, renderer);
-		return true;
+			begin_bounds_editing(asset_manager, renderer);
+		return;
 	}
 
-	if (!m_is_editing)
-		return false;
-
-	if (input.KeyJustPressed(Input::Key::Esc))
+	if (m_is_editing_bounds)
 	{
-		cancel_editing(asset_manager, renderer);
-		return true;
-	}
-
-	if (input.KeyJustPressed(Input::Key::Backspace) || input.MouseButtonJustPressed(Input::MouseButton::Right))
-	{
-		if (!m_draft_vertices.empty())
+		if (input.KeyJustPressed(Input::Key::Backspace) || input.MouseButtonJustPressed(Input::MouseButton::Right))
 		{
-			m_draft_vertices.pop_back();
-			rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
+			remove_last_draft_vertex(asset_manager, renderer);
+			return;
 		}
-		return true;
-	}
 
-	if (input.MouseButtonJustPressed(Input::MouseButton::Left))
-	{
-		if (std::optional<glm::vec2> ground_pos = camera.ScreenPointToGround(input.GetMousePos(), viewport))
+		if (input.MouseButtonJustPressed(Input::MouseButton::Left))
 		{
-			m_draft_vertices.push_back(*ground_pos);
-			rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
+			if (std::optional<glm::vec2> ground_pos = camera.ScreenPointToGround(input.GetMousePos(), viewport))
+				add_draft_vertex(asset_manager, renderer, *ground_pos);
+			return;
 		}
-		return true;
-	}
 
-	if (input.KeyJustPressed(Input::Key::Enter))
-	{
-		if (m_draft_vertices.size() >= 3)
-			apply_draft(asset_manager, renderer);
-		return true;
+		if (input.KeyJustPressed(Input::Key::Enter))
+		{
+			apply_bounds_draft(asset_manager, renderer);
+			return;
+		}
 	}
-
-	return true;
 }
 
-void GameplaySceneEditor::OnSceneStateChanged(SceneState new_state, SceneRenderer & renderer)
+void GameplaySceneEditor::OnSceneStateChanged(SceneState new_state, AssetManager & asset_manager, SceneRenderer & renderer)
 {
+	if (new_state == SceneState::Gameplay && m_is_editing_bounds)
+		cancel_bounds_editing(asset_manager, renderer);
+
 	m_grid.OnSceneStateChanged(new_state, renderer);
-	if (new_state != SceneState::Gameplay)
-	{
-		renderer.Show(m_bounds_edges_ro_id, false);
-		renderer.Show(m_bounds_points_ro_id, false);
-	}
+	show_bounds(renderer, new_state == SceneState::Editing);
+	show_bounds_editing_label(renderer, new_state == SceneState::Editing && m_is_editing_bounds);
 }
 
 void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & renderer)
@@ -186,7 +188,7 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 	if (!m_scene_data)
 		return;
 
-	m_is_editing = false;
+	m_is_editing_bounds = false;
 	m_draft_vertices.clear();
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 }
@@ -222,44 +224,62 @@ void GameplaySceneEditor::show_bounds(SceneRenderer & renderer, bool show)
 	renderer.Show(m_bounds_points_ro_id, show);
 }
 
-void GameplaySceneEditor::begin_editing(AssetManager & asset_manager, SceneRenderer & renderer)
+void GameplaySceneEditor::show_bounds_editing_label(SceneRenderer & renderer, bool show)
 {
-	m_is_editing = true;
+	renderer.Show(m_bounds_editing_label.GetROId(), show);
+}
+
+void GameplaySceneEditor::begin_bounds_editing(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	m_is_editing_bounds = true;
 	m_draft_vertices = m_scene_data ? m_scene_data->bounds.GetVertices() : std::vector<glm::vec2>{};
 	rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
 	show_bounds(renderer, true);
+	show_bounds_editing_label(renderer, true);
 }
 
-void GameplaySceneEditor::cancel_editing(AssetManager & asset_manager, SceneRenderer & renderer)
+void GameplaySceneEditor::cancel_bounds_editing(AssetManager & asset_manager, SceneRenderer & renderer)
 {
-	m_is_editing = false;
+	m_is_editing_bounds = false;
 	m_draft_vertices.clear();
 	if (m_scene_data)
 		rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
-	show_bounds(renderer, false);
+	show_bounds(renderer, true);
+	show_bounds_editing_label(renderer, false);
 }
 
-void GameplaySceneEditor::apply_draft(AssetManager & asset_manager, SceneRenderer & renderer)
+bool GameplaySceneEditor::apply_bounds_draft(AssetManager & asset_manager, SceneRenderer & renderer)
 {
 	if (!m_scene_data || m_draft_vertices.size() < 3)
-		return;
+		return false;
 
 	m_scene_data->bounds.SetVertices(m_draft_vertices);
-	m_is_editing = false;
+	m_is_editing_bounds = false;
 	m_draft_vertices.clear();
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	show_bounds(renderer, true);
+	show_bounds_editing_label(renderer, false);
+	return true;
 }
 
-void GameplaySceneEditor::save_scene_data(AssetManager & asset_manager, SceneRenderer & renderer)
+void GameplaySceneEditor::add_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 vertex)
 {
-	if (!m_scene_data)
+	m_draft_vertices.push_back(vertex);
+	rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
+}
+
+void GameplaySceneEditor::remove_last_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (m_draft_vertices.empty())
 		return;
 
-	if (m_is_editing && m_draft_vertices.size() >= 3)
-		apply_draft(asset_manager, renderer);
+	m_draft_vertices.pop_back();
+	rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
+}
 
-	GameplaySceneLoader::SaveSceneData(m_scene_filepath, *m_scene_data);
+bool GameplaySceneEditor::save_scene_data() const
+{
+	return m_scene_data && GameplaySceneLoader::SaveSceneData(m_scene_filepath, *m_scene_data);
 }
 
 MeshId<Vertex2d> GameplaySceneEditor::create_line_mesh(AssetManager & asset_manager, std::vector<LineInstance> const & lines) const

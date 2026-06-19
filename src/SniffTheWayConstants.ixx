@@ -41,6 +41,7 @@ export namespace SniffTheWay
 	{
 		Story,
 		Gameplay,
+		Editing,
 		Paused,
 	};
 

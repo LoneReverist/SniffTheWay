@@ -87,6 +87,21 @@ StoryText parse_gameplay_story_text(json const & j)
 	return story_text;
 }
 
+ScentTrailData parse_scent_trail(json const & j)
+{
+	ScentTrailData scent_trail;
+	if (!j.is_object())
+		return scent_trail;
+
+	scent_trail.width = j.value("width", scent_trail.width);
+	scent_trail.visible_distance = j.value("visible_distance", scent_trail.visible_distance);
+
+	for (json const & point_json : j.value("points", json::array()))
+		scent_trail.points.push_back(parse_gameplay_vec2(point_json, glm::vec2{ 0.0f }));
+
+	return scent_trail;
+}
+
 GameplayAdjacentScene parse_gameplay_adjacent_scene(json const & j)
 {
 	GameplayAdjacentScene adjacent_scene;
@@ -175,6 +190,19 @@ json serialize_gameplay_story_text(StoryText const & story_text)
 	};
 }
 
+json serialize_scent_trail(ScentTrailData const & scent_trail)
+{
+	json points = json::array();
+	for (glm::vec2 const & point : scent_trail.points)
+		points.push_back(serialize_gameplay_vec2(point));
+
+	return json{
+		{ "width", scent_trail.width },
+		{ "visible_distance", scent_trail.visible_distance },
+		{ "points", std::move(points) }
+	};
+}
+
 json serialize_gameplay_adjacent_scene(GameplayAdjacentScene const & adjacent_scene)
 {
 	return json{
@@ -198,6 +226,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 		{ "dog", serialize_gameplay_vec2(scene_data.dog_spawn_pos) },
 		{ "baby", serialize_gameplay_vec2(scene_data.baby_spawn_pos) }
 	};
+	root["scent_trail"] = serialize_scent_trail(scene_data.scent_trail);
 
 	json adjacent_scenes = json::array();
 	for (GameplayAdjacentScene const & adjacent_scene : scene_data.adjacent_scenes)
@@ -216,6 +245,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 			key != "initial_state" &&
 			key != "bounds" &&
 			key != "default_spawn" &&
+			key != "scent_trail" &&
 			key != "story_texts" &&
 			key != "adjacent_scenes")
 		{
@@ -255,6 +285,9 @@ export namespace GameplaySceneLoader
 				scene_data.dog_spawn_pos = parse_gameplay_vec2(spawn_json["dog"], scene_data.dog_spawn_pos);
 			if (spawn_json.contains("baby"))
 				scene_data.baby_spawn_pos = parse_gameplay_vec2(spawn_json["baby"], scene_data.baby_spawn_pos);
+
+			if (root.contains("scent_trail"))
+				scene_data.scent_trail = parse_scent_trail(root["scent_trail"]);
 
 			for (json const & text_json : root.value("story_texts", json::array()))
 				scene_data.story_texts.push_back(parse_gameplay_story_text(text_json));

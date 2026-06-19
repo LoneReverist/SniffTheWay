@@ -97,8 +97,30 @@ export struct ColorVertex2d
 	static dh::LayoutDesc CreateLayout() { return create_layout<ColorVertex2d>(); }
 };
 
+export struct ScentTrailVertex
+{
+	glm::vec3 pos{ 0.0f };
+	float trail_t = 0.0f;
+	float side = 0.0f;
+
+	static dh::LayoutDesc CreateLayout()
+	{
+		dh::LayoutDesc layout;
+		layout.binding = 0;
+		layout.stride = sizeof(ScentTrailVertex);
+		layout.input_rate = dh::InputRate::Vertex;
+		layout.attributes = {
+			{ dh::AttributeType::Float3, offsetof(ScentTrailVertex, pos), 0 },
+			{ dh::AttributeType::Float, offsetof(ScentTrailVertex, trail_t), 1 },
+			{ dh::AttributeType::Float, offsetof(ScentTrailVertex, side), 2 }
+		};
+		return layout;
+	}
+};
+
 export template <typename T>
 concept IsVertex =
 	std::same_as<T, Vertex2d>
 	|| std::same_as<T, TextureVertex2d>
-	|| std::same_as<T, ColorVertex2d>;
+	|| std::same_as<T, ColorVertex2d>
+	|| std::same_as<T, ScentTrailVertex>;

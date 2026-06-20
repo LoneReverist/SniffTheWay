@@ -59,8 +59,8 @@ void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail
 	m_pipeline_data.base_opacity = 0.68f;
 	m_pipeline_data.elapsed_time = 0.0f;
 	m_pipeline_data.glow_speed = 0.34f;
-	m_pipeline_data.glow_width = 0.085f;
-	m_pipeline_data.glow_intensity = 1.2f;
+	m_pipeline_data.glow_width = 0.145f;
+	m_pipeline_data.glow_intensity = 1.85f;
 }
 
 void ScentTrail::Reload(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos)

@@ -133,11 +133,11 @@ MoteField mote_field(float trail_t, float side, float elapsed_time, float direct
 		}
 	}
 
-	float band_presence = 0.6 + directional_glow * 1.35;
+	float band_presence = 0.55 + directional_glow * 0.65;
 	float center_bias = mix(0.22, 1.45, center_glow);
 	field.core *= band_presence * center_bias;
 	field.halo *= band_presence * center_bias;
-	field.haze *= (0.75 + directional_glow * 0.75) * center_bias;
+	field.haze *= (0.7 + directional_glow * 0.35) * center_bias;
 	return field;
 }
 
@@ -156,17 +156,31 @@ void main()
 	float center_glow = 1.0 - smoothstep(0.0, 0.75, abs(in_side));
 	float center_spine = exp(-in_side * in_side * 18.0);
 	float center_haze = exp(-in_side * in_side * 4.5);
-	float glow_center = fract(obj_data.elapsed_time * obj_data.glow_speed);
-	float glow_distance = (in_trail_t - glow_center) / glow_width;
-	float directional_glow = exp(-glow_distance * glow_distance) * max(center_glow, center_spine);
+	
+	float pulse_margin = glow_width * 2.2;
+	float pulse_phase = fract(obj_data.elapsed_time * obj_data.glow_speed);
+	float glow_front = pulse_phase * (1.0 + pulse_margin * 2.0) - pulse_margin;
+	float front_delta = in_trail_t - glow_front;
+	float behind_front = max(-front_delta, 0.0);
+	float ahead_of_front = max(front_delta, 0.0);
+	float leading_edge = 1.0 - smoothstep(0.0, glow_width * 0.28, ahead_of_front);
+	float trailing_core = exp(-pow(behind_front / (glow_width * 0.78), 2.0));
+	float trailing_halo = exp(-pow(behind_front / (glow_width * 1.85), 2.0));
+	float directional_profile = leading_edge * trailing_core;
+	float halo_profile = (1.0 - smoothstep(0.0, glow_width * 0.48, ahead_of_front)) * trailing_halo;
+	float directional_glow = directional_profile * max(center_glow, center_spine);
+	float pulse_core = directional_profile * (0.65 + center_spine * 1.35) * obj_data.glow_intensity;
+	float pulse_halo = halo_profile * center_haze * obj_data.glow_intensity;
 	MoteField motes = mote_field(in_trail_t, in_side, obj_data.elapsed_time, directional_glow, center_glow);
-	float aura = edge_fade * (0.2 + center_haze * 0.65 + center_spine * 0.85 + directional_glow * 0.45);
+	float aura = edge_fade * (0.2 + center_haze * 0.65 + center_spine * 0.85 + pulse_halo * 0.1);
 	float alpha = dog_fade * (
 		obj_data.color.a * base_opacity * aura * 0.55
 		+ center_spine * 0.35
-		+ motes.haze * 0.26
-		+ motes.halo * 0.62
-		+ motes.core * 1.15);
+		+ pulse_halo * 0.05
+		+ pulse_core * 0.07
+		+ motes.haze * 0.42
+		+ motes.halo * 1.08
+		+ motes.core * 1.95);
 
 	if (alpha < 0.004)
 		discard;
@@ -180,9 +194,11 @@ void main()
 		aura_color * aura * soft_edge * 0.95
 		+ halo_color * center_haze * 0.9
 		+ mote_color * center_spine * 1.25
-		+ halo_color * motes.haze * 0.95
-		+ mote_color * motes.halo * 1.8
-		+ core_color * motes.core * 4.4;
+		+ halo_color * pulse_halo * 0.26
+		+ core_color * pulse_core * 0.34
+		+ halo_color * motes.haze * 1.35
+		+ mote_color * motes.halo * 3.05
+		+ core_color * motes.core * 8.5;
 	color *= dog_fade;
 	out_frag_color = vec4(color, alpha);
 }

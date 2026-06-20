@@ -4,6 +4,7 @@ build/*
 build-debug/*
 build-release/*
 build-clangwin/*
+build-clangwin-release/*
 resources/concept/*
 resources/music/*
 

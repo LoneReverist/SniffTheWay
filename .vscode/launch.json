@@ -50,6 +50,18 @@
             "console": "externalTerminal"
         },
         {
+            "name": "Release Windows SniffTheWay",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "Build SniffTheWay Release Windows",
+            "program": "${workspaceFolder}/build/Release/SniffTheWay.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "internalConsole"
+        },
+        {
             "name": "Debug Windows Clang SniffTheWay",
             "type": "cppvsdbg",
             "request": "launch",
@@ -62,11 +74,11 @@
             "console": "externalTerminal"
         },
         {
-            "name": "Release Windows SniffTheWay",
+            "name": "Release Windows Clang SniffTheWay",
             "type": "cppvsdbg",
             "request": "launch",
-            "preLaunchTask": "Build SniffTheWay Release Windows",
-            "program": "${workspaceFolder}/build/Release/SniffTheWay.exe",
+            "preLaunchTask": "Build SniffTheWay Release Windows Clang",
+            "program": "${workspaceFolder}/build-clangwin-release/SniffTheWay.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

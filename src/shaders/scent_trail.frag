@@ -63,14 +63,21 @@ MoteField add_mote_field(MoteField a, MoteField b)
 		min(a.haze + b.haze, 1.0));
 }
 
-MoteField mote_generation(vec2 cell, vec2 local, float generation, float elapsed_time, float lane_center_bias)
+MoteField mote_generation(vec2 cell, vec2 local, float elapsed_time, float lane_center_bias)
 {
 	const float edge_density = 0.34;
 	const float center_density = 0.96;
 	const float core_radius = 0.06;
 	const float halo_radius = 0.21;
 	const float haze_radius = 0.42;
-	const float twinkle_speed = 5.8;
+	const float twinkle_speed = 3.4;
+
+	float lifetime = mix(1.15, 2.6, hash21(cell + vec2(31.0, 7.0)));
+	float phase_offset = hash21(cell + vec2(11.0, 83.0)) * lifetime;
+	float life_time = (elapsed_time + phase_offset) / lifetime;
+	float generation = floor(life_time);
+	float age = fract(life_time);
+	float life_fade = smoothstep(0.0, 0.18, age) * (1.0 - smoothstep(0.68, 1.0, age));
 
 	vec2 generation_key = cell + vec2(generation * 19.37, generation * 47.11);
 	float seed = hash21(generation_key);
@@ -93,16 +100,15 @@ MoteField mote_generation(vec2 cell, vec2 local, float generation, float elapsed
 	twinkle = mix(0.42, 1.0, smoothstep(0.18, 1.0, twinkle));
 
 	return MoteField(
-		max(core, max(horizontal_ray, vertical_ray) * 0.72) * twinkle * enabled * mix(0.45, 1.0, lane_center_bias),
-		halo * twinkle * enabled * mix(0.45, 1.0, lane_center_bias),
-		haze * enabled * mix(0.35, 1.0, lane_center_bias));
+		max(core, max(horizontal_ray, vertical_ray) * 0.72) * twinkle * life_fade * enabled * mix(0.45, 1.0, lane_center_bias),
+		halo * twinkle * life_fade * enabled * mix(0.45, 1.0, lane_center_bias),
+		haze * life_fade * enabled * mix(0.35, 1.0, lane_center_bias));
 }
 
 MoteField mote_field(float trail_t, float side, float elapsed_time, float directional_glow, float center_glow)
 {
 	const float cells_along_trail = 170.0;
 	const float cells_across_trail = 7.0;
-	const float generation_speed = 1.55;
 
 	vec2 mote_uv = vec2(
 		trail_t * cells_along_trail,
@@ -110,9 +116,6 @@ MoteField mote_field(float trail_t, float side, float elapsed_time, float direct
 	vec2 cell = floor(mote_uv);
 	vec2 local = fract(mote_uv) - 0.5;
 
-	float generation_time = elapsed_time * generation_speed;
-	float generation = floor(generation_time);
-	float generation_blend = smoothstep(0.15, 0.85, fract(generation_time));
 	MoteField field = MoteField(0.0, 0.0, 0.0);
 
 	for (int y = -1; y <= 1; ++y)
@@ -124,12 +127,7 @@ MoteField mote_field(float trail_t, float side, float elapsed_time, float direct
 			vec2 neighbor_local = local - neighbor;
 			float lane_side = ((neighbor_cell.y + 0.5) / cells_across_trail) * 2.0 - 1.0;
 			float lane_center_bias = 1.0 - smoothstep(0.05, 0.82, abs(lane_side));
-			MoteField previous = mote_generation(neighbor_cell, neighbor_local, generation, elapsed_time, lane_center_bias);
-			MoteField next = mote_generation(neighbor_cell, neighbor_local, generation + 1.0, elapsed_time, lane_center_bias);
-			field = add_mote_field(field, MoteField(
-				mix(previous.core, next.core, generation_blend),
-				mix(previous.halo, next.halo, generation_blend),
-				mix(previous.haze, next.haze, generation_blend)));
+			field = add_mote_field(field, mote_generation(neighbor_cell, neighbor_local, elapsed_time, lane_center_bias));
 		}
 	}
 
@@ -156,7 +154,7 @@ void main()
 	float center_glow = 1.0 - smoothstep(0.0, 0.75, abs(in_side));
 	float center_spine = exp(-in_side * in_side * 18.0);
 	float center_haze = exp(-in_side * in_side * 4.5);
-	
+
 	float pulse_margin = glow_width * 2.2;
 	float pulse_phase = fract(obj_data.elapsed_time * obj_data.glow_speed);
 	float glow_front = pulse_phase * (1.0 + pulse_margin * 2.0) - pulse_margin;

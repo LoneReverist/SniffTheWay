@@ -10,6 +10,10 @@ layout(push_constant) uniform ObjectData {
 	vec2 dog_pos;
 	float visible_distance;
 	float base_opacity;
+	float elapsed_time;
+	float glow_speed;
+	float glow_width;
+	float glow_intensity;
 } obj_data;
 
 #else // OpenGL
@@ -18,6 +22,10 @@ layout(std140, binding = 9) uniform ObjectDataFS {
 	vec2 dog_pos;
 	float visible_distance;
 	float base_opacity;
+	float elapsed_time;
+	float glow_speed;
+	float glow_width;
+	float glow_intensity;
 } obj_data;
 
 #endif
@@ -40,18 +48,26 @@ void main()
 	vec2 dog_pos = obj_data.dog_pos;
 	float visible_distance = max(obj_data.visible_distance, 0.001);
 	float base_opacity = obj_data.base_opacity;
+	float glow_width = max(obj_data.glow_width, 0.001);
 
 	float edge_fade = 1.0 - smoothstep(0.35, 1.0, abs(in_side));
 	float dog_distance = distance(in_world_pos.xy, dog_pos);
 	float dog_fade = 1.0 - smoothstep(visible_distance * 0.15, visible_distance, dog_distance);
 
 	float center_glow = 1.0 - smoothstep(0.0, 0.75, abs(in_side));
+	float glow_center = fract(obj_data.elapsed_time * obj_data.glow_speed);
+	float glow_distance = (in_trail_t - glow_center) / glow_width;
+	float directional_glow = exp(-glow_distance * glow_distance) * center_glow;
 	float glint = smoothstep(0.965, 1.0, sparkle(floor(in_trail_t * 80.0) / 80.0));
 	float alpha = obj_data.color.a * base_opacity * edge_fade * dog_fade;
+	alpha *= 1.0 + directional_glow * obj_data.glow_intensity * 0.45;
 
 	if (alpha < 0.004)
 		discard;
 
-	vec3 color = obj_data.color.rgb * (1.0 + center_glow * 0.35 + glint * 0.25);
+	vec3 color = obj_data.color.rgb * (1.0
+		+ center_glow * 0.35
+		+ directional_glow * obj_data.glow_intensity
+		+ glint * 0.25);
 	out_frag_color = vec4(color, alpha);
 }

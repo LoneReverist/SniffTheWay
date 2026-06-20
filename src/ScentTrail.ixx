@@ -28,7 +28,7 @@ export class ScentTrail
 public:
 	void Init(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos);
 	void Reload(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos);
-	void Update(glm::vec2 dog_pos);
+	void Update(float dt, glm::vec2 dog_pos);
 
 	bool IsValid() const { return m_mesh_id.IsValid(); }
 	MeshId<ScentTrailVertex> GetMeshId() const { return m_mesh_id; }
@@ -57,6 +57,10 @@ void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail
 	m_pipeline_data.dog_pos = dog_pos;
 	m_pipeline_data.visible_distance = std::max(trail_data.visible_distance, 0.1f);
 	m_pipeline_data.base_opacity = 0.68f;
+	m_pipeline_data.elapsed_time = 0.0f;
+	m_pipeline_data.glow_speed = 0.34f;
+	m_pipeline_data.glow_width = 0.085f;
+	m_pipeline_data.glow_intensity = 1.2f;
 }
 
 void ScentTrail::Reload(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos)
@@ -67,9 +71,10 @@ void ScentTrail::Reload(AssetManager & asset_manager, ScentTrailData const & tra
 	Init(asset_manager, trail_data, dog_pos);
 }
 
-void ScentTrail::Update(glm::vec2 dog_pos)
+void ScentTrail::Update(float dt, glm::vec2 dog_pos)
 {
 	m_pipeline_data.dog_pos = dog_pos;
+	m_pipeline_data.elapsed_time = std::fmod(m_pipeline_data.elapsed_time + std::max(dt, 0.0f), 1000.0f);
 }
 
 MeshId<ScentTrailVertex> ScentTrail::create_mesh(AssetManager & asset_manager, ScentTrailData const & trail_data) const

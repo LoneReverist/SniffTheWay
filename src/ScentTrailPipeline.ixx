@@ -30,6 +30,10 @@ public:
 		glm::vec2 dog_pos{ 0.0f };
 		float visible_distance = 4.0f;
 		float base_opacity = 0.65f;
+		float elapsed_time = 0.0f;
+		float glow_speed = 0.35f;
+		float glow_width = 0.09f;
+		float glow_intensity = 1.15f;
 	};
 
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
@@ -52,6 +56,10 @@ std::expected<dh::Pipeline, dh::GraphicsError> ScentTrailPipeline::CreatePipelin
 		alignas(8) glm::vec2 dog_pos{ 0.0f };
 		alignas(4) float visible_distance = 4.0f;
 		alignas(4) float base_opacity = 0.65f;
+		alignas(4) float elapsed_time = 0.0f;
+		alignas(4) float glow_speed = 0.35f;
+		alignas(4) float glow_width = 0.09f;
+		alignas(4) float glow_intensity = 1.15f;
 	};
 
 	dh::PipelineBuilder builder{ render_context };
@@ -98,7 +106,11 @@ std::expected<dh::Pipeline, dh::GraphicsError> ScentTrailPipeline::CreatePipelin
 					.color = data->color,
 					.dog_pos = data->dog_pos,
 					.visible_distance = data->visible_distance,
-					.base_opacity = data->base_opacity
+					.base_opacity = data->base_opacity,
+					.elapsed_time = data->elapsed_time,
+					.glow_speed = data->glow_speed,
+					.glow_width = data->glow_width,
+					.glow_intensity = data->glow_intensity
 				});
 		});
 

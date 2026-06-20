@@ -204,7 +204,7 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
 	const glm::vec2 dog_pos = m_dog.GetPosition();
-	m_scent_trail.Update(dog_pos);
+	m_scent_trail.Update(dt, dog_pos);
 
 	if (m_scene_state == SceneState::Gameplay)
 	{

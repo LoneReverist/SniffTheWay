@@ -40,12 +40,14 @@ public:
 	void Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
 	void Reload(glm::vec3 const & camera_dir, glm::vec2 pos);
+
 	void SetPosition(glm::vec2 pos);
 	void SetOpacity(float opacity);
 
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
     SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
     SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
+	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
     
 private:
 	MeshId<TextureVertex2d> m_mesh_id;
@@ -116,15 +118,15 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 	glm::vec2 velocity(0.0f);
 	if (move_dir != glm::vec2(0.0f))
 	{
-		glm::vec2 pos = glm::vec2(m_pipeline_data.model[3]);
+		glm::vec2 cur_pos = GetPosition();
 		velocity = glm::normalize(move_dir) * m_move_speed;
-		glm::vec2 desired_pos = pos + velocity * dt;
+		glm::vec2 desired_pos = cur_pos + velocity * dt;
 		
 		glm::vec2 new_pos = desired_pos;
 		if (bounds.IsValid())
-			new_pos = bounds.SlideAlongBoundary(pos, desired_pos);
+			new_pos = bounds.SlideAlongBoundary(cur_pos, desired_pos);
 
-		m_pipeline_data.model[3] = glm::vec4(new_pos, 0.0f, 1.0f);
+		SetPosition(new_pos);
 
 		m_state = State::Walking;
 	}
@@ -139,10 +141,10 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 		facing_right = !facing_right;
 		// rotate 180 degrees around Z axis to flip the sprite
 		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::vec3 current_pos = glm::vec3(m_pipeline_data.model[3]); // preserve translation
-		m_pipeline_data.model[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec2 cur_pos = GetPosition(); // preserve translation
+		SetPosition(glm::vec2{ 0.0f }); // reset translation before rotation
 		m_pipeline_data.model = rotation * m_pipeline_data.model;
-		m_pipeline_data.model[3] = glm::vec4(current_pos, 1.0f); // restore translation after rotation
+		SetPosition(cur_pos); // restore translation after rotation
 	}
 
 	if (m_state == State::Walking)

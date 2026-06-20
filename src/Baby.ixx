@@ -40,12 +40,14 @@ public:
 	void Update(float dt, Dog const * dog, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
 	void Reload(glm::vec3 const & camera_dir, glm::vec2 pos);
+
 	void SetPosition(glm::vec2 pos);
 	void SetOpacity(float opacity);
 
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
 	SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
     SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
+	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
 	
 private:
 	MeshId<TextureVertex2d> m_mesh_id;
@@ -101,11 +103,7 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 
 	glm::vec2 move_dir(0.0f);
 	if (dog && scene_state == SceneState::Gameplay)
-	{
-		const glm::vec3 dog_pos = dog->GetPipelineData().model[3];
-		const glm::vec3 my_pos = m_pipeline_data.model[3];
-		move_dir = glm::vec2(dog_pos - my_pos);
-	}
+		move_dir = dog->GetPosition() - GetPosition();
 
 	glm::vec2 velocity(0.0f);
 	if (glm::length(move_dir) > 1.5f)
@@ -128,11 +126,11 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 	{
 		facing_right = !facing_right;
 		// rotate 180 degrees around Z axis to flip the sprite
+		glm::vec2 cur_pos = GetPosition(); // preserve translation
 		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::vec3 current_pos = glm::vec3(m_pipeline_data.model[3]); // preserve translation
-		m_pipeline_data.model[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		SetPosition(glm::vec2{ 0.0f }); // reset translation before rotation
 		m_pipeline_data.model = rotation * m_pipeline_data.model;
-		m_pipeline_data.model[3] = glm::vec4(current_pos, 1.0f); // restore translation after rotation
+		SetPosition(cur_pos); // restore translation after rotation
 	}
 
 	if (m_state == State::Walking)

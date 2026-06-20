@@ -193,15 +193,18 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 	}
 
 	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
+	if (m_editor.ConsumeScentTrailChanged())
+		create_or_reload_scent_trail(m_dog.GetPosition());
 
 	if (input.KeyJustPressed('R'))
 		reload_scene_data();
 #endif
 
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
-	const glm::vec2 dog_pos = m_dog.GetPipelineData().model[3];
-	m_scent_trail.Update(dog_pos);
 	m_baby.Update(dt, &m_dog, m_scene_state);
+
+	const glm::vec2 dog_pos = m_dog.GetPosition();
+	m_scent_trail.Update(dog_pos);
 
 	if (m_scene_state == SceneState::Gameplay)
 	{

@@ -72,10 +72,10 @@
       ]
     ]
   },
-  "adjacent_scenes": [
+  "scene_links": [
     {
-      "scene_id": "forest_path2",
-      "entry_spawn": {
+      "target_scene_id": "forest_path2",
+      "arrival_points": {
         "dog": [
           -0.7107685804367065,
           2.584476947784424
@@ -85,7 +85,7 @@
           3.18113374710083
         ]
       },
-      "collider": [
+      "trigger": [
         [
           -1.4668710231781006,
           5.288146018981934

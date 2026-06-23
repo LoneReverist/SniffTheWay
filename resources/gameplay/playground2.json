@@ -13,14 +13,14 @@
     "baby": [-1.75, -2.25]
   },
   "story_texts": [],
-  "adjacent_scenes": [
+  "scene_links": [
     {
-      "scene_id": "playground",
-      "entry_spawn": {
+      "target_scene_id": "playground",
+      "arrival_points": {
         "dog": [-1.5, -3.0],
         "baby": [-1.75, -2.25]
       },
-      "collider": [
+      "trigger": [
         [-2.0, -4.0],
         [-1.75, -4.0],
         [-1.75, -2.0],
@@ -28,12 +28,12 @@
       ]
     },
     {
-      "scene_id": "creek",
-      "entry_spawn": {
+      "target_scene_id": "creek",
+      "arrival_points": {
         "dog": [1.5, -3.0],
         "baby": [1.75, -2.25]
       },
-      "collider": [
+      "trigger": [
         [1.75, -4.0],
         [2.0, -4.0],
         [2.0, -2.0],

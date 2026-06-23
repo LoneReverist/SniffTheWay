@@ -215,10 +215,10 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	if (m_scene_state == SceneState::Gameplay)
 	{
-		for (GameplayAdjacentScene const & adjacent_scene : m_scene_data.adjacent_scenes)
+		for (GameplaySceneLink const & scene_link : m_scene_data.scene_links)
 		{
-			if (adjacent_scene.collider.Contains(dog_pos))
-				return SceneTransition{ adjacent_scene.scene_id, m_scene_id };
+			if (scene_link.trigger.Contains(dog_pos))
+				return SceneTransition{ scene_link.target_scene_id, m_scene_id };
 		}
 	}
 
@@ -337,10 +337,10 @@ std::pair<glm::vec2, glm::vec2> GameplayScene::get_spawn_positions(SceneTransiti
 {
 	if (transition.previous_scene_id.has_value())
 	{
-		for (GameplayAdjacentScene const & adjacent_scene : m_scene_data.adjacent_scenes)
+		for (GameplaySceneLink const & scene_link : m_scene_data.scene_links)
 		{
-			if (adjacent_scene.scene_id == transition.previous_scene_id.value())
-				return { adjacent_scene.dog_entry_spawn_pos, adjacent_scene.baby_entry_spawn_pos };
+			if (scene_link.target_scene_id == transition.previous_scene_id.value())
+				return { scene_link.dog_arrival_pos, scene_link.baby_arrival_pos };
 		}
 	}
 

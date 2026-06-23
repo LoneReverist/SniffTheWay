@@ -13,12 +13,12 @@ import Polygon2d;
 import SniffTheWayConstants;
 import StoryData;
 
-export struct GameplayAdjacentScene
+export struct GameplaySceneLink
 {
-	SniffTheWay::SceneId scene_id = SniffTheWay::SceneId::Exit;
-	Polygon2d collider;
-	glm::vec2 dog_entry_spawn_pos{ 0.0f };
-	glm::vec2 baby_entry_spawn_pos{ 0.0f };
+	SniffTheWay::SceneId target_scene_id = SniffTheWay::SceneId::Exit;
+	Polygon2d trigger;
+	glm::vec2 dog_arrival_pos{ 0.0f };
+	glm::vec2 baby_arrival_pos{ 0.0f };
 };
 
 export struct ScentTrailData
@@ -37,5 +37,5 @@ export struct GameplaySceneData
 	glm::vec2 baby_spawn_pos{ 0.0f };
 	ScentTrailData scent_trail;
 	std::vector<StoryText> story_texts;
-	std::vector<GameplayAdjacentScene> adjacent_scenes;
+	std::vector<GameplaySceneLink> scene_links;
 };

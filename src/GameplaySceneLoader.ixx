@@ -102,31 +102,31 @@ ScentTrailData parse_scent_trail(json const & j)
 	return scent_trail;
 }
 
-GameplayAdjacentScene parse_gameplay_adjacent_scene(json const & j)
+GameplaySceneLink parse_gameplay_scene_link(json const & j)
 {
-	GameplayAdjacentScene adjacent_scene;
+	GameplaySceneLink scene_link;
 
-	const std::string scene_id = j.value("scene_id", std::string{ "exit" });
-	if (std::optional<SniffTheWay::SceneId> parsed_scene_id = SniffTheWay::SceneIdFromString(scene_id))
+	const std::string target_scene_id = j.value("target_scene_id", std::string{ "exit" });
+	if (std::optional<SniffTheWay::SceneId> parsed_target_scene_id = SniffTheWay::SceneIdFromString(target_scene_id))
 	{
-		adjacent_scene.scene_id = *parsed_scene_id;
+		scene_link.target_scene_id = *parsed_target_scene_id;
 	}
 	else
 	{
-		std::cout << "GameplaySceneLoader: Unknown adjacent scene id '" << scene_id << "'. Using exit." << std::endl;
+		std::cout << "GameplaySceneLoader: Unknown scene link target id '" << target_scene_id << "'. Using exit." << std::endl;
 	}
 
-	if (j.contains("collider"))
-		adjacent_scene.collider = parse_gameplay_polygon(j["collider"]);
+	if (j.contains("trigger"))
+		scene_link.trigger = parse_gameplay_polygon(j["trigger"]);
 
-	json const entry_spawn_json = j.value("entry_spawn", json::object());
-	if (entry_spawn_json.contains("dog"))
-		adjacent_scene.dog_entry_spawn_pos = parse_gameplay_vec2(entry_spawn_json["dog"], adjacent_scene.dog_entry_spawn_pos);
+	json const arrival_points_json = j.value("arrival_points", json::object());
+	if (arrival_points_json.contains("dog"))
+		scene_link.dog_arrival_pos = parse_gameplay_vec2(arrival_points_json["dog"], scene_link.dog_arrival_pos);
 
-	if (entry_spawn_json.contains("baby"))
-		adjacent_scene.baby_entry_spawn_pos = parse_gameplay_vec2(entry_spawn_json["baby"], adjacent_scene.baby_entry_spawn_pos);
+	if (arrival_points_json.contains("baby"))
+		scene_link.baby_arrival_pos = parse_gameplay_vec2(arrival_points_json["baby"], scene_link.baby_arrival_pos);
 
-	return adjacent_scene;
+	return scene_link;
 }
 
 json serialize_gameplay_vec2(glm::vec2 value)
@@ -206,15 +206,15 @@ json serialize_scent_trail(ScentTrailData const & scent_trail)
 	};
 }
 
-json serialize_gameplay_adjacent_scene(GameplayAdjacentScene const & adjacent_scene)
+json serialize_gameplay_scene_link(GameplaySceneLink const & scene_link)
 {
 	return json{
-		{ "scene_id", std::string{ SniffTheWay::ToString(adjacent_scene.scene_id) } },
-		{ "entry_spawn", json{
-			{ "dog", serialize_gameplay_vec2(adjacent_scene.dog_entry_spawn_pos) },
-			{ "baby", serialize_gameplay_vec2(adjacent_scene.baby_entry_spawn_pos) }
+		{ "target_scene_id", std::string{ SniffTheWay::ToString(scene_link.target_scene_id) } },
+		{ "arrival_points", json{
+			{ "dog", serialize_gameplay_vec2(scene_link.dog_arrival_pos) },
+			{ "baby", serialize_gameplay_vec2(scene_link.baby_arrival_pos) }
 		} },
-		{ "collider", serialize_gameplay_polygon(adjacent_scene.collider) }
+		{ "trigger", serialize_gameplay_polygon(scene_link.trigger) }
 	};
 }
 
@@ -233,10 +233,10 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 	};
 	root["scent_trail"] = serialize_scent_trail(scene_data.scent_trail);
 
-	json adjacent_scenes = json::array();
-	for (GameplayAdjacentScene const & adjacent_scene : scene_data.adjacent_scenes)
-		adjacent_scenes.push_back(serialize_gameplay_adjacent_scene(adjacent_scene));
-	root["adjacent_scenes"] = std::move(adjacent_scenes);
+	json scene_links = json::array();
+	for (GameplaySceneLink const & scene_link : scene_data.scene_links)
+		scene_links.push_back(serialize_gameplay_scene_link(scene_link));
+	root["scene_links"] = std::move(scene_links);
 
 	json story_texts = json::array();
 	for (StoryText const & story_text : scene_data.story_texts)
@@ -252,7 +252,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 			key != "default_spawn" &&
 			key != "scent_trail" &&
 			key != "story_texts" &&
-			key != "adjacent_scenes")
+			key != "scene_links")
 		{
 			root[key] = value;
 		}
@@ -297,8 +297,8 @@ export namespace GameplaySceneLoader
 			for (json const & text_json : root.value("story_texts", json::array()))
 				scene_data.story_texts.push_back(parse_gameplay_story_text(text_json));
 
-			for (json const & adjacent_json : root.value("adjacent_scenes", json::array()))
-				scene_data.adjacent_scenes.push_back(parse_gameplay_adjacent_scene(adjacent_json));
+			for (json const & scene_link_json : root.value("scene_links", json::array()))
+				scene_data.scene_links.push_back(parse_gameplay_scene_link(scene_link_json));
 		}
 		catch (std::exception const & ex)
 		{

@@ -38,14 +38,14 @@
       "align": "center"
     }
   ],
-  "adjacent_scenes": [
+  "scene_links": [
     {
-      "scene_id": "home",
-      "entry_spawn": {
+      "target_scene_id": "home",
+      "arrival_points": {
         "dog": [0.0, -3.5],
         "baby": [-0.5, -3.0]
       },
-      "collider": [
+      "trigger": [
         [-0.55, -4.0],
         [0.55, -4.0],
         [0.55, -3.75],

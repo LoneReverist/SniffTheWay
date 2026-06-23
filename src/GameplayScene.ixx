@@ -199,12 +199,12 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		return std::nullopt;
 	}
 
+	if (!m_editor.HasActiveEditMode() && input.KeyJustPressed('R'))
+		reload_scene_data();
+
 	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
 	if (m_editor.ConsumeScentTrailChanged())
 		create_or_reload_scent_trail(m_dog.GetPosition());
-
-	if (input.KeyJustPressed('R'))
-		reload_scene_data();
 #endif
 
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);

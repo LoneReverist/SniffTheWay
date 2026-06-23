@@ -346,6 +346,8 @@ void GameplaySceneEditor::Update(
 				set_spawn_position(asset_manager, renderer, *ground_pos);
 			return;
 		}
+
+		return;
 	}
 
 	if (m_is_editing_polygon)
@@ -410,6 +412,8 @@ void GameplaySceneEditor::Update(
 			apply_polygon_draft(asset_manager, renderer);
 			return;
 		}
+
+		return;
 	}
 
 	if (input.KeyJustPressed('B'))

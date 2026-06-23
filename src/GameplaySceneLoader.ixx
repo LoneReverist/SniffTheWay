@@ -222,10 +222,6 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 	root["background"] = scene_data.bg_image_filename;
 	root["initial_state"] = serialize_gameplay_scene_state(scene_data.initial_state);
 	root["bounds"] = serialize_gameplay_polygon(scene_data.bounds);
-	root["default_spawn"] = json{
-		{ "dog", serialize_gameplay_vec2(scene_data.dog_spawn_pos) },
-		{ "baby", serialize_gameplay_vec2(scene_data.baby_spawn_pos) }
-	};
 	root["scent_trail"] = serialize_scent_trail(scene_data.scent_trail);
 
 	json scene_links = json::array();
@@ -279,12 +275,6 @@ export namespace GameplaySceneLoader
 
 			if (root.contains("bounds"))
 				scene_data.bounds = parse_gameplay_polygon(root["bounds"]);
-
-			json const spawn_json = root.value("default_spawn", json::object());
-			if (spawn_json.contains("dog"))
-				scene_data.dog_spawn_pos = parse_gameplay_vec2(spawn_json["dog"], scene_data.dog_spawn_pos);
-			if (spawn_json.contains("baby"))
-				scene_data.baby_spawn_pos = parse_gameplay_vec2(spawn_json["baby"], scene_data.baby_spawn_pos);
 
 			if (root.contains("scent_trail"))
 				scene_data.scent_trail = parse_scent_trail(root["scent_trail"]);

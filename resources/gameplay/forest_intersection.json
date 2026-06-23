@@ -8,10 +8,6 @@
     [1.0, 10.0],
     [-1.0, 10.0]
   ],
-  "default_spawn": {
-    "dog": [0.0, 5.0],
-    "baby": [0.0, 5.0]
-  },
   "story_texts": [
     {
       "text": "Find the way home.",
@@ -39,6 +35,14 @@
     }
   ],
   "scene_links": [
+    {
+      "target_scene_id": "night",
+      "arrival_points": {
+        "dog": [0.0, 5.0],
+        "baby": [0.0, 5.0]
+      },
+      "trigger": []
+    },
     {
       "target_scene_id": "home",
       "arrival_points": {

@@ -65,6 +65,7 @@ private:
 	void reload_scene_data();
 	void reload_background_texture();
 	void apply_story_labels();
+	std::pair<glm::vec2, glm::vec2> get_default_spawn_positions() const;
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
 	void create_story_labels(PipelineId<TextPipeline> text_pipeline_id);
 	void create_or_reload_scent_trail(glm::vec2 dog_pos);
@@ -274,9 +275,10 @@ void GameplayScene::reload_scene_data()
 	m_scene_data = std::move(reloaded_scene_data);
 	reload_background_texture();
 	apply_story_labels();
-	m_dog.Reload(m_camera3d.GetDir(), m_scene_data.dog_spawn_pos);
-	m_baby.Reload(m_camera3d.GetDir(), m_scene_data.baby_spawn_pos);
-	create_or_reload_scent_trail(m_scene_data.dog_spawn_pos);
+	const auto [dog_spawn_pos, baby_spawn_pos] = get_default_spawn_positions();
+	m_dog.Reload(m_camera3d.GetDir(), dog_spawn_pos);
+	m_baby.Reload(m_camera3d.GetDir(), baby_spawn_pos);
+	create_or_reload_scent_trail(dog_spawn_pos);
 
 #ifdef _DEBUG
 	m_editor.Reload(m_asset_manager, m_renderer);
@@ -344,7 +346,18 @@ std::pair<glm::vec2, glm::vec2> GameplayScene::get_spawn_positions(SceneTransiti
 		}
 	}
 
-	return { m_scene_data.dog_spawn_pos, m_scene_data.baby_spawn_pos };
+	return get_default_spawn_positions();
+}
+
+std::pair<glm::vec2, glm::vec2> GameplayScene::get_default_spawn_positions() const
+{
+	if (!m_scene_data.scene_links.empty())
+	{
+		GameplaySceneLink const & default_spawn_link = m_scene_data.scene_links.front();
+		return { default_spawn_link.dog_arrival_pos, default_spawn_link.baby_arrival_pos };
+	}
+
+	return { glm::vec2{ 0.0f }, glm::vec2{ 0.0f } };
 }
 
 void GameplayScene::create_story_labels(PipelineId<TextPipeline> text_pipeline_id)

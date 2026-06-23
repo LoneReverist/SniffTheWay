@@ -80,12 +80,6 @@ private:
 		AssetId points_ro_id;
 	};
 
-	enum class SpawnOwner
-	{
-		Default,
-		SceneLink,
-	};
-
 	enum class SpawnCharacter
 	{
 		Dog,
@@ -94,7 +88,6 @@ private:
 
 	struct SpawnEditTarget
 	{
-		SpawnOwner owner = SpawnOwner::Default;
 		SpawnCharacter character = SpawnCharacter::Dog;
 		std::size_t link_index = 0;
 	};
@@ -245,8 +238,6 @@ namespace
 	constexpr float PolygonFineNudgeDistance = 0.01f;
 	constexpr float PolygonCoarseNudgeDistance = 0.12f;
 	constexpr float PolygonDragHitRadius = 0.28f;
-	constexpr glm::vec4 DefaultDogSpawnColor{ 0.15f, 0.45f, 1.0f, 1.0f };
-	constexpr glm::vec4 DefaultBabySpawnColor{ 1.0f, 0.25f, 0.85f, 1.0f };
 	constexpr glm::vec4 LinkDogArrivalColor{ 0.25f, 0.85f, 1.0f, 0.8f };
 	constexpr glm::vec4 LinkBabyArrivalColor{ 0.85f, 0.45f, 1.0f, 0.8f };
 	constexpr glm::vec4 SelectedSpawnColor{ 0.2f, 1.0f, 0.45f, 1.0f };
@@ -511,37 +502,6 @@ void GameplaySceneEditor::Update(
 	{
 		if (m_is_editing_spawn
 			&& m_spawn_edit_target
-			&& m_spawn_edit_target->owner == SpawnOwner::Default
-			&& m_spawn_edit_target->character == SpawnCharacter::Dog)
-			cancel_spawn_editing(asset_manager, renderer);
-		else
-			begin_spawn_editing(asset_manager, renderer, SpawnEditTarget{
-				.owner = SpawnOwner::Default,
-				.character = SpawnCharacter::Dog
-			});
-		return;
-	}
-
-	if (input.KeyJustPressed('2'))
-	{
-		if (m_is_editing_spawn
-			&& m_spawn_edit_target
-			&& m_spawn_edit_target->owner == SpawnOwner::Default
-			&& m_spawn_edit_target->character == SpawnCharacter::Baby)
-			cancel_spawn_editing(asset_manager, renderer);
-		else
-			begin_spawn_editing(asset_manager, renderer, SpawnEditTarget{
-				.owner = SpawnOwner::Default,
-				.character = SpawnCharacter::Baby
-			});
-		return;
-	}
-
-	if (input.KeyJustPressed('3'))
-	{
-		if (m_is_editing_spawn
-			&& m_spawn_edit_target
-			&& m_spawn_edit_target->owner == SpawnOwner::SceneLink
 			&& m_spawn_edit_target->character == SpawnCharacter::Dog)
 			cancel_spawn_editing(asset_manager, renderer);
 		else if (has_selected_scene_link())
@@ -549,11 +509,10 @@ void GameplaySceneEditor::Update(
 		return;
 	}
 
-	if (input.KeyJustPressed('4'))
+	if (input.KeyJustPressed('2'))
 	{
 		if (m_is_editing_spawn
 			&& m_spawn_edit_target
-			&& m_spawn_edit_target->owner == SpawnOwner::SceneLink
 			&& m_spawn_edit_target->character == SpawnCharacter::Baby)
 			cancel_spawn_editing(asset_manager, renderer);
 		else if (has_selected_scene_link())
@@ -997,8 +956,8 @@ void GameplaySceneEditor::append_polygon_vertex(AssetManager & asset_manager, Sc
 	glm::vec2 point{ 0.0f };
 	if (m_draft_vertices.empty())
 	{
-		if (m_scene_data)
-			point = m_scene_data->dog_spawn_pos;
+		if (m_scene_data && !m_scene_data->scene_links.empty())
+			point = m_scene_data->scene_links.front().dog_arrival_pos;
 	}
 	else
 	{
@@ -1128,7 +1087,7 @@ void GameplaySceneEditor::rebuild_edit_target_overlay(AssetManager & asset_manag
 
 void GameplaySceneEditor::begin_spawn_editing(AssetManager & asset_manager, SceneRenderer & renderer, SpawnEditTarget target)
 {
-	if (target.owner == SpawnOwner::SceneLink && (!m_scene_data || target.link_index >= m_scene_data->scene_links.size()))
+	if (!m_scene_data || target.link_index >= m_scene_data->scene_links.size())
 		return;
 
 	if (m_is_editing_polygon)
@@ -1138,8 +1097,7 @@ void GameplaySceneEditor::begin_spawn_editing(AssetManager & asset_manager, Scen
 
 	m_is_editing_spawn = true;
 	m_spawn_edit_target = target;
-	if (target.owner == SpawnOwner::SceneLink)
-		m_selected_scene_link_index = target.link_index;
+	m_selected_scene_link_index = target.link_index;
 
 	rebuild_spawn_markers(asset_manager, renderer);
 	update_polygon_editing_label();
@@ -1251,7 +1209,6 @@ GameplaySceneEditor::PolygonEditTarget GameplaySceneEditor::selected_scene_link_
 GameplaySceneEditor::SpawnEditTarget GameplaySceneEditor::selected_scene_link_spawn_target(SpawnCharacter character) const
 {
 	return SpawnEditTarget{
-		.owner = SpawnOwner::SceneLink,
 		.character = character,
 		.link_index = m_selected_scene_link_index.value_or(0)
 	};
@@ -1289,11 +1246,6 @@ glm::vec2 GameplaySceneEditor::get_spawn_position(SpawnEditTarget target) const
 	if (!m_scene_data)
 		return glm::vec2{ 0.0f };
 
-	if (target.owner == SpawnOwner::Default)
-		return target.character == SpawnCharacter::Dog
-			? m_scene_data->dog_spawn_pos
-			: m_scene_data->baby_spawn_pos;
-
 	if (target.link_index >= m_scene_data->scene_links.size())
 		return glm::vec2{ 0.0f };
 
@@ -1307,15 +1259,6 @@ void GameplaySceneEditor::set_spawn_position(SpawnEditTarget target, glm::vec2 p
 {
 	if (!m_scene_data)
 		return;
-
-	if (target.owner == SpawnOwner::Default)
-	{
-		if (target.character == SpawnCharacter::Dog)
-			m_scene_data->dog_spawn_pos = pos;
-		else
-			m_scene_data->baby_spawn_pos = pos;
-		return;
-	}
 
 	if (target.link_index >= m_scene_data->scene_links.size())
 		return;
@@ -1336,21 +1279,16 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 {
 	if (m_is_editing_spawn && m_spawn_edit_target)
 	{
-		std::string owner_text = "default";
-		if (m_spawn_edit_target->owner == SpawnOwner::SceneLink)
+		std::string owner_text = "link";
+		if (m_scene_data && m_spawn_edit_target->link_index < m_scene_data->scene_links.size())
 		{
-			owner_text = "link";
-			if (m_scene_data && m_spawn_edit_target->link_index < m_scene_data->scene_links.size())
-			{
-				GameplaySceneLink const & scene_link = m_scene_data->scene_links[m_spawn_edit_target->link_index];
-				owner_text = "link #" + std::to_string(m_spawn_edit_target->link_index + 1)
-					+ ": " + std::string{ ToString(scene_link.target_scene_id) };
-			}
+			GameplaySceneLink const & scene_link = m_scene_data->scene_links[m_spawn_edit_target->link_index];
+			owner_text = "link #" + std::to_string(m_spawn_edit_target->link_index + 1)
+				+ ": " + std::string{ ToString(scene_link.target_scene_id) };
 		}
 
 		std::string const character_text = m_spawn_edit_target->character == SpawnCharacter::Dog ? "dog" : "baby";
-		std::string const point_text = m_spawn_edit_target->owner == SpawnOwner::SceneLink ? " arrival point" : " spawn";
-		return "Editing " + owner_text + " " + character_text + point_text + "\n"
+		return "Editing " + owner_text + " " + character_text + " arrival point\n"
 			"[Left Click] Place point\n"
 			"[Escape] Cancel";
 	}
@@ -1372,10 +1310,8 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			"[L] Edit selected link trigger\n"
 			"[Shift+L] New link\n"
 			"[Delete] Delete selected link\n"
-			"[1] Default dog spawn\n"
-			"[2] Default baby spawn\n"
-			"[3] Dog selected link arrival point\n"
-			"[4] Baby selected link arrival point\n"
+			"[1] Dog selected link arrival point\n"
+			"[2] Baby selected link arrival point\n"
 			"[Ctrl+S] Save\n"
 			"[R] Reload\n"
 			"[Escape] Exit editor";
@@ -1533,14 +1469,12 @@ std::vector<LineInstance> GameplaySceneEditor::create_spawn_marker_lines() const
 
 	auto append_marker = [&](SpawnEditTarget target, glm::vec4 base_color)
 	{
-		bool const is_selected_scene_link = target.owner == SpawnOwner::SceneLink
-			&& m_selected_scene_link_index
+		bool const is_selected_scene_link = m_selected_scene_link_index
 			&& *m_selected_scene_link_index == target.link_index;
 		bool const is_editing_this = m_is_editing_spawn
 			&& m_spawn_edit_target
-			&& m_spawn_edit_target->owner == target.owner
 			&& m_spawn_edit_target->character == target.character
-			&& (target.owner == SpawnOwner::Default || m_spawn_edit_target->link_index == target.link_index);
+			&& m_spawn_edit_target->link_index == target.link_index;
 
 		glm::vec4 const color = is_editing_this
 			? EditingSpawnColor
@@ -1550,24 +1484,13 @@ std::vector<LineInstance> GameplaySceneEditor::create_spawn_marker_lines() const
 		append_spawn_marker_lines(lines, get_spawn_position(target), color, size, thickness);
 	};
 
-	append_marker(SpawnEditTarget{
-		.owner = SpawnOwner::Default,
-		.character = SpawnCharacter::Dog
-	}, DefaultDogSpawnColor);
-	append_marker(SpawnEditTarget{
-		.owner = SpawnOwner::Default,
-		.character = SpawnCharacter::Baby
-	}, DefaultBabySpawnColor);
-
 	for (std::size_t i = 0; i < m_scene_data->scene_links.size(); ++i)
 	{
 		append_marker(SpawnEditTarget{
-			.owner = SpawnOwner::SceneLink,
 			.character = SpawnCharacter::Dog,
 			.link_index = i
 		}, LinkDogArrivalColor);
 		append_marker(SpawnEditTarget{
-			.owner = SpawnOwner::SceneLink,
 			.character = SpawnCharacter::Baby,
 			.link_index = i
 		}, LinkBabyArrivalColor);

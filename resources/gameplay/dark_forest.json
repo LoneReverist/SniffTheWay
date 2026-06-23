@@ -8,10 +8,6 @@
     [1.0, 10.0],
     [-1.0, 10.0]
   ],
-  "default_spawn": {
-    "dog": [0.0, -3.0],
-    "baby": [-1.0, -3.5]
-  },
   "story_texts": [
     {
       "text": "Keep moving forward.",
@@ -39,6 +35,14 @@
     }
   ],
   "scene_links": [
+    {
+      "target_scene_id": "creek",
+      "arrival_points": {
+        "dog": [0.0, -3.0],
+        "baby": [-1.0, -3.5]
+      },
+      "trigger": []
+    },
     {
       "target_scene_id": "night",
       "arrival_points": {

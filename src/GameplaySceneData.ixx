@@ -31,8 +31,6 @@ export struct GameplaySceneData
 	std::string bg_image_filename;
 	SniffTheWay::SceneState initial_state = SniffTheWay::SceneState::Gameplay;
 	Polygon2d bounds;
-	glm::vec2 dog_spawn_pos{ 0.0f };
-	glm::vec2 baby_spawn_pos{ 0.0f };
 	ScentTrailData scent_trail;
 	std::vector<StoryText> story_texts;
 	std::vector<GameplaySceneLink> scene_links;

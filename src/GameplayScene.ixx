@@ -176,7 +176,7 @@ void GameplayScene::OnWindowResized(int width, int height)
 
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
 {
-	if (input.KeyJustPressed(Input::Key::Esc))
+	if (m_scene_state != SceneState::Editing && input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
@@ -186,9 +186,16 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 	m_fps_label.Update(dt);
 
 #ifdef _DEBUG
-	if ((m_scene_state == SceneState::Gameplay || m_scene_state == SceneState::Editing) && input.KeyJustPressed('E'))
+	if (m_scene_state == SceneState::Gameplay && input.KeyJustPressed('E'))
 	{
-		ChangeSceneState(m_scene_state == SceneState::Editing ? SceneState::Gameplay : SceneState::Editing);
+		ChangeSceneState(SceneState::Editing);
+		return std::nullopt;
+	}
+	if (m_scene_state == SceneState::Editing
+		&& input.KeyJustPressed(Input::Key::Esc)
+		&& !m_editor.HasActiveEditMode())
+	{
+		ChangeSceneState(SceneState::Gameplay);
 		return std::nullopt;
 	}
 

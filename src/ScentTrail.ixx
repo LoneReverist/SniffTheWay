@@ -23,6 +23,12 @@ import Vertex;
 
 namespace dh = Dreamhearth;
 
+namespace
+{
+	constexpr float ScentTrailWidth = 0.24f;
+	constexpr float ScentTrailVisibleDistance = 1.5f;
+}
+
 export class ScentTrail
 {
 public:
@@ -55,7 +61,7 @@ void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail
 	m_mesh_id = create_mesh(asset_manager, trail_data);
 	m_pipeline_data.color = glm::vec4{ 1.0f, 0.84f, 0.42f, 1.0f };
 	m_pipeline_data.dog_pos = dog_pos;
-	m_pipeline_data.visible_distance = std::max(trail_data.visible_distance, 0.1f);
+	m_pipeline_data.visible_distance = ScentTrailVisibleDistance;
 	m_pipeline_data.base_opacity = 0.68f;
 	m_pipeline_data.elapsed_time = 0.0f;
 	m_pipeline_data.glow_speed = 0.34f;
@@ -83,7 +89,7 @@ MeshId<ScentTrailVertex> ScentTrail::create_mesh(AssetManager & asset_manager, S
 	if (samples.size() < 2)
 		return {};
 
-	const float half_width = std::max(trail_data.width, 0.01f) * 0.5f;
+	constexpr float half_width = ScentTrailWidth * 0.5f;
 	const float total_distance = std::max(samples.back().distance, 0.001f);
 	constexpr float ground_z = 0.012f;
 

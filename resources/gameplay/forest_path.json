@@ -39,8 +39,6 @@
     ]
   },
   "scent_trail": {
-    "width": 0.24,
-    "visible_distance": 1.0,
     "points": [
       [
         -0.3517986834049225,

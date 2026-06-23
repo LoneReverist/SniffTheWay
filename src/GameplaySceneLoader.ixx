@@ -93,9 +93,6 @@ ScentTrailData parse_scent_trail(json const & j)
 	if (!j.is_object())
 		return scent_trail;
 
-	scent_trail.width = j.value("width", scent_trail.width);
-	scent_trail.visible_distance = j.value("visible_distance", scent_trail.visible_distance);
-
 	for (json const & point_json : j.value("points", json::array()))
 		scent_trail.points.push_back(parse_gameplay_vec2(point_json, glm::vec2{ 0.0f }));
 
@@ -200,8 +197,6 @@ json serialize_scent_trail(ScentTrailData const & scent_trail)
 		points.push_back(serialize_gameplay_vec2(point));
 
 	return json{
-		{ "width", scent_trail.width },
-		{ "visible_distance", scent_trail.visible_distance },
 		{ "points", std::move(points) }
 	};
 }

@@ -24,8 +24,6 @@ export struct GameplaySceneLink
 export struct ScentTrailData
 {
 	std::vector<glm::vec2> points;
-	float width = 0.18f;
-	float visible_distance = 4.0f;
 };
 
 export struct GameplaySceneData

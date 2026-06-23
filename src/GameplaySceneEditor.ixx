@@ -151,6 +151,8 @@ private:
 	void append_polygon_vertex(AssetManager & asset_manager, SceneRenderer & renderer);
 	void delete_selected_polygon_vertex(AssetManager & asset_manager, SceneRenderer & renderer);
 	void nudge_selected_polygon_vertex(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 delta);
+	void move_selected_polygon_vertex_to(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 position);
+	std::optional<std::size_t> find_nearest_draft_vertex(glm::vec2 point, float max_distance) const;
 	void update_selected_vertex_index_after_size_change();
 	void rebuild_edit_target_overlay(AssetManager & asset_manager, SceneRenderer & renderer);
 	void begin_spawn_editing(AssetManager & asset_manager, SceneRenderer & renderer, SpawnEditTarget target);
@@ -202,6 +204,8 @@ private:
 	std::optional<SpawnEditTarget> m_spawn_edit_target;
 	std::optional<std::size_t> m_selected_scene_link_index;
 	std::optional<std::size_t> m_selected_vertex_index;
+	std::optional<std::size_t> m_dragged_vertex_index;
+	glm::vec2 m_dragged_vertex_offset{ 0.0f };
 	std::vector<glm::vec2> m_draft_vertices;
 	PolygonOverlay m_bounds_overlay;
 	PolygonOverlay m_scent_trail_overlay;
@@ -240,6 +244,7 @@ namespace
 	constexpr float PolygonNudgeDistance = 0.04f;
 	constexpr float PolygonFineNudgeDistance = 0.01f;
 	constexpr float PolygonCoarseNudgeDistance = 0.12f;
+	constexpr float PolygonDragHitRadius = 0.28f;
 	constexpr glm::vec4 DefaultDogSpawnColor{ 0.15f, 0.45f, 1.0f, 1.0f };
 	constexpr glm::vec4 DefaultBabySpawnColor{ 1.0f, 0.25f, 0.85f, 1.0f };
 	constexpr glm::vec4 LinkDogArrivalColor{ 0.25f, 0.85f, 1.0f, 0.8f };
@@ -360,6 +365,50 @@ void GameplaySceneEditor::Update(
 
 		if (m_edit_target)
 		{
+			if (input.MouseButtonJustReleased(Input::MouseButton::Left))
+			{
+				m_dragged_vertex_index.reset();
+				return;
+			}
+
+			if (input.MouseButtonJustPressed(Input::MouseButton::Left))
+			{
+				if (std::optional<glm::vec2> ground_pos = camera.ScreenPointToGround(input.GetMousePos(), viewport))
+				{
+					if (std::optional<std::size_t> vertex_index = find_nearest_draft_vertex(*ground_pos, PolygonDragHitRadius))
+					{
+						m_selected_vertex_index = *vertex_index;
+						m_dragged_vertex_index = *vertex_index;
+						m_dragged_vertex_offset = m_draft_vertices[*vertex_index] - *ground_pos;
+						rebuild_selected_vertex_marker(asset_manager, renderer);
+						show_selected_vertex_marker(renderer, true);
+						update_polygon_editing_label();
+					}
+				}
+				return;
+			}
+
+			if (m_dragged_vertex_index)
+			{
+				if (!input.MouseButtonIsDown(Input::MouseButton::Left))
+				{
+					m_dragged_vertex_index.reset();
+					return;
+				}
+
+				if (*m_dragged_vertex_index < m_draft_vertices.size())
+				{
+					m_selected_vertex_index = *m_dragged_vertex_index;
+					if (std::optional<glm::vec2> ground_pos = camera.ScreenPointToGround(input.GetMousePos(), viewport))
+						move_selected_polygon_vertex_to(asset_manager, renderer, *ground_pos + m_dragged_vertex_offset);
+				}
+				else
+				{
+					m_dragged_vertex_index.reset();
+				}
+				return;
+			}
+
 			if (input.KeyJustPressed(']'))
 			{
 				select_next_polygon_vertex(asset_manager, renderer, 1);
@@ -540,6 +589,7 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 	m_is_editing_spawn = false;
 	m_spawn_edit_target.reset();
 	m_selected_vertex_index.reset();
+	m_dragged_vertex_index.reset();
 	m_draft_vertices.clear();
 	if (m_selected_scene_link_index && *m_selected_scene_link_index >= m_scene_data->scene_links.size())
 		m_selected_scene_link_index.reset();
@@ -800,6 +850,7 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 
 	m_is_editing_polygon = true;
 	m_edit_target = target;
+	m_dragged_vertex_index.reset();
 	m_draft_vertices = get_target_vertices(target);
 	if (target.kind == PolygonEditTargetKind::SceneLink)
 	{
@@ -833,6 +884,7 @@ void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, S
 	m_is_editing_polygon = false;
 	m_edit_target.reset();
 	m_selected_vertex_index.reset();
+	m_dragged_vertex_index.reset();
 	m_draft_vertices.clear();
 
 	if (m_scene_data)
@@ -869,6 +921,7 @@ bool GameplaySceneEditor::apply_polygon_draft(AssetManager & asset_manager, Scen
 	m_is_editing_polygon = false;
 	m_edit_target.reset();
 	m_selected_vertex_index.reset();
+	m_dragged_vertex_index.reset();
 	m_draft_vertices.clear();
 
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
@@ -990,6 +1043,7 @@ void GameplaySceneEditor::delete_selected_polygon_vertex(AssetManager & asset_ma
 	}
 
 	m_draft_vertices.erase(m_draft_vertices.begin() + static_cast<std::ptrdiff_t>(*m_selected_vertex_index));
+	m_dragged_vertex_index.reset();
 	update_selected_vertex_index_after_size_change();
 	rebuild_edit_target_overlay(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
@@ -1011,6 +1065,40 @@ void GameplaySceneEditor::nudge_selected_polygon_vertex(AssetManager & asset_man
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	show_selected_vertex_marker(renderer, true);
 	update_polygon_editing_label();
+}
+
+void GameplaySceneEditor::move_selected_polygon_vertex_to(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 position)
+{
+	if (!m_edit_target
+		|| !m_selected_vertex_index
+		|| *m_selected_vertex_index >= m_draft_vertices.size())
+	{
+		return;
+	}
+
+	m_draft_vertices[*m_selected_vertex_index] = position;
+	rebuild_edit_target_overlay(asset_manager, renderer);
+	rebuild_selected_vertex_marker(asset_manager, renderer);
+	show_selected_vertex_marker(renderer, true);
+	update_polygon_editing_label();
+}
+
+std::optional<std::size_t> GameplaySceneEditor::find_nearest_draft_vertex(glm::vec2 point, float max_distance) const
+{
+	std::optional<std::size_t> nearest_index;
+	float nearest_distance_sq = max_distance * max_distance;
+	for (std::size_t i = 0; i < m_draft_vertices.size(); ++i)
+	{
+		glm::vec2 const offset = m_draft_vertices[i] - point;
+		float const distance_sq = glm::dot(offset, offset);
+		if (distance_sq <= nearest_distance_sq)
+		{
+			nearest_distance_sq = distance_sq;
+			nearest_index = i;
+		}
+	}
+
+	return nearest_index;
 }
 
 void GameplaySceneEditor::update_selected_vertex_index_after_size_change()
@@ -1302,6 +1390,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 
 		return "Editing scene bounds\n"
 			"Selected vertex: " + selected_vertex_text + "\n"
+			"[Left Drag] Move vertex\n"
 			"[N] Insert vertex after selected\n"
 			"[[ or ]] Select vertex\n"
 			"[WASD]/[Arrows] Nudge vertex\n"
@@ -1320,6 +1409,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 
 		return "Editing scent trail\n"
 			"Selected point: " + selected_point_text + "\n"
+			"[Left Drag] Move point\n"
 			"[N] Insert point after selected\n"
 			"[[ or ]] Select point\n"
 			"[WASD]/[Arrows] Nudge point\n"
@@ -1338,6 +1428,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 
 		return "Editing link trigger\n"
 			"Selected vertex: " + selected_vertex_text + "\n"
+			"[Left Drag] Move vertex\n"
 			"[N] Insert vertex after selected\n"
 			"[[ or ]] Select vertex\n"
 			"[WASD]/[Arrows] Nudge vertex\n"
@@ -1356,6 +1447,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 	return "Editing link #" + std::to_string(m_edit_target->link_index + 1)
 		+ ": " + std::string{ ToString(scene_link.target_scene_id) } + "\n"
 		"Selected vertex: " + selected_vertex_text + "\n"
+		"[Left Drag] Move vertex\n"
 		"[N] Insert vertex after selected\n"
 		"[[ or ]] Select vertex\n"
 		"[WASD]/[Arrows] Nudge vertex\n"

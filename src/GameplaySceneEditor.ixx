@@ -1226,8 +1226,8 @@ glm::vec2 GameplaySceneEditor::get_spawn_position(SpawnEditTarget target) const
 
 	GameplayAdjacentScene const & adjacent_scene = m_scene_data->adjacent_scenes[target.adjacent_index];
 	return target.character == SpawnCharacter::Dog
-		? adjacent_scene.dog_spawn_pos
-		: adjacent_scene.baby_spawn_pos;
+		? adjacent_scene.dog_entry_spawn_pos
+		: adjacent_scene.baby_entry_spawn_pos;
 }
 
 void GameplaySceneEditor::set_spawn_position(SpawnEditTarget target, glm::vec2 pos)
@@ -1249,9 +1249,9 @@ void GameplaySceneEditor::set_spawn_position(SpawnEditTarget target, glm::vec2 p
 
 	GameplayAdjacentScene & adjacent_scene = m_scene_data->adjacent_scenes[target.adjacent_index];
 	if (target.character == SpawnCharacter::Dog)
-		adjacent_scene.dog_spawn_pos = pos;
+		adjacent_scene.dog_entry_spawn_pos = pos;
 	else
-		adjacent_scene.baby_spawn_pos = pos;
+		adjacent_scene.baby_entry_spawn_pos = pos;
 }
 
 void GameplaySceneEditor::update_polygon_editing_label()
@@ -1281,8 +1281,8 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			"[Right Click] Cancel\n"
 			"[1] Default dog spawn\n"
 			"[2] Default baby spawn\n"
-			"[3] Adjacent dog spawn\n"
-			"[4] Adjacent baby spawn";
+			"[3] Entry dog spawn\n"
+			"[4] Entry baby spawn";
 	}
 
 	if (!m_is_editing_polygon || !m_edit_target)
@@ -1305,8 +1305,8 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			"[Delete] Delete selected adjacent\n"
 			"[1] Default dog spawn\n"
 			"[2] Default baby spawn\n"
-			"[3] Adjacent dog spawn\n"
-			"[4] Adjacent baby spawn\n"
+			"[3] Entry dog spawn\n"
+			"[4] Entry baby spawn\n"
 			"[Ctrl+S] Save\n"
 			"[R] Reload";
 	}

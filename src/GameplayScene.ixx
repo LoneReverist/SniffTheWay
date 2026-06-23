@@ -333,7 +333,7 @@ std::pair<glm::vec2, glm::vec2> GameplayScene::get_spawn_positions(SceneTransiti
 		for (GameplayAdjacentScene const & adjacent_scene : m_scene_data.adjacent_scenes)
 		{
 			if (adjacent_scene.scene_id == transition.previous_scene_id.value())
-				return { adjacent_scene.dog_spawn_pos, adjacent_scene.baby_spawn_pos };
+				return { adjacent_scene.dog_entry_spawn_pos, adjacent_scene.baby_entry_spawn_pos };
 		}
 	}
 

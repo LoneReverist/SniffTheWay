@@ -118,10 +118,13 @@ GameplayAdjacentScene parse_gameplay_adjacent_scene(json const & j)
 
 	if (j.contains("collider"))
 		adjacent_scene.collider = parse_gameplay_polygon(j["collider"]);
-	if (j.contains("dog_spawn"))
-		adjacent_scene.dog_spawn_pos = parse_gameplay_vec2(j["dog_spawn"], adjacent_scene.dog_spawn_pos);
-	if (j.contains("baby_spawn"))
-		adjacent_scene.baby_spawn_pos = parse_gameplay_vec2(j["baby_spawn"], adjacent_scene.baby_spawn_pos);
+
+	json const entry_spawn_json = j.value("entry_spawn", json::object());
+	if (entry_spawn_json.contains("dog"))
+		adjacent_scene.dog_entry_spawn_pos = parse_gameplay_vec2(entry_spawn_json["dog"], adjacent_scene.dog_entry_spawn_pos);
+
+	if (entry_spawn_json.contains("baby"))
+		adjacent_scene.baby_entry_spawn_pos = parse_gameplay_vec2(entry_spawn_json["baby"], adjacent_scene.baby_entry_spawn_pos);
 
 	return adjacent_scene;
 }
@@ -207,8 +210,10 @@ json serialize_gameplay_adjacent_scene(GameplayAdjacentScene const & adjacent_sc
 {
 	return json{
 		{ "scene_id", std::string{ SniffTheWay::ToString(adjacent_scene.scene_id) } },
-		{ "dog_spawn", serialize_gameplay_vec2(adjacent_scene.dog_spawn_pos) },
-		{ "baby_spawn", serialize_gameplay_vec2(adjacent_scene.baby_spawn_pos) },
+		{ "entry_spawn", json{
+			{ "dog", serialize_gameplay_vec2(adjacent_scene.dog_entry_spawn_pos) },
+			{ "baby", serialize_gameplay_vec2(adjacent_scene.baby_entry_spawn_pos) }
+		} },
 		{ "collider", serialize_gameplay_polygon(adjacent_scene.collider) }
 	};
 }

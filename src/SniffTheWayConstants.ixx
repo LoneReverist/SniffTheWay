@@ -50,6 +50,7 @@ export namespace SniffTheWay
 		Exit, // flag to close the application
 		Picnic,
 		ForestPath,
+		ForestPath2,
 		Playground,
 		Playground2,
 		Creek,
@@ -78,6 +79,7 @@ export namespace SniffTheWay
 		switch (scene_id)
 		{
 		case SceneId::ForestPath:
+		case SceneId::ForestPath2:
 		case SceneId::Playground:
 		case SceneId::Playground2:
 		case SceneId::DarkForest:
@@ -98,6 +100,8 @@ export namespace SniffTheWay
 			return "picnic";
 		case SceneId::ForestPath:
 			return "forest_path";
+		case SceneId::ForestPath2:
+			return "forest_path2";
 		case SceneId::Playground:
 			return "playground";
 		case SceneId::Playground2:
@@ -125,6 +129,8 @@ export namespace SniffTheWay
 			return SceneId::Picnic;
 		if (scene_id == "forest_path")
 			return SceneId::ForestPath;
+		if (scene_id == "forest_path2")
+			return SceneId::ForestPath2;
 		if (scene_id == "playground")
 			return SceneId::Playground;
 		if (scene_id == "playground2")

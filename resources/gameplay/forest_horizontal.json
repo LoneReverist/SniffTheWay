@@ -1,0 +1,54 @@
+{
+  "id": "forest_horizontal",
+  "background": "forest_horizontal.png",
+  "initial_state": "gameplay",
+  "camera": {
+    "position": [0.0, -6.0, 1.0],
+    "direction": [0.0, 0.995893300, -0.0905357525],
+    "fov_degrees": 45.0
+  },
+  "bounds": [
+    [-4.2, -3.35],
+    [4.2, -3.35],
+    [4.2, -2.05],
+    [-4.2, -2.05]
+  ],
+  "scent_trail": {
+    "points": [
+      [-3.85, -2.75],
+      [-2.0, -2.65],
+      [0.0, -2.55],
+      [2.05, -2.65],
+      [3.8, -2.75]
+    ]
+  },
+  "story_texts": [],
+  "scene_links": [
+    {
+      "target_scene_id": "forest_lake",
+      "arrival_points": {
+        "dog": [-3.4, -2.75],
+        "baby": [-2.85, -2.25]
+      },
+      "trigger": [
+        [-4.2, -3.35],
+        [-3.55, -3.35],
+        [-3.55, -2.05],
+        [-4.2, -2.05]
+      ]
+    },
+    {
+      "target_scene_id": "playground",
+      "arrival_points": {
+        "dog": [3.35, -2.75],
+        "baby": [2.8, -2.25]
+      },
+      "trigger": [
+        [3.55, -3.35],
+        [4.2, -3.35],
+        [4.2, -2.05],
+        [3.55, -2.05]
+      ]
+    }
+  ]
+}

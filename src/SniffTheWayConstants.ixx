@@ -51,6 +51,9 @@ export namespace SniffTheWay
 		Picnic,
 		ForestPath,
 		ForestPath2,
+		RightTurn,
+		ForestLake,
+		ForestHorizontal,
 		Playground,
 		Playground2,
 		Creek,
@@ -80,6 +83,9 @@ export namespace SniffTheWay
 		{
 		case SceneId::ForestPath:
 		case SceneId::ForestPath2:
+		case SceneId::RightTurn:
+		case SceneId::ForestLake:
+		case SceneId::ForestHorizontal:
 		case SceneId::Playground:
 		case SceneId::Playground2:
 		case SceneId::DarkForest:
@@ -102,6 +108,12 @@ export namespace SniffTheWay
 			return "forest_path";
 		case SceneId::ForestPath2:
 			return "forest_path2";
+		case SceneId::RightTurn:
+			return "right_turn";
+		case SceneId::ForestLake:
+			return "forest_lake";
+		case SceneId::ForestHorizontal:
+			return "forest_horizontal";
 		case SceneId::Playground:
 			return "playground";
 		case SceneId::Playground2:
@@ -131,6 +143,12 @@ export namespace SniffTheWay
 			return SceneId::ForestPath;
 		if (scene_id == "forest_path2")
 			return SceneId::ForestPath2;
+		if (scene_id == "right_turn")
+			return SceneId::RightTurn;
+		if (scene_id == "forest_lake")
+			return SceneId::ForestLake;
+		if (scene_id == "forest_horizontal")
+			return SceneId::ForestHorizontal;
 		if (scene_id == "playground")
 			return SceneId::Playground;
 		if (scene_id == "playground2")

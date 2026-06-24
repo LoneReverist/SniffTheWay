@@ -16,7 +16,7 @@
   "story_texts": [],
   "scene_links": [
     {
-      "target_scene_id": "forest_path2",
+      "target_scene_id": "forest_horizontal",
       "arrival_points": {
         "dog": [-1.5, -3.0],
         "baby": [-1.75, -2.25]

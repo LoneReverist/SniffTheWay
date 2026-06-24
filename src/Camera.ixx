@@ -45,26 +45,37 @@ public:
 	explicit Camera3d(bool flip_proj_y = false) : m_flip_proj_y(flip_proj_y) {}
 
 	void Init(glm::vec3 const & pos, glm::vec3 const & dir);
+	void Init(glm::vec3 const & pos, glm::vec3 const & dir, float fov_degrees);
 	void SetViewportSize(int width, int height);
+	void SetPosition(glm::vec3 const & pos);
+	void SetDirection(glm::vec3 const & dir);
+	void SetFovDegrees(float fov_degrees);
 	std::optional<glm::vec2> ScreenPointToGround(glm::vec2 framebuffer_pos, glm::ivec4 viewport) const;
 
 	void Update(float dt, Input const & input) {}
 
 	CameraPosUniform const & GetPosUniform() const { return m_pos_uniform; }
+	glm::vec3 const & GetPosition() const { return m_pos_uniform.pos; }
 	glm::vec3 const & GetDir() const { return m_dir; }
+	float GetFovDegrees() const { return m_fov_degrees; }
 	ViewProjUniform const & GetViewProjUniform() const { return m_view_proj_uniform; }
 	ViewportUniform const & GetViewportUniform() const { return m_viewport_uniform; }
 
 private:
+	void update_view();
+	void update_projection();
+
 	ViewProjUniform m_view_proj_uniform;
 	ViewportUniform m_viewport_uniform;
 	CameraPosUniform m_pos_uniform{ { 0.0f, 0.0f, 0.0f } };
 	glm::vec3 m_dir{ 0.0f, 0.0f, -1.0f };
+	float m_fov_degrees = 45.0f;
+	int m_viewport_width = 0;
+	int m_viewport_height = 0;
 
 	bool m_flip_proj_y = false; // whether to flip the y-axis in the projection matrix
 
 	static constexpr glm::vec3 UpDir{ 0.0f, 0.0f, 1.0f }; // a little atypical, but i prefer Z to be up
-	static constexpr float FOV = glm::radians(45.0f);
 	static constexpr float NearPlane = 0.1f;
 	static constexpr float FarPlane = 100.0f;
 };
@@ -91,20 +102,63 @@ private:
 
 void Camera3d::Init(glm::vec3 const & pos, glm::vec3 const & dir)
 {
+	Init(pos, dir, m_fov_degrees);
+}
+
+void Camera3d::Init(glm::vec3 const & pos, glm::vec3 const & dir, float fov_degrees)
+{
 	m_pos_uniform.pos = pos;
-	m_dir = dir;
-	m_view_proj_uniform.view = glm::lookAt(m_pos_uniform.pos, m_pos_uniform.pos + m_dir, UpDir);
+	SetDirection(dir);
+	SetFovDegrees(fov_degrees);
 }
 
 void Camera3d::SetViewportSize(int width, int height)
 {
 	if (height == 0)
 		return;
-	
-	m_viewport_uniform.size = glm::vec2{ static_cast<float>(width), static_cast<float>(height) };
 
-	const float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
-	m_view_proj_uniform.proj = glm::perspective(FOV, aspect_ratio, NearPlane, FarPlane);
+	m_viewport_width = width;
+	m_viewport_height = height;
+	m_viewport_uniform.size = glm::vec2{ static_cast<float>(width), static_cast<float>(height) };
+	update_projection();
+}
+
+void Camera3d::SetPosition(glm::vec3 const & pos)
+{
+	m_pos_uniform.pos = pos;
+	update_view();
+}
+
+void Camera3d::SetDirection(glm::vec3 const & dir)
+{
+	if (glm::length(dir) < 1e-6f)
+		return;
+
+	m_dir = glm::normalize(dir);
+	update_view();
+}
+
+void Camera3d::SetFovDegrees(float fov_degrees)
+{
+	if (fov_degrees <= 0.0f)
+		return;
+
+	m_fov_degrees = fov_degrees;
+	update_projection();
+}
+
+void Camera3d::update_view()
+{
+	m_view_proj_uniform.view = glm::lookAt(m_pos_uniform.pos, m_pos_uniform.pos + m_dir, UpDir);
+}
+
+void Camera3d::update_projection()
+{
+	if (m_viewport_height == 0)
+		return;
+
+	const float aspect_ratio = static_cast<float>(m_viewport_width) / static_cast<float>(m_viewport_height);
+	m_view_proj_uniform.proj = glm::perspective(glm::radians(m_fov_degrees), aspect_ratio, NearPlane, FarPlane);
 
 	if (m_flip_proj_y)
 		m_view_proj_uniform.proj[1][1] *= -1; // account for vulkan having flipped y-axis compared to opengl

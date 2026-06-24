@@ -2,6 +2,11 @@
   "id": "forest_path2",
   "background": "forest_path2.png",
   "initial_state": "gameplay",
+  "camera": {
+    "position": [0.0, -6.0, 1.0],
+    "direction": [0.0, 0.995893300, -0.0905357525],
+    "fov_degrees": 45.0
+  },
   "bounds": [
     [
       -1.1091922521591187,

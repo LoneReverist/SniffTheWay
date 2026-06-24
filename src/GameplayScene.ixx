@@ -64,6 +64,9 @@ private:
 	std::filesystem::path get_gameplay_filepath() const;
 	void reload_scene_data();
 	void reload_background_texture();
+	void apply_camera_data();
+	void store_camera_data();
+	void refresh_character_camera_facing();
 	void apply_story_labels();
 	std::pair<glm::vec2, glm::vec2> get_default_spawn_positions() const;
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
@@ -115,10 +118,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	}
 
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
-
-	const glm::vec3 camera_pos{ 0.0f, -6.0f, 1.0f };
-	const glm::vec3 camera_dir = glm::normalize(glm::vec3{ 0.0f, 5.0f, 0.0f } - camera_pos);
-	m_camera3d.Init(camera_pos, camera_dir);
+	apply_camera_data();
 
 	AssetId font_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetFontsPath() / "Alice.png",
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
@@ -142,10 +142,10 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_font_atlas, m_text_pipeline_id, m_scene_data, get_gameplay_filepath());
 #endif
 
-	m_dog.Init(m_asset_manager, camera_dir, dog_spawn_pos);
+	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_spawn_pos);
 	m_renderer.CreateRenderObject("dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
-	m_baby.Init(m_asset_manager, camera_dir, baby_spawn_pos);
+	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos);
 	m_renderer.CreateRenderObject("baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
@@ -204,6 +204,11 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		reload_scene_data();
 
 	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
+	if (m_editor.ConsumeCameraChanged())
+	{
+		store_camera_data();
+		refresh_character_camera_facing();
+	}
 	if (m_editor.ConsumeScentTrailChanged())
 		create_or_reload_scent_trail(m_dog.GetPosition());
 #endif
@@ -273,6 +278,7 @@ void GameplayScene::reload_scene_data()
 	}
 
 	m_scene_data = std::move(reloaded_scene_data);
+	apply_camera_data();
 	reload_background_texture();
 	apply_story_labels();
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_default_spawn_positions();
@@ -290,6 +296,24 @@ void GameplayScene::reload_scene_data()
 		ChangeSceneState(m_scene_state);
 	
 	std::cout << "GameplayScene: Reloaded gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
+}
+
+void GameplayScene::apply_camera_data()
+{
+	m_camera3d.Init(m_scene_data.camera.position, m_scene_data.camera.direction, m_scene_data.camera.fov_degrees);
+}
+
+void GameplayScene::store_camera_data()
+{
+	m_scene_data.camera.position = m_camera3d.GetPosition();
+	m_scene_data.camera.direction = m_camera3d.GetDir();
+	m_scene_data.camera.fov_degrees = m_camera3d.GetFovDegrees();
+}
+
+void GameplayScene::refresh_character_camera_facing()
+{
+	m_dog.Reload(m_camera3d.GetDir(), m_dog.GetPosition());
+	m_baby.Reload(m_camera3d.GetDir(), m_baby.GetPosition());
 }
 
 void GameplayScene::reload_background_texture()

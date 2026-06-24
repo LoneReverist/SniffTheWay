@@ -4,7 +4,9 @@ module;
 
 #include <cstddef>
 #include <filesystem>
+#include <iomanip>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -51,10 +53,10 @@ public:
 		Input const & input,
 		AssetManager & asset_manager,
 		SceneRenderer & renderer,
-		Camera3d const & camera,
+		Camera3d & camera,
 		glm::ivec4 viewport,
 		SceneState scene_state);
-	bool HasActiveEditMode() const { return m_is_editing_polygon || m_is_editing_arrival; }
+	bool HasActiveEditMode() const { return m_is_editing_polygon || m_is_editing_arrival || m_is_editing_camera; }
 	void OnSceneStateChanged(SceneState new_state, AssetManager & asset_manager, SceneRenderer & renderer);
 	void Reload(AssetManager & asset_manager, SceneRenderer & renderer);
 
@@ -151,6 +153,9 @@ private:
 	void begin_arrival_editing(AssetManager & asset_manager, SceneRenderer & renderer, ArrivalEditTarget target);
 	void cancel_arrival_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	void set_arrival_position(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 pos);
+	void begin_camera_editing();
+	void update_camera_editing(Input const & input, Camera3d & camera);
+	void end_camera_editing();
 	void select_next_scene_link(AssetManager & asset_manager, SceneRenderer & renderer);
 	void create_scene_link(AssetManager & asset_manager, SceneRenderer & renderer);
 	void delete_selected_scene_link(AssetManager & asset_manager, SceneRenderer & renderer);
@@ -163,6 +168,7 @@ private:
 	void update_polygon_editing_label();
 	std::string create_editor_label_text() const;
 	bool save_scene_data() const;
+	std::string format_vec3(glm::vec3 value) const;
 	std::vector<LineInstance> create_edge_lines(
 		std::vector<glm::vec2> const & vertices,
 		bool close_edges,
@@ -182,6 +188,7 @@ private:
 		float thickness) const;
 
 public:
+	bool ConsumeCameraChanged();
 	bool ConsumeScentTrailChanged();
 
 private:
@@ -193,6 +200,7 @@ private:
 	bool m_is_editing_polygon = false;
 	std::optional<PolygonEditTarget> m_edit_target;
 	bool m_is_editing_arrival = false;
+	bool m_is_editing_camera = false;
 	std::optional<ArrivalEditTarget> m_arrival_edit_target;
 	std::optional<std::size_t> m_selected_scene_link_index;
 	std::optional<std::size_t> m_selected_vertex_index;
@@ -206,6 +214,7 @@ private:
 	AssetId m_selected_vertex_marker_ro_id;
 	MeshId<Vertex2d> m_arrival_markers_mesh_id;
 	AssetId m_arrival_markers_ro_id;
+	bool m_camera_changed = false;
 	bool m_scent_trail_changed = false;
 };
 
@@ -237,6 +246,17 @@ namespace
 	constexpr float PolygonFineNudgeDistance = 0.01f;
 	constexpr float PolygonCoarseNudgeDistance = 0.12f;
 	constexpr float PolygonDragHitRadius = 0.28f;
+	constexpr float CameraPositionNudgeDistance = 0.04f;
+	constexpr float CameraPositionFineNudgeDistance = 0.01f;
+	constexpr float CameraPositionCoarseNudgeDistance = 0.16f;
+	constexpr float CameraDirectionNudgeDistance = 0.01f;
+	constexpr float CameraDirectionFineNudgeDistance = 0.0025f;
+	constexpr float CameraDirectionCoarseNudgeDistance = 0.04f;
+	constexpr float CameraFovNudgeDegrees = 0.25f;
+	constexpr float CameraFovFineNudgeDegrees = 0.05f;
+	constexpr float CameraFovCoarseNudgeDegrees = 1.0f;
+	constexpr float CameraMinFovDegrees = 10.0f;
+	constexpr float CameraMaxFovDegrees = 100.0f;
 	constexpr glm::vec4 LinkDogArrivalColor{ 0.25f, 0.85f, 1.0f, 0.8f };
 	constexpr glm::vec4 LinkBabyArrivalColor{ 0.85f, 0.45f, 1.0f, 0.8f };
 	constexpr glm::vec4 SelectedArrivalColor{ 0.2f, 1.0f, 0.45f, 1.0f };
@@ -310,7 +330,7 @@ void GameplaySceneEditor::Update(
 	Input const & input,
 	AssetManager & asset_manager,
 	SceneRenderer & renderer,
-	Camera3d const & camera,
+	Camera3d & camera,
 	glm::ivec4 viewport,
 	SceneState scene_state)
 {
@@ -324,6 +344,18 @@ void GameplaySceneEditor::Update(
 	if (ctrl_is_down && input.KeyJustPressed('S') && !m_is_editing_polygon && !m_is_editing_arrival)
 	{
 		save_scene_data();
+		return;
+	}
+
+	if (m_is_editing_camera)
+	{
+		if (input.KeyJustPressed(Input::Key::Esc))
+		{
+			end_camera_editing();
+			return;
+		}
+
+		update_camera_editing(input, camera);
 		return;
 	}
 
@@ -512,6 +544,12 @@ void GameplaySceneEditor::Update(
 		return;
 	}
 
+	if (input.KeyJustPressed('C'))
+	{
+		begin_camera_editing();
+		return;
+	}
+
 	if (input.KeyJustPressed('2'))
 	{
 		if (m_is_editing_arrival
@@ -554,6 +592,7 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 	m_edit_target.reset();
 	m_is_editing_arrival = false;
 	m_arrival_edit_target.reset();
+	m_is_editing_camera = false;
 	m_selected_vertex_index.reset();
 	m_dragged_vertex_index.reset();
 	m_draft_vertices.clear();
@@ -1136,6 +1175,102 @@ void GameplaySceneEditor::set_arrival_position(AssetManager & asset_manager, Sce
 	show_polygon_editing_label(renderer, true);
 }
 
+void GameplaySceneEditor::begin_camera_editing()
+{
+	if (m_is_editing_camera)
+		return;
+
+	m_is_editing_camera = true;
+	update_polygon_editing_label();
+}
+
+void GameplaySceneEditor::update_camera_editing(Input const & input, Camera3d & camera)
+{
+	const bool ctrl_is_down = input.KeyIsDown(Input::Key::LeftControl) || input.KeyIsDown(Input::Key::RightControl);
+	const bool shift_is_down = input.KeyIsDown(Input::Key::LeftShift) || input.KeyIsDown(Input::Key::RightShift);
+
+	const float position_nudge = ctrl_is_down
+		? CameraPositionFineNudgeDistance
+		: shift_is_down ? CameraPositionCoarseNudgeDistance : CameraPositionNudgeDistance;
+	const float direction_nudge = ctrl_is_down
+		? CameraDirectionFineNudgeDistance
+		: shift_is_down ? CameraDirectionCoarseNudgeDistance : CameraDirectionNudgeDistance;
+	const float fov_nudge = ctrl_is_down
+		? CameraFovFineNudgeDegrees
+		: shift_is_down ? CameraFovCoarseNudgeDegrees : CameraFovNudgeDegrees;
+
+	glm::vec3 position_delta{ 0.0f };
+	if (input.KeyIsDown('W'))
+		position_delta.y += position_nudge;
+	if (input.KeyIsDown('S'))
+		position_delta.y -= position_nudge;
+	if (input.KeyIsDown('A'))
+		position_delta.x -= position_nudge;
+	if (input.KeyIsDown('D'))
+		position_delta.x += position_nudge;
+	if (input.KeyIsDown('Q'))
+		position_delta.z -= position_nudge;
+	if (input.KeyIsDown('E'))
+		position_delta.z += position_nudge;
+
+	glm::vec3 direction_delta{ 0.0f };
+	if (input.KeyIsDown('J') || input.KeyIsDown(Input::Key::Left))
+		direction_delta.x -= direction_nudge;
+	if (input.KeyIsDown('L') || input.KeyIsDown(Input::Key::Right))
+		direction_delta.x += direction_nudge;
+	if (input.KeyIsDown('K') || input.KeyIsDown(Input::Key::Down))
+		direction_delta.y -= direction_nudge;
+	if (input.KeyIsDown('I') || input.KeyIsDown(Input::Key::Up))
+		direction_delta.y += direction_nudge;
+	if (input.KeyIsDown('U'))
+		direction_delta.z -= direction_nudge;
+	if (input.KeyIsDown('O'))
+		direction_delta.z += direction_nudge;
+
+	float fov_delta = 0.0f;
+	if (input.KeyIsDown('Z'))
+		fov_delta -= fov_nudge;
+	if (input.KeyIsDown('X'))
+		fov_delta += fov_nudge;
+
+	bool changed = false;
+	if (position_delta != glm::vec3{ 0.0f })
+	{
+		camera.SetPosition(camera.GetPosition() + position_delta);
+		changed = true;
+	}
+
+	if (direction_delta != glm::vec3{ 0.0f })
+	{
+		camera.SetDirection(camera.GetDir() + direction_delta);
+		changed = true;
+	}
+
+	if (fov_delta != 0.0f)
+	{
+		camera.SetFovDegrees(glm::clamp(camera.GetFovDegrees() + fov_delta, CameraMinFovDegrees, CameraMaxFovDegrees));
+		changed = true;
+	}
+
+	if (!changed)
+		return;
+
+	if (m_scene_data)
+	{
+		m_scene_data->camera.position = camera.GetPosition();
+		m_scene_data->camera.direction = camera.GetDir();
+		m_scene_data->camera.fov_degrees = camera.GetFovDegrees();
+	}
+	m_camera_changed = true;
+	update_polygon_editing_label();
+}
+
+void GameplaySceneEditor::end_camera_editing()
+{
+	m_is_editing_camera = false;
+	update_polygon_editing_label();
+}
+
 void GameplaySceneEditor::select_next_scene_link(AssetManager & asset_manager, SceneRenderer & renderer)
 {
 	if (!m_scene_data || m_scene_data->scene_links.empty())
@@ -1278,6 +1413,22 @@ void GameplaySceneEditor::update_polygon_editing_label()
 
 std::string GameplaySceneEditor::create_editor_label_text() const
 {
+	if (m_is_editing_camera && m_scene_data)
+	{
+		GameplayCameraData const & camera = m_scene_data->camera;
+		std::ostringstream text;
+		text << "Editing camera\n"
+			<< "Position: " << format_vec3(camera.position) << "\n"
+			<< "Direction: " << format_vec3(camera.direction) << "\n"
+			<< "FOV: " << std::fixed << std::setprecision(2) << camera.fov_degrees << "\n"
+			<< "[WASD] Move X/Y, [Q/E] Move Z\n"
+			<< "[Arrows]/[IJKL] Aim X/Y, [U/O] Aim Z\n"
+			<< "[Z/X] FOV\n"
+			<< "[Shift] Coarse, [Ctrl] Fine\n"
+			<< "[Escape] Done";
+		return text.str();
+	}
+
 	if (m_is_editing_arrival && m_arrival_edit_target)
 	{
 		std::string owner_text = "link";
@@ -1307,6 +1458,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 		return "Editing\n"
 			"[B] Edit bounds\n"
 			"[T] Edit scent trail\n"
+			"[C] Adjust camera\n"
 			"[Tab] Select link (" + selected_scene_link_text + ")\n"
 			"[L] Edit selected link trigger\n"
 			"[Shift+L] New link\n"
@@ -1397,6 +1549,21 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 bool GameplaySceneEditor::save_scene_data() const
 {
 	return m_scene_data && GameplaySceneLoader::SaveSceneData(m_scene_filepath, *m_scene_data);
+}
+
+std::string GameplaySceneEditor::format_vec3(glm::vec3 value) const
+{
+	std::ostringstream text;
+	text << std::fixed << std::setprecision(3)
+		<< "(" << value.x << ", " << value.y << ", " << value.z << ")";
+	return text.str();
+}
+
+bool GameplaySceneEditor::ConsumeCameraChanged()
+{
+	bool const changed = m_camera_changed;
+	m_camera_changed = false;
+	return changed;
 }
 
 bool GameplaySceneEditor::ConsumeScentTrailChanged()

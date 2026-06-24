@@ -26,10 +26,18 @@ export struct ScentTrailData
 	std::vector<glm::vec2> points;
 };
 
+export struct GameplayCameraData
+{
+	glm::vec3 position{ 0.0f, -6.0f, 1.0f };
+	glm::vec3 direction{ 0.0f, 0.9847835302352905f, -0.17378532886505127f };
+	float fov_degrees = 45.0f;
+};
+
 export struct GameplaySceneData
 {
 	std::string bg_image_filename;
 	SniffTheWay::SceneState initial_state = SniffTheWay::SceneState::Gameplay;
+	GameplayCameraData camera;
 	Polygon2d bounds;
 	ScentTrailData scent_trail;
 	std::vector<StoryText> story_texts;

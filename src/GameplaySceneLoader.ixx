@@ -30,6 +30,14 @@ glm::vec2 parse_gameplay_vec2(json const & j, glm::vec2 fallback)
 	return glm::vec2{ j[0].get<float>(), j[1].get<float>() };
 }
 
+glm::vec3 parse_gameplay_vec3(json const & j, glm::vec3 fallback)
+{
+	if (!j.is_array() || j.size() != 3)
+		return fallback;
+
+	return glm::vec3{ j[0].get<float>(), j[1].get<float>(), j[2].get<float>() };
+}
+
 glm::vec4 parse_gameplay_vec4(json const & j, glm::vec4 fallback)
 {
 	if (!j.is_array() || j.size() != 4)
@@ -99,6 +107,24 @@ ScentTrailData parse_scent_trail(json const & j)
 	return scent_trail;
 }
 
+GameplayCameraData parse_gameplay_camera(json const & j, GameplayCameraData fallback)
+{
+	if (!j.is_object())
+		return fallback;
+
+	if (j.contains("position"))
+		fallback.position = parse_gameplay_vec3(j["position"], fallback.position);
+	if (j.contains("direction"))
+	{
+		glm::vec3 const direction = parse_gameplay_vec3(j["direction"], fallback.direction);
+		if (glm::length(direction) > 1e-6f)
+			fallback.direction = glm::normalize(direction);
+	}
+	fallback.fov_degrees = j.value("fov_degrees", fallback.fov_degrees);
+
+	return fallback;
+}
+
 GameplaySceneLink parse_gameplay_scene_link(json const & j)
 {
 	GameplaySceneLink scene_link;
@@ -129,6 +155,11 @@ GameplaySceneLink parse_gameplay_scene_link(json const & j)
 json serialize_gameplay_vec2(glm::vec2 value)
 {
 	return json::array({ value.x, value.y });
+}
+
+json serialize_gameplay_vec3(glm::vec3 value)
+{
+	return json::array({ value.x, value.y, value.z });
 }
 
 json serialize_gameplay_vec4(glm::vec4 value)
@@ -201,6 +232,15 @@ json serialize_scent_trail(ScentTrailData const & scent_trail)
 	};
 }
 
+json serialize_gameplay_camera(GameplayCameraData const & camera)
+{
+	return json{
+		{ "position", serialize_gameplay_vec3(camera.position) },
+		{ "direction", serialize_gameplay_vec3(camera.direction) },
+		{ "fov_degrees", camera.fov_degrees }
+	};
+}
+
 json serialize_gameplay_scene_link(GameplaySceneLink const & scene_link)
 {
 	return json{
@@ -221,6 +261,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 
 	root["background"] = scene_data.bg_image_filename;
 	root["initial_state"] = serialize_gameplay_scene_state(scene_data.initial_state);
+	root["camera"] = serialize_gameplay_camera(scene_data.camera);
 	root["bounds"] = serialize_gameplay_polygon(scene_data.bounds);
 	root["scent_trail"] = serialize_scent_trail(scene_data.scent_trail);
 
@@ -239,6 +280,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 		if (key != "id" &&
 			key != "background" &&
 			key != "initial_state" &&
+			key != "camera" &&
 			key != "bounds" &&
 			key != "default_spawn" &&
 			key != "scent_trail" &&
@@ -272,6 +314,8 @@ export namespace GameplaySceneLoader
 
 			scene_data.bg_image_filename = root.value("background", "");
 			scene_data.initial_state = parse_gameplay_scene_state(root.value("initial_state", "gameplay"));
+			if (root.contains("camera"))
+				scene_data.camera = parse_gameplay_camera(root["camera"], scene_data.camera);
 
 			if (root.contains("bounds"))
 				scene_data.bounds = parse_gameplay_polygon(root["bounds"]);

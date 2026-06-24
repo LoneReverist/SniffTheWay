@@ -265,7 +265,7 @@ namespace
 	constexpr float CameraFovFineNudgeDegrees = 0.05f;
 	constexpr float CameraFovCoarseNudgeDegrees = 1.0f;
 	constexpr float CameraMinFovDegrees = 10.0f;
-	constexpr float CameraMaxFovDegrees = 100.0f;
+	constexpr float CameraMaxFovDegrees = 180.0f;
 	constexpr glm::vec4 LinkDogArrivalColor{ 0.25f, 0.85f, 1.0f, 0.8f };
 	constexpr glm::vec4 LinkBabyArrivalColor{ 0.85f, 0.45f, 1.0f, 0.8f };
 	constexpr glm::vec4 SelectedArrivalColor{ 0.2f, 1.0f, 0.45f, 1.0f };

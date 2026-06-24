@@ -1,6 +1,6 @@
 {
-  "id": "forest_horizontal",
-  "background": "forest_horizontal.png",
+  "id": "thicker_forest_transition",
+  "background": "thicker_forest_transition.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [0.0, -6.0, 1.0],
@@ -9,23 +9,29 @@
   },
   "bounds": [
     [-4.2, -3.35],
-    [4.2, -3.35],
-    [4.2, -2.05],
+    [0.6, -3.35],
+    [1.1, -2.55],
+    [2.1, -1.55],
+    [2.6, 1.65],
+    [1.4, 1.65],
+    [0.75, -0.9],
+    [-0.25, -1.85],
     [-4.2, -2.05]
   ],
   "scent_trail": {
     "points": [
       [-3.85, -2.75],
-      [-2.0, -2.65],
-      [0.0, -2.55],
-      [2.05, -2.65],
-      [3.8, -2.75]
+      [-1.75, -2.65],
+      [0.05, -2.55],
+      [1.05, -1.65],
+      [1.65, -0.3],
+      [2.0, 1.45]
     ]
   },
   "story_texts": [],
   "scene_links": [
     {
-      "target_scene_id": "playground",
+      "target_scene_id": "forest_horizontal",
       "arrival_points": {
         "dog": [-3.4, -2.75],
         "baby": [-2.85, -2.25]
@@ -38,16 +44,16 @@
       ]
     },
     {
-      "target_scene_id": "thicker_forest_transition",
+      "target_scene_id": "before_creek",
       "arrival_points": {
-        "dog": [3.35, -2.75],
-        "baby": [2.8, -2.25]
+        "dog": [1.85, 0.85],
+        "baby": [1.25, 0.25]
       },
       "trigger": [
-        [3.55, -3.35],
-        [4.2, -3.35],
-        [4.2, -2.05],
-        [3.55, -2.05]
+        [1.35, 1.25],
+        [2.6, 1.25],
+        [2.6, 1.9],
+        [1.35, 1.9]
       ]
     }
   ]

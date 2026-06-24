@@ -53,10 +53,12 @@ export namespace SniffTheWay
 		ForestPath2,
 		RightTurn,
 		ForestLake,
-		ForestHorizontal,
 		Playground,
-		Playground2,
+		ForestHorizontal,
+		ThickerForestTransition,
+		BeforeCreek,
 		Creek,
+		AfterCreek,
 		DarkForest,
 		Night,
 		ForestIntersection,
@@ -85,9 +87,11 @@ export namespace SniffTheWay
 		case SceneId::ForestPath2:
 		case SceneId::RightTurn:
 		case SceneId::ForestLake:
-		case SceneId::ForestHorizontal:
 		case SceneId::Playground:
-		case SceneId::Playground2:
+		case SceneId::ForestHorizontal:
+		case SceneId::ThickerForestTransition:
+		case SceneId::BeforeCreek:
+		case SceneId::AfterCreek:
 		case SceneId::DarkForest:
 		case SceneId::ForestIntersection:
 			return true;
@@ -112,14 +116,18 @@ export namespace SniffTheWay
 			return "right_turn";
 		case SceneId::ForestLake:
 			return "forest_lake";
-		case SceneId::ForestHorizontal:
-			return "forest_horizontal";
 		case SceneId::Playground:
 			return "playground";
-		case SceneId::Playground2:
-			return "playground2";
+		case SceneId::ForestHorizontal:
+			return "forest_horizontal";
+		case SceneId::ThickerForestTransition:
+			return "thicker_forest_transition";
+		case SceneId::BeforeCreek:
+			return "before_creek";
 		case SceneId::Creek:
 			return "creek";
+		case SceneId::AfterCreek:
+			return "after_creek";
 		case SceneId::DarkForest:
 			return "dark_forest";
 		case SceneId::Night:
@@ -147,14 +155,18 @@ export namespace SniffTheWay
 			return SceneId::RightTurn;
 		if (scene_id == "forest_lake")
 			return SceneId::ForestLake;
-		if (scene_id == "forest_horizontal")
-			return SceneId::ForestHorizontal;
 		if (scene_id == "playground")
 			return SceneId::Playground;
-		if (scene_id == "playground2")
-			return SceneId::Playground2;
+		if (scene_id == "forest_horizontal")
+			return SceneId::ForestHorizontal;
+		if (scene_id == "thicker_forest_transition")
+			return SceneId::ThickerForestTransition;
+		if (scene_id == "before_creek")
+			return SceneId::BeforeCreek;
 		if (scene_id == "creek")
 			return SceneId::Creek;
+		if (scene_id == "after_creek")
+			return SceneId::AfterCreek;
 		if (scene_id == "dark_forest")
 			return SceneId::DarkForest;
 		if (scene_id == "night")

@@ -46,7 +46,7 @@ void EditorGrid::Init(AssetManager & asset_manager)
 
 void EditorGrid::Update(Input const & input, SceneRenderer & renderer, SceneState scene_state)
 {
-	if (scene_state == SceneState::Gameplay && input.KeyJustPressed('G'))
+	if (scene_state == SceneState::Editing && input.KeyJustPressed('G'))
 		renderer.Show(m_ro_id, !renderer.IsShown(m_ro_id));
 }
 
@@ -68,17 +68,18 @@ MeshId<Vertex2d> EditorGrid::create_grid_mesh(AssetManager & asset_manager)
 		1, 2, 3 };
 
 	std::vector<LineInstance> line_instances(20);
+	constexpr float line_half_length = 100.0f;
 	for (int y = 0; y < 10; y++)
 	{
-		line_instances[y].p0 = { -4.0f, static_cast<float>(y) - 4.0f, 0.0f };
-		line_instances[y].p1 = { 5.0f, static_cast<float>(y) - 4.0f, 0.0f };
+		line_instances[y].p0 = { -line_half_length, static_cast<float>(y) - 4.0f, 0.0f };
+		line_instances[y].p1 = { line_half_length, static_cast<float>(y) - 4.0f, 0.0f };
 		line_instances[y].thickness = 4.0f;
 		line_instances[y].color = { 0.0f, 0.0f, 1.0f, 1.0f };
 	}
 	for (int x = 0; x < 10; x++)
 	{
-		line_instances[x + 10].p0 = { static_cast<float>(x) - 4.0f, -4.0f, 0.0f };
-		line_instances[x + 10].p1 = { static_cast<float>(x) - 4.0f, 5.0f, 0.0f };
+		line_instances[x + 10].p0 = { static_cast<float>(x) - 4.0f, -line_half_length, 0.0f };
+		line_instances[x + 10].p1 = { static_cast<float>(x) - 4.0f, line_half_length, 0.0f };
 		line_instances[x + 10].thickness = 4.0f;
 		line_instances[x + 10].color = { 0.0f, 0.0f, 1.0f, 1.0f };
 	}

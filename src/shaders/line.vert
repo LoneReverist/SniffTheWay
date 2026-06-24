@@ -22,14 +22,43 @@ void main()
 {
     fragColor = inColor;
 
-    // Transform endpoints into clip space
-    mat4 view_proj = transforms.proj * transforms.view;
-    vec4 clip0 = view_proj * vec4(inP0, 1.0);
-    vec4 clip1 = view_proj * vec4(inP1, 1.0);
+    // Clip in view space before doing the screen-space expansion. Otherwise
+    // endpoints behind the camera project through the singularity and create
+    // huge quads that appear to shoot into the sky.
+    const float nearPlane = 0.1;
+    const float nearZ = -nearPlane;
+    vec4 view0 = transforms.view * vec4(inP0, 1.0);
+    vec4 view1 = transforms.view * vec4(inP1, 1.0);
+
+    bool p0BehindNear = view0.z > nearZ;
+    bool p1BehindNear = view1.z > nearZ;
+    if (p0BehindNear && p1BehindNear)
+    {
+        fragColor = vec4(0.0);
+        gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    if (p0BehindNear || p1BehindNear)
+    {
+        float t = (nearZ - view0.z) / (view1.z - view0.z);
+        vec4 clipped = mix(view0, view1, t);
+        if (p0BehindNear)
+        {
+            view0 = clipped;
+        }
+        else
+        {
+            view1 = clipped;
+        }
+    }
+
+    vec4 clip0 = transforms.proj * view0;
+    vec4 clip1 = transforms.proj * view1;
 
     // Avoid divide-by-zero issues
-    float w0 = max(abs(clip0.w), 0.00001);
-    float w1 = max(abs(clip1.w), 0.00001);
+    float w0 = max(clip0.w, 0.00001);
+    float w1 = max(clip1.w, 0.00001);
 
     // Convert to normalized device coordinates
     vec2 ndc0 = clip0.xy / w0;

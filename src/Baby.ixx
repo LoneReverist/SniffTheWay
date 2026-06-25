@@ -67,6 +67,31 @@ private:
 	float m_move_speed = 3.0f; // units per second
 };
 
+namespace
+{
+	glm::mat4 create_camera_facing_model(glm::vec3 const & camera_dir)
+	{
+		if (glm::length(camera_dir) < 1e-6f)
+			return glm::mat4{ 1.0f };
+
+		glm::vec3 const normal = glm::normalize(-camera_dir);
+
+		glm::vec3 const world_up{ 0.0f, 0.0f, 1.0f };
+		glm::vec3 up = world_up - normal * glm::dot(world_up, normal);
+		if (glm::length(up) < 1e-6f)
+			return glm::mat4{ 1.0f };
+		up = glm::normalize(up);
+
+		glm::vec3 const right = glm::normalize(glm::cross(up, normal));
+
+		glm::mat4 model{ 1.0f };
+		model[0] = glm::vec4{ right, 0.0f };
+		model[1] = glm::vec4{ up, 0.0f };
+		model[2] = glm::vec4{ normal, 0.0f };
+		return model;
+	}
+}
+
 void Baby::Init(
 	AssetManager & asset_manager,
 	glm::vec3 const & camera_dir,
@@ -87,10 +112,7 @@ void Baby::Init(
 	// this creates a quad on the xy axes, we have to rotate it up to face the camera with the model matrix
 	m_mesh_id = m_sprite_sheet.CreateQuadMesh(asset_manager);
 
-	glm::vec3 up_dir = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 target_dir = -camera_dir;
-	float angle = glm::acos(glm::dot(up_dir, target_dir));
-	glm::mat4 model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 model = create_camera_facing_model(camera_dir);
 	model[3] = glm::vec4(initial_pos, 0.0f, 1.0f);
 
 	m_pipeline_data = SpritePipeline::ObjectData{
@@ -158,10 +180,7 @@ void Baby::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
 	m_sprite_sheet.SetCurrentFrame(0);
 	update_frame_uvs();
 
-	glm::vec3 up_dir = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 target_dir = -camera_dir;
-	float angle = glm::acos(glm::dot(up_dir, target_dir));
-	m_pipeline_data.model = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
+	m_pipeline_data.model = create_camera_facing_model(camera_dir);
 	SetPosition(pos);
 }
 

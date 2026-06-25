@@ -5,7 +5,7 @@
   "camera": {
     "position": [0.0, -6.0, 1.0],
     "direction": [0.0, 0.995893300, -0.0905357525],
-    "fov_degrees": 45.0
+    "fov_degrees": 50.0
   },
   "bounds": [
     [-0.5, -4.0],

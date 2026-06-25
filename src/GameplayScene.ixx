@@ -187,6 +187,22 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 	m_fps_label.Update(dt);
 
 #ifdef _DEBUG
+	if (m_scene_state == SceneState::Gameplay)
+	{
+		for (int scene_link_number = 1; scene_link_number <= 4; ++scene_link_number)
+		{
+			if (!input.KeyJustPressed('0' + scene_link_number))
+				continue;
+
+			const int scene_link_index = scene_link_number - 1;
+			if (scene_link_index < static_cast<int>(m_scene_data.scene_links.size()))
+			{
+				GameplaySceneLink const & scene_link = m_scene_data.scene_links[scene_link_index];
+				return SceneTransition{ scene_link.target_scene_id, m_scene_id };
+			}
+		}
+	}
+
 	if (m_scene_state == SceneState::Gameplay && input.KeyJustPressed('E'))
 	{
 		ChangeSceneState(SceneState::Editing);

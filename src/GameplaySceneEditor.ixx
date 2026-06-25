@@ -255,15 +255,13 @@ namespace
 	constexpr float PolygonFineNudgeDistance = 0.01f;
 	constexpr float PolygonCoarseNudgeDistance = 0.12f;
 	constexpr float PolygonDragHitRadius = 0.28f;
-	constexpr float CameraPositionNudgeDistance = 0.04f;
-	constexpr float CameraPositionFineNudgeDistance = 0.01f;
-	constexpr float CameraPositionCoarseNudgeDistance = 0.16f;
-	constexpr float CameraDirectionNudgeDistance = 0.01f;
-	constexpr float CameraDirectionFineNudgeDistance = 0.0025f;
-	constexpr float CameraDirectionCoarseNudgeDistance = 0.04f;
-	constexpr float CameraFovNudgeDegrees = 0.25f;
-	constexpr float CameraFovFineNudgeDegrees = 0.05f;
-	constexpr float CameraFovCoarseNudgeDegrees = 1.0f;
+	constexpr float CameraPositionNudgeDistance = 0.0025f;
+	constexpr float CameraPositionFineNudgeDistance = 0.000625f;
+	constexpr float CameraPositionCoarseNudgeDistance = 0.01f;
+	constexpr float CameraDirectionNudgeDistance = 0.000625f;
+	constexpr float CameraDirectionFineNudgeDistance = 0.00015625f;
+	constexpr float CameraDirectionCoarseNudgeDistance = 0.0025f;
+	constexpr float CameraFovNudgeDegrees = 5.0f;
 	constexpr float CameraMinFovDegrees = 10.0f;
 	constexpr float CameraMaxFovDegrees = 180.0f;
 	constexpr glm::vec4 LinkDogArrivalColor{ 0.25f, 0.85f, 1.0f, 0.8f };
@@ -1206,10 +1204,6 @@ void GameplaySceneEditor::update_camera_editing(Input const & input, Camera3d & 
 	const float direction_nudge = ctrl_is_down
 		? CameraDirectionFineNudgeDistance
 		: shift_is_down ? CameraDirectionCoarseNudgeDistance : CameraDirectionNudgeDistance;
-	const float fov_nudge = ctrl_is_down
-		? CameraFovFineNudgeDegrees
-		: shift_is_down ? CameraFovCoarseNudgeDegrees : CameraFovNudgeDegrees;
-
 	glm::vec3 position_delta{ 0.0f };
 	if (input.KeyIsDown('W'))
 		position_delta.y += position_nudge;
@@ -1239,10 +1233,10 @@ void GameplaySceneEditor::update_camera_editing(Input const & input, Camera3d & 
 		direction_delta.z += direction_nudge;
 
 	float fov_delta = 0.0f;
-	if (input.KeyIsDown('Z'))
-		fov_delta -= fov_nudge;
-	if (input.KeyIsDown('X'))
-		fov_delta += fov_nudge;
+	if (input.KeyJustPressed('Z'))
+		fov_delta -= CameraFovNudgeDegrees;
+	if (input.KeyJustPressed('X'))
+		fov_delta += CameraFovNudgeDegrees;
 
 	bool changed = false;
 	if (position_delta != glm::vec3{ 0.0f })
@@ -1440,7 +1434,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			<< "FOV: " << std::fixed << std::setprecision(2) << camera.fov_degrees << "\n"
 			<< "[WASD] Move X/Y, [Q/E] Move Z\n"
 			<< "[Arrows]/[IJKL] Aim X/Y, [U/O] Aim Z\n"
-			<< "[Z/X] FOV\n"
+			<< "[Z/X] FOV +/-5\n"
 			<< "[Shift] Coarse, [Ctrl] Fine\n"
 			<< "[Escape] Done";
 		return text.str();

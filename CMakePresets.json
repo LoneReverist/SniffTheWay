@@ -14,7 +14,8 @@
 			"binaryDir": "${sourceDir}/build",
 			"cacheVariables": {
 				"CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
-				"VCPKG_TARGET_TRIPLET": "x64-windows-static"
+				"VCPKG_TARGET_TRIPLET": "x64-windows-static",
+				"VCPKG_APPLOCAL_DEPS": "OFF"
 			}
 		},
 		{
@@ -29,7 +30,8 @@
 				"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-scan-deps.exe",
 				"CMAKE_CXX_COMPILER_CLANG_RESOURCE_DIR": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/lib/clang/20",
 				"CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
-				"VCPKG_TARGET_TRIPLET": "x64-windows-static"
+				"VCPKG_TARGET_TRIPLET": "x64-windows-static",
+				"VCPKG_APPLOCAL_DEPS": "OFF"
 			}
 		},
 		{
@@ -44,7 +46,8 @@
 				"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-scan-deps.exe",
 				"CMAKE_CXX_COMPILER_CLANG_RESOURCE_DIR": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/lib/clang/20",
 				"CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
-				"VCPKG_TARGET_TRIPLET": "x64-windows-static"
+				"VCPKG_TARGET_TRIPLET": "x64-windows-static",
+				"VCPKG_APPLOCAL_DEPS": "OFF"
 			}
 		},
 		{

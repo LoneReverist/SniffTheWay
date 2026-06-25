@@ -2,6 +2,8 @@
 
 module;
 
+#include <utility>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -46,10 +48,12 @@ public:
 
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
 	SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
-    SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
+	SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
 	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
 	
 private:
+	void update_frame_uvs();
+
 	MeshId<TextureVertex2d> m_mesh_id;
 
 	SpriteSheet m_sprite_sheet;
@@ -125,12 +129,7 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 		|| velocity.x < 0.0f && facing_right) // moving left, but facing right
 	{
 		facing_right = !facing_right;
-		// rotate 180 degrees around Z axis to flip the sprite
-		glm::vec2 cur_pos = GetPosition(); // preserve translation
-		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
-		SetPosition(glm::vec2{ 0.0f }); // reset translation before rotation
-		m_pipeline_data.model = rotation * m_pipeline_data.model;
-		SetPosition(cur_pos); // restore translation after rotation
+		update_frame_uvs();
 	}
 
 	if (m_state == State::Walking)
@@ -140,7 +139,7 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 		{
 			m_animation_timer -= m_frame_duration;
 			m_sprite_sheet.AdvanceFrame();
-			m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+			update_frame_uvs();
 		}
 	}
 }
@@ -157,7 +156,7 @@ void Baby::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
 	facing_right = true;
 	m_animation_timer = 0.0f;
 	m_sprite_sheet.SetCurrentFrame(0);
-	m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+	update_frame_uvs();
 
 	glm::vec3 up_dir = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 target_dir = -camera_dir;
@@ -174,4 +173,11 @@ void Baby::SetPosition(glm::vec2 pos)
 void Baby::SetOpacity(float opacity)
 {
 	m_pipeline_data.tint.a = opacity;
+}
+
+void Baby::update_frame_uvs()
+{
+	m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+	if (!facing_right)
+		std::swap(m_pipeline_data.frame_uvs.x, m_pipeline_data.frame_uvs.y);
 }

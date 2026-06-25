@@ -2,6 +2,8 @@
 
 module;
 
+#include <utility>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -50,12 +52,14 @@ public:
 	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
     
 private:
+	void update_frame_uvs();
+
 	MeshId<TextureVertex2d> m_mesh_id;
 
 	SpriteSheet m_sprite_sheet;
 	SpritePipeline::ObjectData m_pipeline_data;
 	State m_state = State::Idle;
-	bool facing_right = true;
+	bool m_facing_right = true;
 
 	float m_animation_timer = 0.0f;
 	float m_frame_duration = 0.1f; // 100ms per frame = 10 FPS
@@ -135,16 +139,11 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 		m_state = State::Idle;
 	}
 
-	if (velocity.x > 0.0f && !facing_right // moving right, but facing left
-		|| velocity.x < 0.0f && facing_right) // moving left, but facing right
+	if (velocity.x > 0.0f && !m_facing_right // moving right, but facing left
+		|| velocity.x < 0.0f && m_facing_right) // moving left, but facing right
 	{
-		facing_right = !facing_right;
-		// rotate 180 degrees around Z axis to flip the sprite
-		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
-		glm::vec2 cur_pos = GetPosition(); // preserve translation
-		SetPosition(glm::vec2{ 0.0f }); // reset translation before rotation
-		m_pipeline_data.model = rotation * m_pipeline_data.model;
-		SetPosition(cur_pos); // restore translation after rotation
+		m_facing_right = !m_facing_right;
+		update_frame_uvs();
 	}
 
 	if (m_state == State::Walking)
@@ -154,7 +153,7 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 		{
 			m_animation_timer -= m_frame_duration;
 			m_sprite_sheet.AdvanceFrame();
-			m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+			update_frame_uvs();
 		}
 	}
 }
@@ -168,10 +167,10 @@ void Dog::OnSceneStateChanged(SceneState new_state)
 void Dog::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
 {
 	m_state = State::Idle;
-	facing_right = true;
+	m_facing_right = true;
 	m_animation_timer = 0.0f;
 	m_sprite_sheet.SetCurrentFrame(0);
-	m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+	update_frame_uvs();
 
 	glm::vec3 up_dir = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 target_dir = -camera_dir;
@@ -188,4 +187,11 @@ void Dog::SetPosition(glm::vec2 pos)
 void Dog::SetOpacity(float opacity)
 {
 	m_pipeline_data.tint.a = opacity;
+}
+
+void Dog::update_frame_uvs()
+{
+	m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+	if (!m_facing_right)
+		std::swap(m_pipeline_data.frame_uvs.x, m_pipeline_data.frame_uvs.y);
 }

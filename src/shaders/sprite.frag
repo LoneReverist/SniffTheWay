@@ -8,13 +8,13 @@ layout(set = 1, binding = 0) uniform sampler2D tex_sampler;
 
 #ifdef BUILD_VULKAN
 layout(push_constant) uniform ObjectData {
-	layout(offset = 64) vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
+	layout(offset = 64) vec4 frame_uvs; // Frame UV range endpoints
 	layout(offset = 80) vec4 tint;
 } obj_data;
 
 #else // OpenGL
 layout(std140, binding = 9) uniform ObjectDataFS {
-	vec4 frame_uvs; // Frame UVs: x = min_u, y = max_u, z = min_v, w = max_v
+	vec4 frame_uvs; // Frame UV range endpoints
 	vec4 tint;
 } obj_data;
 

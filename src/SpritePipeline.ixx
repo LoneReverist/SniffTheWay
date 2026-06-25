@@ -28,7 +28,7 @@ public:
 	struct ObjectData
 	{
 		glm::mat4 model{ 1.0f };
-		glm::vec4 frame_uvs{ 0.0f }; // x = min_u, y = max_u, z = min_v, w = max_v
+		glm::vec4 frame_uvs{ 0.0f }; // x/y are the U range endpoints, z/w are the V range endpoints
 		glm::vec4 tint{ 1.0f };
 		AssetId tex_id;
 	};

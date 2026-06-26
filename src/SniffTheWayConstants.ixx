@@ -59,7 +59,13 @@ export namespace SniffTheWay
 		BeforeCreek,
 		Creek,
 		AfterCreek,
+		GoldenIntersection,
+		FallenTree,
+		GoldenPath,
+		GoldenHour,
+		DeepForest,
 		DarkForest,
+		DarkForest2,
 		Night,
 		ForestIntersection,
 		Home,
@@ -92,7 +98,13 @@ export namespace SniffTheWay
 		case SceneId::ThickerForestTransition:
 		case SceneId::BeforeCreek:
 		case SceneId::AfterCreek:
+		case SceneId::GoldenIntersection:
+		case SceneId::FallenTree:
+		case SceneId::GoldenPath:
+		case SceneId::GoldenHour:
+		case SceneId::DeepForest:
 		case SceneId::DarkForest:
+		case SceneId::DarkForest2:
 		case SceneId::ForestIntersection:
 			return true;
 		default:
@@ -128,8 +140,20 @@ export namespace SniffTheWay
 			return "creek";
 		case SceneId::AfterCreek:
 			return "after_creek";
+		case SceneId::GoldenIntersection:
+			return "golden_intersection";
+		case SceneId::FallenTree:
+			return "fallen_tree";
+		case SceneId::GoldenPath:
+			return "golden_path";
+		case SceneId::GoldenHour:
+			return "golden_hour";
+		case SceneId::DeepForest:
+			return "deep_forest";
 		case SceneId::DarkForest:
 			return "dark_forest";
+		case SceneId::DarkForest2:
+			return "dark_forest2";
 		case SceneId::Night:
 			return "night";
 		case SceneId::ForestIntersection:
@@ -167,8 +191,20 @@ export namespace SniffTheWay
 			return SceneId::Creek;
 		if (scene_id == "after_creek")
 			return SceneId::AfterCreek;
+		if (scene_id == "golden_intersection")
+			return SceneId::GoldenIntersection;
+		if (scene_id == "fallen_tree")
+			return SceneId::FallenTree;
+		if (scene_id == "golden_path")
+			return SceneId::GoldenPath;
+		if (scene_id == "golden_hour")
+			return SceneId::GoldenHour;
+		if (scene_id == "deep_forest")
+			return SceneId::DeepForest;
 		if (scene_id == "dark_forest")
 			return SceneId::DarkForest;
+		if (scene_id == "dark_forest2")
+			return SceneId::DarkForest2;
 		if (scene_id == "night")
 			return SceneId::Night;
 		if (scene_id == "forest_intersection")

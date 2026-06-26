@@ -41,15 +41,20 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "after_creek",
+      "target_scene_id": "deep_forest",
       "arrival_points": {
         "dog": [0.0, -3.0],
         "baby": [-1.0, -3.5]
       },
-      "trigger": []
+      "trigger": [
+        [-1.05, -4.25],
+        [1.05, -4.25],
+        [1.05, -3.75],
+        [-1.05, -3.75]
+      ]
     },
     {
-      "target_scene_id": "night",
+      "target_scene_id": "dark_forest2",
       "arrival_points": {
         "dog": [0.0, 9.5],
         "baby": [-0.5, 9.0]

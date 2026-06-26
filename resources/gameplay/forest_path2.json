@@ -1,6 +1,6 @@
 {
   "id": "forest_path2",
-  "background": "forest_path2.png",
+  "background": "1_forest_path2.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [

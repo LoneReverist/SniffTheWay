@@ -1,6 +1,6 @@
 {
   "id": "forest_horizontal",
-  "background": "forest_horizontal.png",
+  "background": "1_forest_horizontal.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [

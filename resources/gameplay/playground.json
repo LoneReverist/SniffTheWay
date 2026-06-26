@@ -1,6 +1,6 @@
 {
   "id": "playground",
-  "background": "playground.png",
+  "background": "1_playground.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [

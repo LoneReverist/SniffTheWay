@@ -1,6 +1,6 @@
 {
   "id": "right_turn",
-  "background": "right_turn.png",
+  "background": "1_right_turn.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [

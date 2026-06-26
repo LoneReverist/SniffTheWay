@@ -1,6 +1,6 @@
 {
   "id": "after_creek",
-  "background": "after_creek.png",
+  "background": "2_after_creek.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [

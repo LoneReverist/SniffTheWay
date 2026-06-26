@@ -1,6 +1,6 @@
 {
   "id": "before_creek",
-  "background": "before_creek.png",
+  "background": "1_before_creek.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [

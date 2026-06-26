@@ -1,6 +1,6 @@
 {
   "id": "forest_intersection",
-  "background": "forest_intersection.png",
+  "background": "3_forest_intersection.png",
   "initial_state": "story",
   "camera": {
     "position": [0.0, -6.0, 1.0],

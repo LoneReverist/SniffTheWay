@@ -1,6 +1,6 @@
 {
   "id": "forest_lake",
-  "background": "forest_lake.png",
+  "background": "1_forest_lake.png",
   "initial_state": "gameplay",
   "camera": {
     "position": [

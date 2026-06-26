@@ -1695,7 +1695,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 				+ ": " + std::string{ ToString(scene_link.target_scene_id) };
 		}
 
-		return "Editing\n"
+		return "Editing: " + m_scene_filepath.stem().string() + "\n"
 			"[B] Edit bounds\n"
 			"[T] Edit scent trails\n"
 			"[C] Adjust camera\n"

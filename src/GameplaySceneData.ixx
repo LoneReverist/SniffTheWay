@@ -39,7 +39,7 @@ export struct GameplaySceneData
 	SniffTheWay::SceneState initial_state = SniffTheWay::SceneState::Gameplay;
 	GameplayCameraData camera;
 	Polygon2d bounds;
-	ScentTrailData scent_trail;
+	std::vector<ScentTrailData> scent_trails;
 	std::vector<StoryText> story_texts;
 	std::vector<GameplaySceneLink> scene_links;
 };

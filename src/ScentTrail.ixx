@@ -33,7 +33,7 @@ export class ScentTrail
 {
 public:
 	void Init(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos);
-	void Reload(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos);
+	void Destroy(AssetManager & asset_manager);
 	void Update(float dt, glm::vec2 dog_pos);
 
 	bool IsValid() const { return m_mesh_id.IsValid(); }
@@ -69,12 +69,11 @@ void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail
 	m_pipeline_data.glow_intensity = 1.85f;
 }
 
-void ScentTrail::Reload(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos)
+void ScentTrail::Destroy(AssetManager & asset_manager)
 {
 	if (m_mesh_id.IsValid())
 		asset_manager.RemoveMesh(m_mesh_id);
-
-	Init(asset_manager, trail_data, dog_pos);
+	m_mesh_id = {};
 }
 
 void ScentTrail::Update(float dt, glm::vec2 dog_pos)

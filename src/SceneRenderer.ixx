@@ -7,6 +7,7 @@ module;
 #include <span>
 #include <string>
 #include <array>
+#include <vector>
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -38,6 +39,7 @@ public:
 		MeshIdT mesh_id,
 		PipelineIdT pipeline_id,
 		ObjectDataT const & object_data = std::nullopt);
+	void RemoveRenderObject(AssetId ro_id);
 
 	RenderObject * GetRenderObject(AssetId ro_id) { return m_render_object_pool.Get(ro_id); }
 
@@ -104,6 +106,13 @@ AssetId SceneRenderer::CreateRenderObject(
 	m_render_layers[static_cast<std::size_t>(layer)].push_back(ro_id);
 
 	return ro_id;
+}
+
+void SceneRenderer::RemoveRenderObject(AssetId ro_id)
+{
+	for (std::vector<AssetId> & layer_ro_ids : m_render_layers)
+		std::erase(layer_ro_ids, ro_id);
+	m_render_object_pool.Remove(ro_id);
 }
 
 void SceneRenderer::Show(AssetId ro_id, bool show)

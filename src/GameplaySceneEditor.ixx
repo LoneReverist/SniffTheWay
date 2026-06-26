@@ -80,6 +80,7 @@ private:
 	{
 		PolygonEditTargetKind kind = PolygonEditTargetKind::SceneBounds;
 		std::size_t link_index = 0;
+		std::size_t scent_trail_index = 0;
 	};
 
 	struct PolygonOverlay
@@ -131,21 +132,23 @@ private:
 		SceneRenderer & renderer,
 		std::vector<glm::vec2> const & vertices,
 		bool close_edges);
+	void rebuild_scent_trail_overlays(AssetManager & asset_manager, SceneRenderer & renderer);
 	void rebuild_scent_trail_overlay(
 		AssetManager & asset_manager,
 		SceneRenderer & renderer,
-		std::vector<glm::vec2> const & points);
+		std::size_t index);
 	void rebuild_scene_link_overlays(AssetManager & asset_manager, SceneRenderer & renderer);
 	void rebuild_scene_link_overlay(AssetManager & asset_manager, SceneRenderer & renderer, std::size_t index);
 	void rebuild_arrival_markers(AssetManager & asset_manager, SceneRenderer & renderer);
 	void show_bounds(SceneRenderer & renderer, bool show);
-	void show_scent_trail(SceneRenderer & renderer, bool show);
+	void show_scent_trails(SceneRenderer & renderer, bool show);
 	void show_scene_link_triggers(SceneRenderer & renderer, bool show);
 	void show_arrival_markers(SceneRenderer & renderer, bool show);
 	void rebuild_selected_vertex_marker(AssetManager & asset_manager, SceneRenderer & renderer);
 	void show_selected_vertex_marker(SceneRenderer & renderer, bool show);
 	void show_polygon_editing_label(SceneRenderer & renderer, bool show);
 	void begin_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer, PolygonEditTarget target);
+	void begin_scent_trail_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	void cancel_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	bool apply_polygon_draft(AssetManager & asset_manager, SceneRenderer & renderer);
 	void add_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 vertex);
@@ -169,6 +172,11 @@ private:
 	void delete_selected_scene_link(AssetManager & asset_manager, SceneRenderer & renderer);
 	bool has_selected_scene_link() const;
 	PolygonEditTarget selected_scene_link_target() const;
+	void select_next_scent_trail(AssetManager & asset_manager, SceneRenderer & renderer);
+	void create_scent_trail(AssetManager & asset_manager, SceneRenderer & renderer);
+	void delete_selected_scent_trail(AssetManager & asset_manager, SceneRenderer & renderer);
+	bool has_selected_scent_trail() const;
+	PolygonEditTarget selected_scent_trail_target() const;
 	std::vector<glm::vec2> get_target_vertices(PolygonEditTarget target) const;
 	void set_target_vertices(PolygonEditTarget target, std::vector<glm::vec2> vertices);
 	glm::vec2 get_arrival_position(ArrivalEditTarget target) const;
@@ -195,6 +203,10 @@ private:
 		float size,
 		float thickness) const;
 	bool is_editing_polygon() const { return m_edit_mode == EditMode::Polygon && m_polygon_edit_target.has_value(); }
+	bool is_editing_scent_trails() const
+	{
+		return is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail;
+	}
 	bool is_editing_arrival() const { return m_edit_mode == EditMode::Arrival && m_arrival_edit_target.has_value(); }
 	bool is_editing_camera() const { return m_edit_mode == EditMode::Camera; }
 
@@ -212,12 +224,13 @@ private:
 	std::optional<PolygonEditTarget> m_polygon_edit_target;
 	std::optional<ArrivalEditTarget> m_arrival_edit_target;
 	std::optional<std::size_t> m_selected_scene_link_index;
+	std::optional<std::size_t> m_selected_scent_trail_index;
 	std::optional<std::size_t> m_selected_vertex_index;
 	std::optional<std::size_t> m_dragged_vertex_index;
 	glm::vec2 m_dragged_vertex_offset{ 0.0f };
 	std::vector<glm::vec2> m_draft_vertices;
 	PolygonOverlay m_bounds_overlay;
-	PolygonOverlay m_scent_trail_overlay;
+	std::vector<PolygonOverlay> m_scent_trail_overlays;
 	std::vector<PolygonOverlay> m_scene_link_overlays;
 	MeshId<Vertex2d> m_selected_vertex_marker_mesh_id;
 	AssetId m_selected_vertex_marker_ro_id;
@@ -303,17 +316,9 @@ void GameplaySceneEditor::Init(
 		BoundsPointThickness,
 		false);
 
-	m_scent_trail_overlay = create_polygon_overlay(
-		asset_manager,
-		renderer,
-		"scent trail",
-		m_scene_data->scent_trail.points,
-		false,
-		ScentTrailEdgeColor,
-		ScentTrailPointColor,
-		ScentTrailEdgeThickness,
-		ScentTrailPointThickness,
-		false);
+	if (!m_scene_data->scent_trails.empty())
+		m_selected_scent_trail_index = 0;
+	rebuild_scent_trail_overlays(asset_manager, renderer);
 
 	m_selected_vertex_marker_mesh_id = create_line_mesh(asset_manager, create_selected_vertex_marker_lines());
 	m_selected_vertex_marker_ro_id = renderer.CreateRenderObject("selected polygon vertex",
@@ -390,6 +395,30 @@ void GameplaySceneEditor::Update(
 		{
 			cancel_polygon_editing(asset_manager, renderer);
 			return;
+		}
+
+		if (is_editing_scent_trails())
+		{
+			if (input.KeyJustPressed(Input::Key::Tab))
+			{
+				select_next_scent_trail(asset_manager, renderer);
+				return;
+			}
+
+			if (ctrl_is_down && input.KeyJustPressed('N'))
+			{
+				create_scent_trail(asset_manager, renderer);
+				return;
+			}
+
+			if (ctrl_is_down && input.KeyJustPressed(Input::Key::Delete))
+			{
+				delete_selected_scent_trail(asset_manager, renderer);
+				return;
+			}
+
+			if (!has_selected_scent_trail())
+				return;
 		}
 
 		if (m_polygon_edit_target)
@@ -482,12 +511,11 @@ void GameplaySceneEditor::Update(
 			}
 		}
 
-		if (input.KeyJustPressed(Input::Key::Tab))
-			return;
-
 		if (input.KeyJustPressed(Input::Key::Enter))
 		{
-			apply_polygon_draft(asset_manager, renderer);
+			bool const was_editing_scent_trails = is_editing_scent_trails();
+			if (apply_polygon_draft(asset_manager, renderer) && was_editing_scent_trails)
+				begin_scent_trail_editing(asset_manager, renderer);
 			return;
 		}
 
@@ -503,8 +531,7 @@ void GameplaySceneEditor::Update(
 
 	if (input.KeyJustPressed('T'))
 	{
-		if (!is_editing_polygon() || !m_polygon_edit_target || m_polygon_edit_target->kind != PolygonEditTargetKind::ScentTrail)
-			begin_polygon_editing(asset_manager, renderer, PolygonEditTarget{ .kind = PolygonEditTargetKind::ScentTrail });
+		begin_scent_trail_editing(asset_manager, renderer);
 		return;
 	}
 
@@ -532,7 +559,8 @@ void GameplaySceneEditor::Update(
 
 	if (input.KeyJustPressed(Input::Key::Delete))
 	{
-		delete_selected_scene_link(asset_manager, renderer);
+		if (!ctrl_is_down)
+			delete_selected_scene_link(asset_manager, renderer);
 		return;
 	}
 
@@ -584,7 +612,7 @@ void GameplaySceneEditor::OnSceneStateChanged(SceneState new_state, AssetManager
 
 	m_grid.OnSceneStateChanged(new_state, renderer);
 	show_bounds(renderer, new_state == SceneState::Editing);
-	show_scent_trail(renderer, new_state == SceneState::Editing);
+	show_scent_trails(renderer, new_state == SceneState::Editing);
 	show_selected_vertex_marker(renderer, new_state == SceneState::Editing);
 	show_scene_link_triggers(renderer, new_state == SceneState::Editing);
 	show_arrival_markers(renderer, new_state == SceneState::Editing);
@@ -605,9 +633,13 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 	m_draft_vertices.clear();
 	if (m_selected_scene_link_index && *m_selected_scene_link_index >= m_scene_data->scene_links.size())
 		m_selected_scene_link_index.reset();
+	if (m_scene_data->scent_trails.empty())
+		m_selected_scent_trail_index.reset();
+	else if (!m_selected_scent_trail_index || *m_selected_scent_trail_index >= m_scene_data->scent_trails.size())
+		m_selected_scent_trail_index = 0;
 
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
-	rebuild_scent_trail_overlay(asset_manager, renderer, m_scene_data->scent_trail.points);
+	rebuild_scent_trail_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	rebuild_scene_link_overlays(asset_manager, renderer);
 	rebuild_arrival_markers(asset_manager, renderer);
@@ -698,22 +730,61 @@ void GameplaySceneEditor::rebuild_bounds_overlay(
 		BoundsPointThickness);
 }
 
+void GameplaySceneEditor::rebuild_scent_trail_overlays(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (!m_scene_data)
+		return;
+
+	for (std::size_t i = m_scene_data->scent_trails.size(); i < m_scent_trail_overlays.size(); ++i)
+		show_polygon_overlay(renderer, m_scent_trail_overlays[i], false);
+
+	while (m_scent_trail_overlays.size() < m_scene_data->scent_trails.size())
+	{
+		std::size_t const index = m_scent_trail_overlays.size();
+		m_scent_trail_overlays.push_back(create_polygon_overlay(
+			asset_manager,
+			renderer,
+			"scent trail " + std::to_string(index + 1),
+			m_scene_data->scent_trails[index].points,
+			false,
+			ScentTrailEdgeColor,
+			ScentTrailPointColor,
+			ScentTrailEdgeThickness,
+			ScentTrailPointThickness,
+			false));
+	}
+
+	for (std::size_t i = 0; i < m_scene_data->scent_trails.size(); ++i)
+	{
+		rebuild_scent_trail_overlay(asset_manager, renderer, i);
+		show_polygon_overlay(renderer, m_scent_trail_overlays[i], true);
+	}
+}
+
 void GameplaySceneEditor::rebuild_scent_trail_overlay(
 	AssetManager & asset_manager,
 	SceneRenderer & renderer,
-	std::vector<glm::vec2> const & points)
+	std::size_t index)
 {
-	glm::vec4 edge_color = (is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail)
-		? EditingScentTrailEdgeColor
-		: ScentTrailEdgeColor;
-	glm::vec4 point_color = (is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail)
-		? EditingScentTrailPointColor
-		: ScentTrailPointColor;
+	if (!m_scene_data || index >= m_scene_data->scent_trails.size() || index >= m_scent_trail_overlays.size())
+		return;
+
+	bool const is_selected = m_selected_scent_trail_index && *m_selected_scent_trail_index == index;
+	bool const is_editing_this = is_editing_polygon()
+		&& m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail
+		&& m_polygon_edit_target->scent_trail_index == index;
+	glm::vec4 edge_color = is_editing_this ? DraftEdgeColor
+		: is_selected ? EditingScentTrailEdgeColor : ScentTrailEdgeColor;
+	glm::vec4 point_color = is_editing_this ? DraftPointColor
+		: is_selected ? EditingScentTrailPointColor : ScentTrailPointColor;
+	std::vector<glm::vec2> const & points = is_editing_this
+		? m_draft_vertices
+		: m_scene_data->scent_trails[index].points;
 
 	rebuild_polygon_overlay(
 		asset_manager,
 		renderer,
-		m_scent_trail_overlay,
+		m_scent_trail_overlays[index],
 		points,
 		false,
 		edge_color,
@@ -803,9 +874,13 @@ void GameplaySceneEditor::show_bounds(SceneRenderer & renderer, bool show)
 	show_polygon_overlay(renderer, m_bounds_overlay, show);
 }
 
-void GameplaySceneEditor::show_scent_trail(SceneRenderer & renderer, bool show)
+void GameplaySceneEditor::show_scent_trails(SceneRenderer & renderer, bool show)
 {
-	show_polygon_overlay(renderer, m_scent_trail_overlay, show);
+	for (std::size_t i = 0; i < m_scent_trail_overlays.size(); ++i)
+	{
+		bool const has_trail = m_scene_data && i < m_scene_data->scent_trails.size();
+		show_polygon_overlay(renderer, m_scent_trail_overlays[i], show && has_trail);
+	}
 }
 
 void GameplaySceneEditor::rebuild_selected_vertex_marker(AssetManager & asset_manager, SceneRenderer & renderer)
@@ -852,6 +927,11 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 {
 	if (target.kind == PolygonEditTargetKind::SceneLink && (!m_scene_data || target.link_index >= m_scene_data->scene_links.size()))
 		return;
+	if (target.kind == PolygonEditTargetKind::ScentTrail
+		&& (!m_scene_data || target.scent_trail_index >= m_scene_data->scent_trails.size()))
+	{
+		return;
+	}
 
 	if (is_editing_arrival())
 		cancel_arrival_editing(asset_manager, renderer);
@@ -869,6 +949,10 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 		m_selected_scene_link_index = target.link_index;
 		rebuild_arrival_markers(asset_manager, renderer);
 	}
+	else if (target.kind == PolygonEditTargetKind::ScentTrail)
+	{
+		m_selected_scent_trail_index = target.scent_trail_index;
+	}
 	m_selected_vertex_index = m_draft_vertices.empty()
 		? std::nullopt
 		: std::optional<std::size_t>{ m_draft_vertices.size() - 1 };
@@ -876,17 +960,55 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	if (target.kind == PolygonEditTargetKind::SceneBounds)
 		rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
 	else if (target.kind == PolygonEditTargetKind::ScentTrail)
-		rebuild_scent_trail_overlay(asset_manager, renderer, m_draft_vertices);
+		rebuild_scent_trail_overlay(asset_manager, renderer, target.scent_trail_index);
 	else
 		rebuild_scene_link_overlay(asset_manager, renderer, target.link_index);
 
 	update_polygon_editing_label();
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	show_bounds(renderer, true);
-	show_scent_trail(renderer, true);
+	show_scent_trails(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
+	show_polygon_editing_label(renderer, true);
+}
+
+void GameplaySceneEditor::begin_scent_trail_editing(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (!m_scene_data)
+		return;
+
+	if (!m_scene_data->scent_trails.empty())
+	{
+		if (!has_selected_scent_trail())
+			m_selected_scent_trail_index = 0;
+		begin_polygon_editing(asset_manager, renderer, selected_scent_trail_target());
+		return;
+	}
+
+	if (is_editing_arrival())
+		cancel_arrival_editing(asset_manager, renderer);
+	if (is_editing_polygon())
+		cancel_polygon_editing(asset_manager, renderer);
+	if (is_editing_camera())
+		end_camera_editing();
+
+	m_edit_mode = EditMode::Polygon;
+	m_polygon_edit_target = PolygonEditTarget{ .kind = PolygonEditTargetKind::ScentTrail };
+	m_selected_scent_trail_index.reset();
+	m_selected_vertex_index.reset();
+	m_dragged_vertex_index.reset();
+	m_draft_vertices.clear();
+
+	rebuild_scent_trail_overlays(asset_manager, renderer);
+	rebuild_selected_vertex_marker(asset_manager, renderer);
+	show_bounds(renderer, true);
+	show_scent_trails(renderer, true);
+	show_selected_vertex_marker(renderer, false);
+	show_scene_link_triggers(renderer, true);
+	show_arrival_markers(renderer, true);
+	update_polygon_editing_label();
 	show_polygon_editing_label(renderer, true);
 }
 
@@ -902,13 +1024,13 @@ void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, S
 	if (m_scene_data)
 		rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	if (m_scene_data)
-		rebuild_scent_trail_overlay(asset_manager, renderer, m_scene_data->scent_trail.points);
+		rebuild_scent_trail_overlays(asset_manager, renderer);
 	if (old_target && old_target->kind == PolygonEditTargetKind::SceneLink)
 		rebuild_scene_link_overlay(asset_manager, renderer, old_target->link_index);
 
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	show_bounds(renderer, true);
-	show_scent_trail(renderer, true);
+	show_scent_trails(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -937,11 +1059,11 @@ bool GameplaySceneEditor::apply_polygon_draft(AssetManager & asset_manager, Scen
 	m_draft_vertices.clear();
 
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
-	rebuild_scent_trail_overlay(asset_manager, renderer, m_scene_data->scent_trail.points);
+	rebuild_scent_trail_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	rebuild_scene_link_overlays(asset_manager, renderer);
 	show_bounds(renderer, true);
-	show_scent_trail(renderer, true);
+	show_scent_trails(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1133,7 +1255,7 @@ void GameplaySceneEditor::rebuild_edit_target_overlay(AssetManager & asset_manag
 	if (m_polygon_edit_target->kind == PolygonEditTargetKind::SceneBounds)
 		rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
 	else if (m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail)
-		rebuild_scent_trail_overlay(asset_manager, renderer, m_draft_vertices);
+		rebuild_scent_trail_overlay(asset_manager, renderer, m_polygon_edit_target->scent_trail_index);
 	else
 		rebuild_scene_link_overlay(asset_manager, renderer, m_polygon_edit_target->link_index);
 }
@@ -1361,6 +1483,106 @@ GameplaySceneEditor::PolygonEditTarget GameplaySceneEditor::selected_scene_link_
 	};
 }
 
+void GameplaySceneEditor::select_next_scent_trail(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (!m_scene_data || m_scene_data->scent_trails.empty())
+	{
+		m_selected_scent_trail_index.reset();
+		return;
+	}
+
+	if (has_selected_scent_trail())
+	{
+		if (m_draft_vertices.size() < 2)
+			return;
+		set_target_vertices(*m_polygon_edit_target, m_draft_vertices);
+		m_scent_trail_changed = true;
+	}
+
+	if (!m_selected_scent_trail_index)
+		m_selected_scent_trail_index = 0;
+	else
+		m_selected_scent_trail_index = (*m_selected_scent_trail_index + 1) % m_scene_data->scent_trails.size();
+
+	m_polygon_edit_target = selected_scent_trail_target();
+	m_draft_vertices = get_target_vertices(*m_polygon_edit_target);
+	m_selected_vertex_index = m_draft_vertices.empty()
+		? std::nullopt
+		: std::optional<std::size_t>{ m_draft_vertices.size() - 1 };
+	m_dragged_vertex_index.reset();
+	rebuild_scent_trail_overlays(asset_manager, renderer);
+	rebuild_selected_vertex_marker(asset_manager, renderer);
+	show_selected_vertex_marker(renderer, true);
+	update_polygon_editing_label();
+}
+
+void GameplaySceneEditor::create_scent_trail(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (!m_scene_data)
+		return;
+
+	if (has_selected_scent_trail())
+	{
+		if (m_draft_vertices.size() < 2)
+			return;
+		set_target_vertices(*m_polygon_edit_target, m_draft_vertices);
+	}
+
+	m_scene_data->scent_trails.emplace_back();
+	m_selected_scent_trail_index = m_scene_data->scent_trails.size() - 1;
+	m_polygon_edit_target = selected_scent_trail_target();
+	m_selected_vertex_index.reset();
+	m_dragged_vertex_index.reset();
+	m_draft_vertices.clear();
+	m_scent_trail_changed = true;
+	rebuild_scent_trail_overlays(asset_manager, renderer);
+	rebuild_selected_vertex_marker(asset_manager, renderer);
+	show_selected_vertex_marker(renderer, false);
+	update_polygon_editing_label();
+}
+
+void GameplaySceneEditor::delete_selected_scent_trail(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (!has_selected_scent_trail())
+		return;
+
+	std::size_t const erased_index = *m_selected_scent_trail_index;
+	m_scene_data->scent_trails.erase(m_scene_data->scent_trails.begin() + static_cast<std::ptrdiff_t>(erased_index));
+	if (m_scene_data->scent_trails.empty())
+		m_selected_scent_trail_index.reset();
+	else if (erased_index >= m_scene_data->scent_trails.size())
+		m_selected_scent_trail_index = m_scene_data->scent_trails.size() - 1;
+
+	m_polygon_edit_target = selected_scent_trail_target();
+	m_draft_vertices = has_selected_scent_trail()
+		? get_target_vertices(*m_polygon_edit_target)
+		: std::vector<glm::vec2>{};
+	m_selected_vertex_index = m_draft_vertices.empty()
+		? std::nullopt
+		: std::optional<std::size_t>{ m_draft_vertices.size() - 1 };
+	m_dragged_vertex_index.reset();
+	m_scent_trail_changed = true;
+	rebuild_scent_trail_overlays(asset_manager, renderer);
+	rebuild_selected_vertex_marker(asset_manager, renderer);
+	show_selected_vertex_marker(renderer, true);
+	update_polygon_editing_label();
+}
+
+bool GameplaySceneEditor::has_selected_scent_trail() const
+{
+	return m_scene_data
+		&& m_selected_scent_trail_index
+		&& *m_selected_scent_trail_index < m_scene_data->scent_trails.size();
+}
+
+GameplaySceneEditor::PolygonEditTarget GameplaySceneEditor::selected_scent_trail_target() const
+{
+	return PolygonEditTarget{
+		.kind = PolygonEditTargetKind::ScentTrail,
+		.scent_trail_index = m_selected_scent_trail_index.value_or(0)
+	};
+}
+
 std::vector<glm::vec2> GameplaySceneEditor::get_target_vertices(PolygonEditTarget target) const
 {
 	if (!m_scene_data)
@@ -1369,7 +1591,11 @@ std::vector<glm::vec2> GameplaySceneEditor::get_target_vertices(PolygonEditTarge
 	if (target.kind == PolygonEditTargetKind::SceneBounds)
 		return m_scene_data->bounds.GetVertices();
 	if (target.kind == PolygonEditTargetKind::ScentTrail)
-		return m_scene_data->scent_trail.points;
+	{
+		if (target.scent_trail_index < m_scene_data->scent_trails.size())
+			return m_scene_data->scent_trails[target.scent_trail_index].points;
+		return {};
+	}
 	if (target.link_index < m_scene_data->scene_links.size())
 		return m_scene_data->scene_links[target.link_index].trigger.GetVertices();
 	return {};
@@ -1383,7 +1609,10 @@ void GameplaySceneEditor::set_target_vertices(PolygonEditTarget target, std::vec
 	if (target.kind == PolygonEditTargetKind::SceneBounds)
 		m_scene_data->bounds.SetVertices(std::move(vertices));
 	else if (target.kind == PolygonEditTargetKind::ScentTrail)
-		m_scene_data->scent_trail.points = std::move(vertices);
+	{
+		if (target.scent_trail_index < m_scene_data->scent_trails.size())
+			m_scene_data->scent_trails[target.scent_trail_index].points = std::move(vertices);
+	}
 	else if (target.link_index < m_scene_data->scene_links.size())
 		m_scene_data->scene_links[target.link_index].trigger.SetVertices(std::move(vertices));
 }
@@ -1468,7 +1697,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 
 		return "Editing\n"
 			"[B] Edit bounds\n"
-			"[T] Edit scent trail\n"
+			"[T] Edit scent trails\n"
 			"[C] Adjust camera\n"
 			"[Tab] Select link (" + selected_scene_link_text + ")\n"
 			"[L] Edit selected link trigger\n"
@@ -1502,13 +1731,26 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 
 	if (m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail)
 	{
+		if (!has_selected_scent_trail())
+		{
+			return "Editing scent trails\n"
+				"No scent trails\n"
+				"[Ctrl+N] New scent trail\n"
+				"[Escape] Exit scent trail mode";
+		}
+
 		std::string selected_point_text = "none";
 		if (m_selected_vertex_index && *m_selected_vertex_index < m_draft_vertices.size())
 			selected_point_text = std::to_string(*m_selected_vertex_index + 1)
 				+ "/" + std::to_string(m_draft_vertices.size());
 
-		return "Editing scent trail\n"
+		return "Editing scent trails\n"
+			"Trail: #" + std::to_string(m_polygon_edit_target->scent_trail_index + 1)
+			+ "/" + std::to_string(m_scene_data->scent_trails.size()) + "\n"
 			"Selected point: " + selected_point_text + "\n"
+			"[Tab] Next scent trail\n"
+			"[Ctrl+N] New scent trail\n"
+			"[Ctrl+Delete] Delete scent trail\n"
 			"[Left Drag] Move point\n"
 			"[N] Insert point after selected\n"
 			"[[ or ]] Select point\n"
@@ -1516,7 +1758,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			"[Shift] Coarse, [Ctrl] Fine\n"
 			"[Delete] Delete point\n"
 			"[Enter] Apply trail\n"
-			"[Escape] Cancel";
+			"[Escape] Cancel and exit";
 	}
 
 	if (!m_scene_data || m_polygon_edit_target->link_index >= m_scene_data->scene_links.size())

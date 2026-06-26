@@ -32,7 +32,6 @@ import GameplaySceneData;
 import GameplaySceneLoader;
 import Input;
 import IScene;
-import RenderObject;
 import SceneRenderer;
 import ScentTrail;
 import ScentTrailPipeline;
@@ -71,7 +70,7 @@ private:
 	std::pair<glm::vec2, glm::vec2> get_default_spawn_positions() const;
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
 	void create_story_labels(PipelineId<TextPipeline> text_pipeline_id);
-	void create_or_reload_scent_trail(glm::vec2 dog_pos);
+	void recreate_scent_trails(glm::vec2 dog_pos);
 
 private:
 	AssetManager m_asset_manager;
@@ -85,9 +84,9 @@ private:
 
 	Background m_background;
 	AssetId m_bg_tex_id;
-	ScentTrail m_scent_trail;
+	std::vector<ScentTrail> m_scent_trails;
 	PipelineId<ScentTrailPipeline> m_scent_trail_pipeline_id;
-	AssetId m_scent_trail_ro_id;
+	std::vector<AssetId> m_scent_trail_ro_ids;
 	Dog m_dog;
 	Baby m_baby;
 
@@ -136,7 +135,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_spawn_positions(transition);
-	create_or_reload_scent_trail(dog_spawn_pos);
+	recreate_scent_trails(dog_spawn_pos);
 
 #ifdef _DEBUG
 	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_font_atlas, m_text_pipeline_id, m_scene_data, get_gameplay_filepath());
@@ -226,14 +225,15 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		refresh_character_camera_facing();
 	}
 	if (m_editor.ConsumeScentTrailChanged())
-		create_or_reload_scent_trail(m_dog.GetPosition());
+		recreate_scent_trails(m_dog.GetPosition());
 #endif
 
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
 	const glm::vec2 dog_pos = m_dog.GetPosition();
-	m_scent_trail.Update(dt, dog_pos);
+	for (std::size_t i = 0; i < m_scene_data.scent_trails.size() && i < m_scent_trails.size(); ++i)
+		m_scent_trails[i].Update(dt, dog_pos);
 
 	if (m_scene_state == SceneState::Gameplay)
 	{
@@ -300,7 +300,7 @@ void GameplayScene::reload_scene_data()
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_default_spawn_positions();
 	m_dog.Reload(m_camera3d.GetDir(), dog_spawn_pos);
 	m_baby.Reload(m_camera3d.GetDir(), baby_spawn_pos);
-	create_or_reload_scent_trail(dog_spawn_pos);
+	recreate_scent_trails(dog_spawn_pos);
 
 #ifdef _DEBUG
 	m_editor.Reload(m_asset_manager, m_renderer);
@@ -425,24 +425,25 @@ void GameplayScene::create_story_labels(PipelineId<TextPipeline> text_pipeline_i
 //	}
 }
 
-void GameplayScene::create_or_reload_scent_trail(glm::vec2 dog_pos)
+void GameplayScene::recreate_scent_trails(glm::vec2 dog_pos)
 {
-	if (m_scent_trail_ro_id.IsValid())
+	for (AssetId scent_trail_ro_id : m_scent_trail_ro_ids)
+		m_renderer.RemoveRenderObject(scent_trail_ro_id);
+	for (ScentTrail & scent_trail : m_scent_trails)
+		scent_trail.Destroy(m_asset_manager);
+
+	m_scent_trail_ro_ids.clear();
+	m_scent_trails.clear();
+	m_scent_trails.resize(m_scene_data.scent_trails.size());
+	m_scent_trail_ro_ids.reserve(m_scene_data.scent_trails.size());
+
+	for (std::size_t i = 0; i < m_scene_data.scent_trails.size(); ++i)
 	{
-		m_scent_trail.Reload(m_asset_manager, m_scene_data.scent_trail, dog_pos);
-
-		RenderObject * scent_trail_ro = m_renderer.GetRenderObject(m_scent_trail_ro_id);
-		if (scent_trail_ro && m_scent_trail.IsValid())
-			scent_trail_ro->SetMeshId(m_scent_trail.GetMeshId());
-
-		m_renderer.Show(m_scent_trail_ro_id, m_scent_trail.IsValid());
-		return;
+		ScentTrail & scent_trail = m_scent_trails[i];
+		scent_trail.Init(m_asset_manager, m_scene_data.scent_trails[i], dog_pos);
+		m_scent_trail_ro_ids.push_back(scent_trail.IsValid()
+			? m_renderer.CreateRenderObject("scent trail " + std::to_string(i + 1),
+				RenderLayer::Scene3d, scent_trail.GetMeshId(), m_scent_trail_pipeline_id, scent_trail.GetPipelineData())
+			: AssetId{});
 	}
-
-	m_scent_trail.Init(m_asset_manager, m_scene_data.scent_trail, dog_pos);
-	if (!m_scent_trail.IsValid())
-		return;
-
-	m_scent_trail_ro_id = m_renderer.CreateRenderObject("scent trail",
-		RenderLayer::Scene3d, m_scent_trail.GetMeshId(), m_scent_trail_pipeline_id, m_scent_trail.GetPipelineData());
 }

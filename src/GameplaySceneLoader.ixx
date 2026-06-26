@@ -263,7 +263,10 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 	root["initial_state"] = serialize_gameplay_scene_state(scene_data.initial_state);
 	root["camera"] = serialize_gameplay_camera(scene_data.camera);
 	root["bounds"] = serialize_gameplay_polygon(scene_data.bounds);
-	root["scent_trail"] = serialize_scent_trail(scene_data.scent_trail);
+	json scent_trails = json::array();
+	for (ScentTrailData const & scent_trail : scene_data.scent_trails)
+		scent_trails.push_back(serialize_scent_trail(scent_trail));
+	root["scent_trails"] = std::move(scent_trails);
 
 	json scene_links = json::array();
 	for (GameplaySceneLink const & scene_link : scene_data.scene_links)
@@ -283,7 +286,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 			key != "camera" &&
 			key != "bounds" &&
 			key != "default_spawn" &&
-			key != "scent_trail" &&
+			key != "scent_trails" &&
 			key != "story_texts" &&
 			key != "scene_links")
 		{
@@ -320,8 +323,8 @@ export namespace GameplaySceneLoader
 			if (root.contains("bounds"))
 				scene_data.bounds = parse_gameplay_polygon(root["bounds"]);
 
-			if (root.contains("scent_trail"))
-				scene_data.scent_trail = parse_scent_trail(root["scent_trail"]);
+			for (json const & scent_trail_json : root.value("scent_trails", json::array()))
+				scene_data.scent_trails.push_back(parse_scent_trail(scent_trail_json));
 
 			for (json const & text_json : root.value("story_texts", json::array()))
 				scene_data.story_texts.push_back(parse_gameplay_story_text(text_json));

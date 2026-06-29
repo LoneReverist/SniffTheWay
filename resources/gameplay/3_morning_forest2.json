@@ -1,0 +1,50 @@
+{
+  "id": "3_morning_forest2",
+  "background": "3_morning_forest2.png",
+  "initial_state": "gameplay",
+  "camera": {
+    "position": [0.0, -6.0, 1.0],
+    "direction": [0.0, 0.995893300, -0.0905357525],
+    "fov_degrees": 50.0
+  },
+  "bounds": [
+    [-1.0, -4.0],
+    [1.0, -4.0],
+    [1.0, 10.0],
+    [-1.0, 10.0]
+  ],
+  "scent_trails": [
+    {
+      "points": [
+        [0.0, 8.5],
+        [-0.2, 5.0],
+        [0.25, 1.5],
+        [0.0, -3.5]
+      ]
+    }
+  ],
+  "scene_links": [
+    {
+      "target_scene_id": "3_morning_forest",
+      "arrival_points": {
+        "dog": [0.0, 7.5],
+        "baby": [0.5, 8.25]
+      },
+      "trigger": []
+    },
+    {
+      "target_scene_id": "3_dirt_path",
+      "arrival_points": {
+        "dog": [0.0, -3.25],
+        "baby": [-0.5, -3.6]
+      },
+      "trigger": [
+        [-1.1, -4.2],
+        [1.1, -4.2],
+        [1.1, -3.7],
+        [-1.1, -3.7]
+      ]
+    }
+  ],
+  "story_texts": []
+}

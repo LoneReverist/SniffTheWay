@@ -67,7 +67,12 @@ export namespace SniffTheWay
 		DarkForest,
 		DarkForest2,
 		Night,
-		ForestIntersection,
+		MorningForest,
+		MorningForest2,
+		DirtPath,
+		DirtIntersection,
+		BenchPath,
+		HousePath,
 		Home,
 	};
 
@@ -105,7 +110,12 @@ export namespace SniffTheWay
 		case SceneId::DeepForest:
 		case SceneId::DarkForest:
 		case SceneId::DarkForest2:
-		case SceneId::ForestIntersection:
+		case SceneId::MorningForest:
+		case SceneId::MorningForest2:
+		case SceneId::DirtPath:
+		case SceneId::DirtIntersection:
+		case SceneId::BenchPath:
+		case SceneId::HousePath:
 			return true;
 		default:
 			return false;
@@ -156,8 +166,18 @@ export namespace SniffTheWay
 			return "dark_forest2";
 		case SceneId::Night:
 			return "night";
-		case SceneId::ForestIntersection:
-			return "forest_intersection";
+		case SceneId::MorningForest:
+			return "3_morning_forest";
+		case SceneId::MorningForest2:
+			return "3_morning_forest2";
+		case SceneId::DirtPath:
+			return "3_dirt_path";
+		case SceneId::DirtIntersection:
+			return "3_dirt_intersection";
+		case SceneId::BenchPath:
+			return "3_bench_path";
+		case SceneId::HousePath:
+			return "3_house_path";
 		case SceneId::Home:
 			return "home";
 		}
@@ -207,8 +227,18 @@ export namespace SniffTheWay
 			return SceneId::DarkForest2;
 		if (scene_id == "night")
 			return SceneId::Night;
-		if (scene_id == "forest_intersection")
-			return SceneId::ForestIntersection;
+		if (scene_id == "3_morning_forest")
+			return SceneId::MorningForest;
+		if (scene_id == "3_morning_forest2")
+			return SceneId::MorningForest2;
+		if (scene_id == "3_dirt_path")
+			return SceneId::DirtPath;
+		if (scene_id == "3_dirt_intersection")
+			return SceneId::DirtIntersection;
+		if (scene_id == "3_bench_path")
+			return SceneId::BenchPath;
+		if (scene_id == "3_house_path")
+			return SceneId::HousePath;
 		if (scene_id == "home")
 			return SceneId::Home;
 

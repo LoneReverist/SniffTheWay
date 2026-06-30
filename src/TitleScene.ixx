@@ -45,6 +45,8 @@ private:
 	Camera2d m_camera2d;
 	glm::ivec4 m_viewport{ 0 };
 	Background m_background;
+	UIImage m_dog_image;
+	UIImage m_baby_image;
 	UIImage m_title_image;
 	UIButton m_start_button;
 };
@@ -70,6 +72,42 @@ TitleScene::TitleScene(dh::RenderContext const & render_context)
 		m_background.GetMeshId(),
 		texture_pipeline_id,
 		m_background.GetPipelineData());
+
+	const AssetId baby_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "baby_crawl.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+	m_baby_image.Init(
+		m_asset_manager,
+		baby_texture_id,
+		glm::vec2{ 1150.0f, 580.0f } /*center*/,
+		glm::vec2{ 270.0f, 270.0f } /*size*/,
+		UIImage::UVBounds{ 1.0f / 3.0f, 2.0f / 3.0f, 2.0f / 3.0f, 1.0f } /*frame 7*/);
+	m_renderer.CreateRenderObject(
+		"title baby",
+		RenderLayer::Scene3d,
+		m_baby_image.GetMeshId(),
+		texture_pipeline_id,
+		m_baby_image.GetPipelineData());
+
+	const AssetId dog_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "dog_walk.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+	m_dog_image.Init(
+		m_asset_manager,
+		dog_texture_id,
+		glm::vec2{ 900.0f, 655.0f } /*center*/,
+		glm::vec2{ 390.0f, 455.0f } /*size*/,
+		UIImage::UVBounds{ 0.5f, 0.75f, 0.0f, 0.5f } /*frame 2*/);
+	m_renderer.CreateRenderObject(
+		"title dog",
+		RenderLayer::Scene3d,
+		m_dog_image.GetMeshId(),
+		texture_pipeline_id,
+		m_dog_image.GetPipelineData());
 
 	const AssetId title_texture_id = m_asset_manager.AddTexture(
 		m_asset_manager.GetTexturesPath() / "menus" / "title.png",

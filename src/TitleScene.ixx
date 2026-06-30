@@ -5,6 +5,7 @@ module;
 #include <optional>
 
 #include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 
 export module TitleScene;
 
@@ -19,6 +20,7 @@ import Input;
 import SceneRenderer;
 import SniffTheWayConstants;
 import Texture2dPipeline;
+import UIButton;
 import UIImage;
 
 namespace dh = Dreamhearth;
@@ -35,11 +37,16 @@ public:
 	void Render() const override;
 
 private:
+	std::optional<glm::vec2> screen_to_ui(glm::vec2 screen_position) const;
+
+private:
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
+	glm::ivec4 m_viewport{ 0 };
 	Background m_background;
 	UIImage m_title_image;
+	UIButton m_start_button;
 };
 
 TitleScene::TitleScene(dh::RenderContext const & render_context)
@@ -82,12 +89,36 @@ TitleScene::TitleScene(dh::RenderContext const & render_context)
 		m_title_image.GetMeshId(),
 		texture_pipeline_id,
 		m_title_image.GetPipelineData());
+
+	const AssetId start_button_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "menus" / "start_adventure.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+
+	m_start_button.Init(
+		m_asset_manager,
+		start_button_texture_id,
+		glm::vec2{ UIWidth * 0.5f, 950.0f } /*center*/,
+		glm::vec2{ 694.0f, 164.0f } /*size*/,
+		UIButton::Frames{
+			.normal = UIImage::UVBounds{ 0.0f, 1.0f / 3.0f, 0.0f, 1.0f },
+			.hovered = UIImage::UVBounds{ 1.0f / 3.0f, 2.0f / 3.0f, 0.0f, 1.0f },
+			.pressed = UIImage::UVBounds{ 2.0f / 3.0f, 1.0f, 0.0f, 1.0f },
+		});
+	m_renderer.CreateRenderObject(
+		"start adventure",
+		RenderLayer::UIForeground,
+		m_start_button.GetMeshId(),
+		texture_pipeline_id,
+		m_start_button.GetPipelineData());
 }
 
 void TitleScene::OnWindowResized(int width, int height)
 {
 	const int game_width = static_cast<int>(height * 16.0f / 9.0f);
 	const int x_offset = (width - game_width) / 2;
+	m_viewport = glm::ivec4{ x_offset, 0, game_width, height };
 	m_renderer.SetViewport(x_offset, 0, game_width, height);
 	m_camera2d.SetViewportSize(game_width, height);
 }
@@ -97,10 +128,28 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
 
-	if (input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown())
+	m_start_button.Update(input, screen_to_ui(input.GetMousePos()));
+	if ((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown()) || m_start_button.WasActivated())
 		return SceneTransition{ SceneId::Picnic, SceneId::Title };
 
 	return std::nullopt;
+}
+
+std::optional<glm::vec2> TitleScene::screen_to_ui(glm::vec2 screen_position) const
+{
+	if (m_viewport.z <= 0 || m_viewport.w <= 0
+		|| screen_position.x < static_cast<float>(m_viewport.x)
+		|| screen_position.x > static_cast<float>(m_viewport.x + m_viewport.z)
+		|| screen_position.y < static_cast<float>(m_viewport.y)
+		|| screen_position.y > static_cast<float>(m_viewport.y + m_viewport.w))
+	{
+		return std::nullopt;
+	}
+
+	return glm::vec2{
+		(screen_position.x - static_cast<float>(m_viewport.x)) * UIWidth / static_cast<float>(m_viewport.z),
+		(screen_position.y - static_cast<float>(m_viewport.y)) * UIHeight / static_cast<float>(m_viewport.w),
+	};
 }
 
 void TitleScene::DestroyPendingAssets() const

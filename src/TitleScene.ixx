@@ -4,6 +4,8 @@ module;
 
 #include <optional>
 
+#include <glm/vec2.hpp>
+
 export module TitleScene;
 
 import Dreamhearth;
@@ -17,6 +19,7 @@ import Input;
 import SceneRenderer;
 import SniffTheWayConstants;
 import Texture2dPipeline;
+import UIImage;
 
 namespace dh = Dreamhearth;
 using namespace SniffTheWay;
@@ -36,6 +39,7 @@ private:
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
 	Background m_background;
+	UIImage m_title_image;
 };
 
 TitleScene::TitleScene(dh::RenderContext const & render_context)
@@ -59,6 +63,25 @@ TitleScene::TitleScene(dh::RenderContext const & render_context)
 		m_background.GetMeshId(),
 		texture_pipeline_id,
 		m_background.GetPipelineData());
+
+	const AssetId title_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "menus" / "title.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+
+	constexpr float title_scale = 0.75f;
+	m_title_image.Init(
+		m_asset_manager,
+		title_texture_id,
+		glm::vec2{ UIWidth * 0.5f, 230.0f } /*center*/,
+		glm::vec2{ 1642.0f, 540.0f } * title_scale /*size*/);
+	m_renderer.CreateRenderObject(
+		"title",
+		RenderLayer::UIForeground,
+		m_title_image.GetMeshId(),
+		texture_pipeline_id,
+		m_title_image.GetPipelineData());
 }
 
 void TitleScene::OnWindowResized(int width, int height)
@@ -74,7 +97,7 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
 
-	if (input.KeyJustPressed(Input::Key::Enter))
+	if (input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown())
 		return SceneTransition{ SceneId::Picnic, SceneId::Title };
 
 	return std::nullopt;

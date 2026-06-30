@@ -27,8 +27,10 @@ public:
 		Up      = 265, // GLFW_KEY_UP
 		LeftShift = 340, // GLFW_KEY_LEFT_SHIFT
 		LeftControl = 341, // GLFW_KEY_LEFT_CONTROL
+		LeftAlt = 342, // GLFW_KEY_LEFT_ALT
 		RightShift = 344, // GLFW_KEY_RIGHT_SHIFT
 		RightControl = 345, // GLFW_KEY_RIGHT_CONTROL
+		RightAlt = 346, // GLFW_KEY_RIGHT_ALT
 	};
 
 	enum class Action : int
@@ -65,6 +67,10 @@ public:
 	bool MouseButtonJustPressed(MouseButton button) const;
 	bool MouseButtonJustReleased(MouseButton button) const;
 	glm::vec2 GetMousePos() const { return m_mouse_pos; }
+
+	bool ShiftIsDown() const { return KeyIsDown(Key::LeftShift) || KeyIsDown(Key::RightShift); }
+	bool ControlIsDown() const { return KeyIsDown(Key::LeftControl) || KeyIsDown(Key::RightControl); }
+	bool AltIsDown() const { return KeyIsDown(Key::LeftAlt) || KeyIsDown(Key::RightAlt); }
 
 private:
 	static constexpr std::uint8_t StatePressed  = 0x1; // Pressed this frame

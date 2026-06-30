@@ -177,7 +177,7 @@ void GameplayScene::OnWindowResized(int width, int height)
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
 {
 	if (m_scene_state != SceneState::Editing && input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{ SceneId::Exit };
+		return SceneTransition{ SceneId::Title };
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 		ChangeSceneState(SceneState::Gameplay);

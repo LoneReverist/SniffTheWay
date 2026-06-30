@@ -166,7 +166,7 @@ void StoryScene::OnWindowResized(int width, int height)
 std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{ SceneId::Exit };
+		return SceneTransition{ SceneId::Title };
 
 	if (m_scene_state == SceneState::Story)
 	{

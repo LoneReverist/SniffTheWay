@@ -30,7 +30,7 @@ void run_update_render_loop(
 
 	dh::RenderContext render_context = window.CreateRenderContext(size);
 
-	SceneManager scene_manager{render_context, SceneTransition{ SceneId::Picnic }};
+	SceneManager scene_manager{render_context, SceneTransition{ SceneId::Title }};
 	scene_manager.OnWindowResized(size.width, size.height);
 
 	auto last_update_time = std::chrono::steady_clock::now();

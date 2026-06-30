@@ -48,6 +48,7 @@ export namespace SniffTheWay
 	enum class SceneId : std::uint8_t
 	{
 		Exit, // flag to close the application
+		Title,
 		Picnic,
 		ForestPath,
 		ForestPath2,
@@ -128,6 +129,8 @@ export namespace SniffTheWay
 		{
 		case SceneId::Exit:
 			return "exit";
+		case SceneId::Title:
+			return "title";
 		case SceneId::Picnic:
 			return "picnic";
 		case SceneId::ForestPath:
@@ -189,6 +192,8 @@ export namespace SniffTheWay
 	{
 		if (scene_id == "exit")
 			return SceneId::Exit;
+		if (scene_id == "title")
+			return SceneId::Title;
 		if (scene_id == "picnic")
 			return SceneId::Picnic;
 		if (scene_id == "forest_path")

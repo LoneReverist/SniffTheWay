@@ -12,6 +12,7 @@ import GameplayScene;
 import IScene;
 import SniffTheWayConstants;
 import StoryScene;
+import TitleScene;
 
 namespace dh = Dreamhearth;
 using namespace SniffTheWay;
@@ -26,6 +27,9 @@ public:
 
 std::unique_ptr<IScene> SceneRegistry::Create(SceneTransition trans, dh::RenderContext const & ctx) const
 {
+	if (trans.next_scene_id == SceneId::Title)
+		return std::make_unique<TitleScene>(ctx);
+
 	if (IsStoryScene(trans.next_scene_id))
 		return std::make_unique<StoryScene>(ctx, trans.next_scene_id);
 

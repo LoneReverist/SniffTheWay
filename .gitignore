@@ -5,7 +5,7 @@ build-debug/*
 build-release/*
 build-clangwin/*
 build-clangwin-release/*
-resources/concept/*
+concept/*
 resources/music/*
 
 *.user

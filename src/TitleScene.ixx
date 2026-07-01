@@ -49,6 +49,8 @@ private:
 	UIImage m_baby_image;
 	UIImage m_title_image;
 	UIButton m_start_button;
+	UIButton m_settings_button;
+	UIButton m_credits_button;
 };
 
 TitleScene::TitleScene(dh::RenderContext const & render_context)
@@ -150,6 +152,46 @@ TitleScene::TitleScene(dh::RenderContext const & render_context)
 		m_start_button.GetMeshId(),
 		texture_pipeline_id,
 		m_start_button.GetPipelineData());
+
+	const AssetId side_buttons_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "menus" / "buttons.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+
+	m_settings_button.Init(
+		m_asset_manager,
+		side_buttons_texture_id,
+		glm::vec2{ 140.0f, 960.0f } /*center*/,
+		glm::vec2{ 160.0f, 180.0f } /*size*/,
+		UIButton::Frames{
+			.normal = UIImage::UVBounds{ 0.0f, 1.0f / 3.0f, 0.0f, 0.5f },
+			.hovered = UIImage::UVBounds{ 1.0f / 3.0f, 2.0f / 3.0f, 0.0f, 0.5f },
+			.pressed = UIImage::UVBounds{ 2.0f / 3.0f, 1.0f, 0.0f, 0.5f },
+		});
+	m_renderer.CreateRenderObject(
+		"settings",
+		RenderLayer::UIForeground,
+		m_settings_button.GetMeshId(),
+		texture_pipeline_id,
+		m_settings_button.GetPipelineData());
+
+	m_credits_button.Init(
+		m_asset_manager,
+		side_buttons_texture_id,
+		glm::vec2{ UIWidth - 140.0f, 960.0f } /*center*/,
+		glm::vec2{ 160.0f, 180.0f } /*size*/,
+		UIButton::Frames{
+			.normal = UIImage::UVBounds{ 0.0f, 1.0f / 3.0f, 0.5f, 1.0f },
+			.hovered = UIImage::UVBounds{ 1.0f / 3.0f, 2.0f / 3.0f, 0.5f, 1.0f },
+			.pressed = UIImage::UVBounds{ 2.0f / 3.0f, 1.0f, 0.5f, 1.0f },
+		});
+	m_renderer.CreateRenderObject(
+		"credits",
+		RenderLayer::UIForeground,
+		m_credits_button.GetMeshId(),
+		texture_pipeline_id,
+		m_credits_button.GetPipelineData());
 }
 
 void TitleScene::OnWindowResized(int width, int height)
@@ -166,7 +208,10 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
 
-	m_start_button.Update(input, screen_to_ui(input.GetMousePos()));
+	const std::optional<glm::vec2> pointer_position = screen_to_ui(input.GetMousePos());
+	m_start_button.Update(input, pointer_position);
+	m_settings_button.Update(input, pointer_position);
+	m_credits_button.Update(input, pointer_position);
 	if ((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown()) || m_start_button.WasActivated())
 		return SceneTransition{ SceneId::Picnic, SceneId::Title };
 

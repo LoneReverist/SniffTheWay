@@ -63,12 +63,10 @@ private:
 	UILabel m_title_label;
 	UILabel m_resume_label;
 	UILabel m_return_to_title_label;
-	UILabel m_controls_label;
 	AssetId m_backdrop_ro_id;
 	AssetId m_title_ro_id;
 	AssetId m_resume_ro_id;
 	AssetId m_return_to_title_ro_id;
-	AssetId m_controls_ro_id;
 	Button m_selected_button = Button::Resume;
 	Button m_armed_button = Button::None;
 	glm::vec2 m_last_pointer_position{ 0.0f };
@@ -121,9 +119,6 @@ void PauseOverlay::Init(
 		StoryMediumFontSize, glm::vec2{ UIWidth * 0.5f, 520.0f });
 	init_label(m_return_to_title_label, m_return_to_title_ro_id, "pause return to title", "Return to Title",
 		StoryMediumFontSize, glm::vec2{ UIWidth * 0.5f, 650.0f });
-	init_label(m_controls_label, m_controls_ro_id, "pause controls",
-		"([Esc] to resume - [Up]/[Down] and [Enter] to select)",
-		LabelFontSize, glm::vec2{ UIWidth * 0.5f, 930.0f });
 
 	SetVisible(false);
 }
@@ -193,7 +188,6 @@ void PauseOverlay::SetVisible(bool visible)
 	m_renderer->Show(m_title_ro_id, visible);
 	m_renderer->Show(m_resume_ro_id, visible);
 	m_renderer->Show(m_return_to_title_ro_id, visible);
-	m_renderer->Show(m_controls_ro_id, visible);
 	update_button_colors();
 }
 

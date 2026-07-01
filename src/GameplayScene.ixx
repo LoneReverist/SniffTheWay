@@ -32,6 +32,7 @@ import GameplaySceneData;
 import GameplaySceneLoader;
 import Input;
 import IScene;
+import PauseOverlay;
 import SceneRenderer;
 import ScentTrail;
 import ScentTrailPipeline;
@@ -71,6 +72,8 @@ private:
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
 	void create_story_labels(PipelineId<TextPipeline> text_pipeline_id);
 	void recreate_scent_trails(glm::vec2 dog_pos);
+	void pause();
+	void resume();
 
 private:
 	AssetManager m_asset_manager;
@@ -79,6 +82,7 @@ private:
 	Camera2d m_camera2d;
 	glm::ivec4 m_game_viewport{ 0, 0, 0, 0 };
 	SceneState m_scene_state = SceneState::Paused;
+	SceneState m_state_before_pause = SceneState::Gameplay;
 	SceneId m_scene_id = SceneId::Exit;
 	GameplaySceneData m_scene_data;
 
@@ -96,6 +100,7 @@ private:
 	UILabel m_controls_label;
 	std::vector<UILabel> m_story_labels;
 	UIDarkBackdrop m_story_shadow;
+	PauseOverlay m_pause_overlay;
 
 #ifdef _DEBUG
 	GameplaySceneEditor m_editor;
@@ -157,6 +162,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), m_text_pipeline_id, m_controls_label.GetPipelineData()));
 
 	create_story_labels(m_text_pipeline_id);
+	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
 
 	const bool arrived_from_gameplay_scene = transition.previous_scene_id.has_value()
 		&& IsGameplayScene(transition.previous_scene_id.value());
@@ -177,7 +183,28 @@ void GameplayScene::OnWindowResized(int width, int height)
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
 {
 	if (m_scene_state != SceneState::Editing && input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{ SceneId::Title };
+	{
+		if (m_scene_state == SceneState::Paused)
+			resume();
+		else
+			pause();
+		return std::nullopt;
+	}
+
+	if (m_scene_state == SceneState::Paused)
+	{
+		switch (m_pause_overlay.Update(input, m_game_viewport))
+		{
+		case PauseAction::Resume:
+			resume();
+			break;
+		case PauseAction::ReturnToTitle:
+			return SceneTransition{ SceneId::Title, m_scene_id };
+		case PauseAction::None:
+			break;
+		}
+		return std::nullopt;
+	}
 
 	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
 		ChangeSceneState(SceneState::Gameplay);
@@ -265,7 +292,10 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 	m_dog.OnSceneStateChanged(m_scene_state);
 	m_baby.OnSceneStateChanged(m_scene_state);
 
-	const bool show_story_ui = m_scene_state == SceneState::Story;
+	const SceneState visible_scene_state = m_scene_state == SceneState::Paused
+		? m_state_before_pause
+		: m_scene_state;
+	const bool show_story_ui = visible_scene_state == SceneState::Story;
 	m_renderer.Show(m_controls_label.GetROId(), show_story_ui);
 	m_renderer.Show(m_story_shadow.GetROId(), show_story_ui);
 	for (UILabel const & story_label : m_story_labels)
@@ -277,6 +307,19 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 	m_dog.SetOpacity(character_opacity);
 	m_baby.SetOpacity(character_opacity);
 #endif
+}
+
+void GameplayScene::pause()
+{
+	m_state_before_pause = m_scene_state;
+	ChangeSceneState(SceneState::Paused);
+	m_pause_overlay.SetVisible(true);
+}
+
+void GameplayScene::resume()
+{
+	m_pause_overlay.SetVisible(false);
+	ChangeSceneState(m_state_before_pause);
 }
 
 std::filesystem::path GameplayScene::get_gameplay_filepath() const

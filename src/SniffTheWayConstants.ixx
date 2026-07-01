@@ -35,6 +35,9 @@ export namespace SniffTheWay
 		Scene3d = 1,
 		UIShadow = 2,
 		UIForeground = 3,
+		OverlayBackdrop = 4,
+		OverlayForeground = 5,
+		Count,
 	};
 
 	enum class SceneState : std::uint8_t

@@ -28,6 +28,7 @@ import FontAtlas;
 import FPSLabel;
 import Input;
 import IScene;
+import PauseOverlay;
 import SceneRenderer;
 import SniffTheWayConstants;
 import StoryData;
@@ -67,12 +68,16 @@ private:
 	void apply_current_page();
 	void update_story_texts();
 	void update_decorations();
+	void pause();
+	void resume();
 
 private:
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
+	glm::ivec4 m_viewport{ 0 };
 	SceneState m_scene_state = SceneState::Paused;
+	SceneState m_state_before_pause = SceneState::Story;
 	SceneId m_scene_id = SceneId::Exit;
 	StorySceneData m_scene_data;
 	std::uint8_t m_page_index = 0;
@@ -88,6 +93,7 @@ private:
 	UIShadowedLabel m_page_number_label;
 	std::vector<UIShadowedLabel> m_story_labels;
 	std::vector<UIShadowedDecoration> m_decorations;
+	PauseOverlay m_pause_overlay;
 };
 
 StoryScene::StoryScene(
@@ -150,6 +156,7 @@ StoryScene::StoryScene(
 	ensure_story_ui_capacity();
 
 	apply_current_page();
+	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
 
 	ChangeSceneState(SceneState::Story);
 }
@@ -158,6 +165,7 @@ void StoryScene::OnWindowResized(int width, int height)
 {
 	int game_width = static_cast<int>(height * 16.0f / 9.0f);
 	int x_offset = (width - game_width) / 2;
+	m_viewport = glm::ivec4{ x_offset, 0, game_width, height };
 	m_renderer.SetViewport(x_offset, 0, game_width, height);
 
 	m_camera2d.SetViewportSize(game_width, height);
@@ -166,7 +174,28 @@ void StoryScene::OnWindowResized(int width, int height)
 std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 {
 	if (input.KeyJustPressed(Input::Key::Esc))
-		return SceneTransition{ SceneId::Title };
+	{
+		if (m_scene_state == SceneState::Paused)
+			resume();
+		else
+			pause();
+		return std::nullopt;
+	}
+
+	if (m_scene_state == SceneState::Paused)
+	{
+		switch (m_pause_overlay.Update(input, m_viewport))
+		{
+		case PauseAction::Resume:
+			resume();
+			break;
+		case PauseAction::ReturnToTitle:
+			return SceneTransition{ SceneId::Title, m_scene_id };
+		case PauseAction::None:
+			break;
+		}
+		return std::nullopt;
+	}
 
 	if (m_scene_state == SceneState::Story)
 	{
@@ -215,6 +244,19 @@ void StoryScene::Render() const
 void StoryScene::ChangeSceneState(SceneState new_state)
 {
 	m_scene_state = new_state;
+}
+
+void StoryScene::pause()
+{
+	m_state_before_pause = m_scene_state;
+	ChangeSceneState(SceneState::Paused);
+	m_pause_overlay.SetVisible(true);
+}
+
+void StoryScene::resume()
+{
+	m_pause_overlay.SetVisible(false);
+	ChangeSceneState(m_state_before_pause);
 }
 
 bool StoryScene::page_forward()

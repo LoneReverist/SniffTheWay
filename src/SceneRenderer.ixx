@@ -57,7 +57,7 @@ private:
 	dh::Renderer m_renderer;
 	AssetManager const & m_asset_manager;
 	AssetPool<RenderObject> m_render_object_pool;
-	std::array<std::vector<AssetId>, 4> m_render_layers;
+	std::array<std::vector<AssetId>, static_cast<std::size_t>(RenderLayer::Count)> m_render_layers;
 };
 
 SceneRenderer::SceneRenderer(dh::RenderContext const & render_context, AssetManager const & asset_manager)

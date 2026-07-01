@@ -147,7 +147,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos);
 	m_renderer.CreateRenderObject("baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
-	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/);
+	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/, 0.6f /*alpha_top*/, 1.0f /*alpha_bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", RenderLayer::UIShadow, m_story_shadow.GetMeshId(), color_pipeline_id));
 
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);

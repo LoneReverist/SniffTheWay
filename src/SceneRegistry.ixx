@@ -8,6 +8,7 @@ export module SceneRegistry;
 
 import Dreamhearth;
 
+import CreditsScene;
 import GameplayScene;
 import IScene;
 import SniffTheWayConstants;
@@ -29,6 +30,9 @@ std::unique_ptr<IScene> SceneRegistry::Create(SceneTransition trans, dh::RenderC
 {
 	if (trans.next_scene_id == SceneId::Title)
 		return std::make_unique<TitleScene>(ctx);
+
+	if (trans.next_scene_id == SceneId::Credits)
+		return std::make_unique<CreditsScene>(ctx);
 
 	if (IsStoryScene(trans.next_scene_id))
 		return std::make_unique<StoryScene>(ctx, trans.next_scene_id);

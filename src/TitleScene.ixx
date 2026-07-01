@@ -214,6 +214,8 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	m_credits_button.Update(input, pointer_position);
 	if ((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown()) || m_start_button.WasActivated())
 		return SceneTransition{ SceneId::Picnic, SceneId::Title };
+	if (m_credits_button.WasActivated())
+		return SceneTransition{ SceneId::Credits, SceneId::Title };
 
 	return std::nullopt;
 }

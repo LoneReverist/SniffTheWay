@@ -49,6 +49,7 @@ export namespace SniffTheWay
 	{
 		Exit, // flag to close the application
 		Title,
+		Credits,
 		Picnic,
 		ForestPath,
 		ForestPath2,
@@ -131,6 +132,8 @@ export namespace SniffTheWay
 			return "exit";
 		case SceneId::Title:
 			return "title";
+		case SceneId::Credits:
+			return "credits";
 		case SceneId::Picnic:
 			return "picnic";
 		case SceneId::ForestPath:
@@ -194,6 +197,8 @@ export namespace SniffTheWay
 			return SceneId::Exit;
 		if (scene_id == "title")
 			return SceneId::Title;
+		if (scene_id == "credits")
+			return SceneId::Credits;
 		if (scene_id == "picnic")
 			return SceneId::Picnic;
 		if (scene_id == "forest_path")

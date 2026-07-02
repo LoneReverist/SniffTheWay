@@ -4,10 +4,11 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
 #include <array>
 #include <string>
 #include <vector>
+
+#include <glog/logging.h>
 
 export module AssetManager;
 
@@ -136,7 +137,7 @@ MeshId<VertexT> AssetManager::AddMesh(dh::Mesh mesh)
 {
 	MeshId<VertexT> mesh_id{ m_mesh_pool.Add(std::move(mesh)) };
 	if (!mesh_id.IsValid())
-		std::cout << "AssetManager::AddMesh: Failed to add mesh to pool." << std::endl;
+		LOG(ERROR) << "AssetManager::AddMesh: Failed to add mesh to pool.";
 
 	return mesh_id;
 }
@@ -150,7 +151,7 @@ MeshId<VertexT> AssetManager::AddMesh(
 	std::expected<void, dh::GraphicsError> result = mesh.Create(vertices, indices);
 	if (!result.has_value())
 	{
-		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str() << std::endl;
+		LOG(ERROR) << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str();
 		return MeshId<VertexT>{};
 	}
 
@@ -167,7 +168,7 @@ MeshId<VertexT> AssetManager::AddMesh(
 	std::expected<void, dh::GraphicsError> result = mesh.Create(vertices, indices, instance_data);
 	if (!result.has_value())
 	{
-		std::cout << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str() << std::endl;
+		LOG(ERROR) << "AssetManager::AddMesh: Failed to create mesh: " << result.error().GetMessage().c_str();
 		return MeshId<VertexT>{};
 	}
 
@@ -199,7 +200,7 @@ void AssetManager::UpdateMesh(
 	std::expected<void, dh::GraphicsError> result = new_mesh.Create(vertices, indices);
 	if (!result.has_value())
 	{
-		std::cout << "AssetManager::UpdateMesh: Failed to create mesh. Error: " << result.error().GetMessage().c_str() << std::endl;
+		LOG(ERROR) << "AssetManager::UpdateMesh: Failed to create mesh. Error: " << result.error().GetMessage().c_str();
 		return;
 	}
 
@@ -214,13 +215,13 @@ PipelineId<PipelineT> AssetManager::AddPipeline(Args &&... args)
 		= PipelineT::CreatePipeline(m_render_context, m_shaders_path, std::forward<Args>(args)...);
 	if (!pipeline.has_value())
 	{
-		std::cout << "AssetManager::AddPipeline: Failed to create pipeline: " << pipeline.error().GetMessage().c_str() << std::endl;
+		LOG(ERROR) << "AssetManager::AddPipeline: Failed to create pipeline: " << pipeline.error().GetMessage().c_str();
 		return PipelineId<PipelineT>{};
 	}
 
 	PipelineId<PipelineT> pipeline_id{ m_pipeline_pool.Add(std::move(pipeline.value())) };
 	if (!pipeline_id.IsValid())
-		std::cout << "AssetManager::AddPipeline: Failed to add pipeline to pool." << std::endl;
+		LOG(ERROR) << "AssetManager::AddPipeline: Failed to add pipeline to pool.";
 
 	return pipeline_id;
 }
@@ -287,7 +288,7 @@ AssetId AssetManager::AddTexture(
 	StbImage image(filepath, GetPixelSize(format) /*req_comp*/, flip_vertically);
 	if (!image.IsValid())
 	{
-		std::cout << "Failed to load image: " << filepath << std::endl;
+		LOG(ERROR) << "Failed to load image: " << filepath;
 		return AssetId{};
 	}
 
@@ -302,13 +303,13 @@ AssetId AssetManager::AddTexture(
 		});
 	if (!result.has_value() || !texture.IsValid())
 	{
-		std::cout << "AssetManager::AddTexture: Failed to create texture from image: " << filepath << std::endl;
+		LOG(ERROR) << "AssetManager::AddTexture: Failed to create texture from image: " << filepath;
 		return AssetId{};
 	}
 
 	AssetId texture_id = m_texture_pool.Add(std::move(texture));
 	if (!texture_id.IsValid())
-		std::cout << "AssetManager::AddTexture: Failed to add texture to pool." << std::endl;
+		LOG(ERROR) << "AssetManager::AddTexture: Failed to add texture to pool.";
 
 	return texture_id;
 }
@@ -319,13 +320,13 @@ AssetId AssetManager::AddRenderTexture(std::uint32_t width, std::uint32_t height
 	std::expected<void, dh::GraphicsError> result = texture.CreateRenderTarget(m_render_context, width, height);
 	if (!result.has_value() || !texture.IsValid())
 	{
-		std::cout << "AssetManager::AddRenderTexture: Failed to create render texture." << std::endl;
+		LOG(ERROR) << "AssetManager::AddRenderTexture: Failed to create render texture.";
 		return AssetId{};
 	}
 
 	AssetId texture_id = m_texture_pool.Add(std::move(texture));
 	if (!texture_id.IsValid())
-		std::cout << "AssetManager::AddRenderTexture: Failed to add texture to pool." << std::endl;
+		LOG(ERROR) << "AssetManager::AddRenderTexture: Failed to add texture to pool.";
 
 	return texture_id;
 }

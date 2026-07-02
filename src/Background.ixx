@@ -2,7 +2,6 @@
 
 module;
 
-#include <iostream>
 #include <string>
 
 export module Background;

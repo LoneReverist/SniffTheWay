@@ -5,7 +5,6 @@ module;
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
-#include <iostream>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -13,6 +12,7 @@ module;
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glog/logging.h>
 
 export module StoryScene;
 
@@ -108,7 +108,7 @@ StoryScene::StoryScene(
 	m_scene_data = StoryLoader::LoadSceneData(get_story_filepath());
 	if (m_scene_data.pages.empty())
 	{
-		std::cout << "StoryScene: No pages loaded for story '" << ToString(m_scene_id) << "'." << std::endl;
+		LOG(WARNING) << "StoryScene: No pages loaded for story '" << ToString(m_scene_id) << "'.";
 		m_scene_data.pages.push_back(StoryPage{ .bg_image_filename = "picnic.png" });
 	}
 
@@ -363,7 +363,7 @@ void StoryScene::reload_story()
 	StorySceneData reloaded_scene_data = StoryLoader::LoadSceneData(get_story_filepath());
 	if (reloaded_scene_data.pages.empty())
 	{
-		std::cout << "StoryScene: Reload skipped because no pages loaded for story '" << ToString(m_scene_id) << "'." << std::endl;
+		LOG(WARNING) << "StoryScene: Reload skipped because no pages loaded for story '" << ToString(m_scene_id) << "'.";
 		return;
 	}
 
@@ -374,7 +374,7 @@ void StoryScene::reload_story()
 	const std::size_t cur_page_index = std::min<std::size_t>(m_page_index, m_scene_data.pages.size() - 1);
 	m_page_index = static_cast<std::uint8_t>(cur_page_index);
 	apply_current_page();
-	std::cout << "StoryScene: Reloaded story '" << ToString(m_scene_id) << "'." << std::endl;
+	LOG(INFO) << "StoryScene: Reloaded story '" << ToString(m_scene_id) << "'.";
 }
 
 void StoryScene::apply_current_page()

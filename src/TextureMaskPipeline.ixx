@@ -4,7 +4,8 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
+
+#include <glog/logging.h>
 
 export module TextureMaskPipeline;
 
@@ -77,7 +78,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextureMaskPipeline::CreatePipeli
 		{
 			if (!object_data)
 			{
-				std::cout << "TextureMaskPipeline: ObjectData is null" << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "TextureMaskPipeline: ObjectData is null";
 				return;
 			}
 
@@ -85,9 +86,13 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextureMaskPipeline::CreatePipeli
 
 			dh::Texture const * texture = asset_manager.GetTexture(data->tex_id);
 			if (texture)
+			{
 				pipeline.BindTexture(0, *texture);
+			}
 			else
-				std::cout << "TextureMaskPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
+			{
+				LOG_FIRST_N(ERROR, 10) << "TextureMaskPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex();
+			}
 		});
 
 	return builder.CreatePipeline();

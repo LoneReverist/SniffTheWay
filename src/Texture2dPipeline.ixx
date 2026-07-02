@@ -4,11 +4,11 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
 #include <optional>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
+#include <glog/logging.h>
 
 export module Texture2dPipeline;
 
@@ -95,7 +95,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> Texture2dPipeline::CreatePipeline
 		{
 			if (!object_data)
 			{
-				std::cout << "Texture2dPipeline: ObjectData is null" << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "Texture2dPipeline: ObjectData is null";
 				return;
 			}
 
@@ -103,9 +103,13 @@ std::expected<dh::Pipeline, dh::GraphicsError> Texture2dPipeline::CreatePipeline
 
 			dh::Texture const * texture = asset_manager.GetTexture(data->tex_id);
 			if (texture)
+			{
 				pipeline.BindTexture(0, *texture);
+			}
 			else
-				std::cout << "Texture2dPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
+			{
+				LOG_FIRST_N(ERROR, 10) << "Texture2dPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex();
+			}
 
 			pipeline.SetObjectData(
 				std::nullopt,

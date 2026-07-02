@@ -2,9 +2,10 @@
 
 #include <atomic>
 #include <chrono>
-#include <iostream>
 #include <thread>
 #include <utility>
+
+#include <glog/logging.h>
 
 import Dreamhearth;
 import DreamhearthWindow;
@@ -17,14 +18,48 @@ import SniffTheWayConstants;
 namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
+namespace
+{
+	class LoggingLifetime
+	{
+	public:
+		explicit LoggingLifetime(char const * executable_name)
+		{
+#ifndef NDEBUG
+			FLAGS_logtostderr = true;
+#endif
+			google::InitGoogleLogging(executable_name);
+		}
+
+		~LoggingLifetime()
+		{
+			google::ShutdownGoogleLogging();
+		}
+
+		LoggingLifetime(LoggingLifetime const &) = delete;
+		LoggingLifetime & operator=(LoggingLifetime const &) = delete;
+	};
+}
+
 void on_error(std::string msg)
 {
-	std::cout << msg << std::endl;
+	LOG(ERROR) << msg;
 }
 
 void on_graphics_diagnostic(dh::GraphicsDiagnostic const & diagnostic)
 {
-	on_error(diagnostic.message);
+	switch (diagnostic.severity)
+	{
+	case dh::GraphicsDiagnosticSeverity::Info:
+		LOG(INFO) << diagnostic.message;
+		break;
+	case dh::GraphicsDiagnosticSeverity::Warning:
+		LOG(WARNING) << diagnostic.message;
+		break;
+	case dh::GraphicsDiagnosticSeverity::Error:
+		LOG(ERROR) << diagnostic.message;
+		break;
+	}
 }
 
 void run_update_render_loop(
@@ -101,9 +136,11 @@ void run_update_render_loop(
 	window.SetShouldClose(true); // signal main thread to exit
 }
 
-int main()
+int main(int argc, char * argv[])
 {
-	std::cout << "Initializing app..." << std::endl;
+	LoggingLifetime logging{ argc > 0 && argv[0] ? argv[0] : FullTitle };
+
+	LOG(INFO) << "Initializing app...";
 
 	dh::Window window(dh::WindowSize{ 2560, 1440 }, FullTitle, on_error);
 	if (!window.IsValid())
@@ -136,7 +173,7 @@ int main()
 			input.SetMousePos(x_pixels, y_pixels);
 		});
 
-	std::cout << "Running app..." << std::endl;
+	LOG(INFO) << "Running app...";
 
 	std::jthread update_render_loop(
 		[&window, &input, &window_size_pixels](std::stop_token s_token)

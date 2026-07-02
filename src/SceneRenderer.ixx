@@ -2,7 +2,6 @@
 
 module;
 
-#include <iostream>
 #include <optional>
 #include <span>
 #include <string>
@@ -11,6 +10,7 @@ module;
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glog/logging.h>
 
 export module SceneRenderer;
 
@@ -83,12 +83,12 @@ AssetId SceneRenderer::CreateRenderObject(
 {
 	if (!mesh_id.IsValid())
 	{
-		std::cout << "SceneRenderer::CreateRenderObject: Invalid mesh id for object: " + name;
+		LOG(ERROR) << "SceneRenderer::CreateRenderObject: Invalid mesh id for object: " << name;
 		return AssetId{};
 	}
 	if (!pipeline_id.IsValid())
 	{
-		std::cout << "SceneRenderer::CreateRenderObject: Invalid pipeline id for object: " + name;
+		LOG(ERROR) << "SceneRenderer::CreateRenderObject: Invalid pipeline id for object: " << name;
 		return AssetId{};
 	}
 
@@ -99,7 +99,7 @@ AssetId SceneRenderer::CreateRenderObject(
 	AssetId ro_id = m_render_object_pool.Add(std::move(ro));
 	if (!ro_id.IsValid())
 	{
-		std::cout << "SceneRenderer::CreateRenderObject: Failed to add render object to pool for object: " + name;
+		LOG(ERROR) << "SceneRenderer::CreateRenderObject: Failed to add render object to pool for object: " << name;
 		return ro_id;
 	}
 
@@ -154,7 +154,8 @@ void SceneRenderer::render_objects() const
 			RenderObject const * ro = m_render_object_pool.Get(ro_id);
 			if (!ro)
 			{
-				std::cout << "SceneRenderer::render_objects: No render object found in pool for AssetId: " << ro_id.GetIndex() << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "SceneRenderer::render_objects: No render object found in pool for AssetId: "
+					<< ro_id.GetIndex();
 				continue;
 			}
 
@@ -171,14 +172,16 @@ void SceneRenderer::render_object(RenderObject const & ro) const
 	dh::Pipeline const * pipeline = m_asset_manager.GetPipeline(ro.GetPipelineId());
 	if (!pipeline)
 	{
-		std::cout << "SceneRenderer::render_object: No pipeline found in pool for pipeline ID: " << ro.GetPipelineId().GetIndex() << std::endl;
+		LOG_FIRST_N(ERROR, 10) << "SceneRenderer::render_object: No pipeline found in pool for pipeline ID: "
+			<< ro.GetPipelineId().GetIndex();
 		return;
 	}
 
 	dh::Mesh const * mesh = m_asset_manager.GetMesh(ro.GetMeshId());
 	if (!mesh)
 	{
-		std::cout << "SceneRenderer::render_object: No mesh found in pool for AssetId: " << ro.GetMeshId().GetIndex() << std::endl;
+		LOG_FIRST_N(ERROR, 10) << "SceneRenderer::render_object: No mesh found in pool for AssetId: "
+			<< ro.GetMeshId().GetIndex();
 		return;
 	}
 

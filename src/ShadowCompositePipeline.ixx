@@ -4,7 +4,8 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
+
+#include <glog/logging.h>
 
 #include <glm/vec4.hpp>
 
@@ -85,7 +86,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> ShadowCompositePipeline::CreatePi
 		{
 			if (!object_data)
 			{
-				std::cout << "ShadowCompositePipeline: ObjectData is null" << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "ShadowCompositePipeline: ObjectData is null";
 				return;
 			}
 
@@ -93,9 +94,13 @@ std::expected<dh::Pipeline, dh::GraphicsError> ShadowCompositePipeline::CreatePi
 
 			dh::Texture const * texture = asset_manager.GetTexture(data->tex_id);
 			if (texture)
+			{
 				pipeline.BindTexture(0, *texture);
+			}
 			else
-				std::cout << "ShadowCompositePipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
+			{
+				LOG_FIRST_N(ERROR, 10) << "ShadowCompositePipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex();
+			}
 
 			pipeline.SetObjectData(
 				std::nullopt,

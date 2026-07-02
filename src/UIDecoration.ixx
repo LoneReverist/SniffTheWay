@@ -3,10 +3,10 @@
 module;
 
 #include <expected>
-#include <iostream>
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glog/logging.h>
 
 export module UIDecoration;
 
@@ -95,7 +95,7 @@ void UIDecoration::Init(
 	std::expected<dh::Mesh, dh::GraphicsError> mesh = create_mesh();
 	if (!mesh.has_value())
 	{
-		std::cout << "UIDecoration::Init: Failed to create mesh. Error: " << mesh.error().GetMessage() << std::endl;
+		LOG(ERROR) << "UIDecoration::Init: Failed to create mesh. Error: " << mesh.error().GetMessage();
 		return;
 	}
 
@@ -188,7 +188,7 @@ void UIDecoration::update_mesh() const
 	std::expected<dh::Mesh, dh::GraphicsError> new_mesh = create_mesh();
 	if (!new_mesh.has_value())
 	{
-		std::cout << "UIDecoration::update_mesh: Failed to create mesh: " << new_mesh.error().GetMessage() << std::endl;
+		LOG(ERROR) << "UIDecoration::update_mesh: Failed to create mesh: " << new_mesh.error().GetMessage();
 		return;
 	}
 

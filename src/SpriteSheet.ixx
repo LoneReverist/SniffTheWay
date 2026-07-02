@@ -3,7 +3,6 @@
 module;
 
 #include <cstdint>
-#include <iostream>
 #include <vector>
 
 #include <glm/vec4.hpp>

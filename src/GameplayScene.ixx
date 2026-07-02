@@ -3,13 +3,13 @@
 module;
 
 #include <filesystem>
-#include <iostream>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glog/logging.h>
 
 export module GameplayScene;
 
@@ -118,7 +118,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	m_scene_data = GameplaySceneLoader::LoadSceneData(get_gameplay_filepath());
 	if (m_scene_data.bg_image_filename.empty())
 	{
-		std::cout << "GameplayScene: No data loaded for gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
+		LOG(WARNING) << "GameplayScene: No data loaded for gameplay scene '" << ToString(m_scene_id) << "'.";
 		m_scene_data.bg_image_filename = "playground.png";
 	}
 
@@ -331,7 +331,7 @@ void GameplayScene::reload_scene_data()
 	GameplaySceneData reloaded_scene_data = GameplaySceneLoader::LoadSceneData(get_gameplay_filepath());
 	if (reloaded_scene_data.bg_image_filename.empty())
 	{
-		std::cout << "GameplayScene: Reload skipped because no data loaded for gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
+		LOG(WARNING) << "GameplayScene: Reload skipped because no data loaded for gameplay scene '" << ToString(m_scene_id) << "'.";
 		return;
 	}
 
@@ -353,7 +353,7 @@ void GameplayScene::reload_scene_data()
 	else
 		ChangeSceneState(m_scene_state);
 	
-	std::cout << "GameplayScene: Reloaded gameplay scene '" << ToString(m_scene_id) << "'." << std::endl;
+	LOG(INFO) << "GameplayScene: Reloaded gameplay scene '" << ToString(m_scene_id) << "'.";
 }
 
 void GameplayScene::apply_camera_data()
@@ -381,7 +381,8 @@ void GameplayScene::reload_background_texture()
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	if (!new_bg_tex_id.IsValid())
 	{
-		std::cout << "GameplayScene: Keeping previous background because reload failed for '" << m_scene_data.bg_image_filename << "'." << std::endl;
+		LOG(WARNING) << "GameplayScene: Keeping previous background because reload failed for '"
+			<< m_scene_data.bg_image_filename << "'.";
 		return;
 	}
 

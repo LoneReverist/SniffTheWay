@@ -4,10 +4,10 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
 #include <optional>
 
 #include <glm/vec4.hpp>
+#include <glog/logging.h>
 
 export module TextMaskPipeline;
 
@@ -91,7 +91,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextMaskPipeline::CreatePipeline(
 		{
 			if (!object_data)
 			{
-				std::cout << "TextMaskPipeline: ObjectData is null" << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "TextMaskPipeline: ObjectData is null";
 				return;
 			}
 
@@ -99,9 +99,13 @@ std::expected<dh::Pipeline, dh::GraphicsError> TextMaskPipeline::CreatePipeline(
 
 			dh::Texture const * texture = asset_manager.GetTexture(data->tex_id);
 			if (texture)
+			{
 				pipeline.BindTexture(0, *texture);
+			}
 			else
-				std::cout << "TextMaskPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
+			{
+				LOG_FIRST_N(ERROR, 10) << "TextMaskPipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex();
+			}
 
 			pipeline.SetObjectData(
 				std::nullopt,

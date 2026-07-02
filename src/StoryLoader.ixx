@@ -4,10 +4,10 @@ module;
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <string>
 
 #include <glm/glm.hpp>
+#include <glog/logging.h>
 #include <nlohmann/json.hpp>
 
 export module StoryLoader;
@@ -53,7 +53,7 @@ SniffTheWay::Decorations::DecorationId parse_decoration_id(std::string const & n
 			return decoration.id;
 	}
 
-	std::cout << "StoryLoader: Unknown decoration id '" << name << "'. Using default." << std::endl;
+	LOG(WARNING) << "StoryLoader: Unknown decoration id '" << name << "'. Using default.";
 	return SniffTheWay::Decorations::DecorationId::HorizontalDividerPawFlourish;
 }
 
@@ -97,7 +97,7 @@ export namespace StoryLoader
 		std::ifstream file(filepath);
 		if (!file)
 		{
-			std::cout << "StoryLoader: Failed to open story file: " << filepath << std::endl;
+			LOG(ERROR) << "StoryLoader: Failed to open story file: " << filepath;
 			return scene_data;
 		}
 
@@ -113,7 +113,7 @@ export namespace StoryLoader
 			}
 			else
 			{
-				std::cout << "StoryLoader: Unknown next scene id '" << next_scene_id << "' in " << filepath << ". Using exit." << std::endl;
+				LOG(WARNING) << "StoryLoader: Unknown next scene id '" << next_scene_id << "' in " << filepath << ". Using exit.";
 			}
 
 			for (json const & page_json : root.at("pages"))
@@ -132,7 +132,7 @@ export namespace StoryLoader
 		}
 		catch (std::exception const & ex)
 		{
-			std::cout << "StoryLoader: Failed to parse story file " << filepath << ": " << ex.what() << std::endl;
+			LOG(ERROR) << "StoryLoader: Failed to parse story file " << filepath << ": " << ex.what();
 			scene_data.pages.clear();
 		}
 

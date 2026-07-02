@@ -4,11 +4,11 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
 #include <optional>
 
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
+#include <glog/logging.h>
 
 export module ScentTrailPipeline;
 
@@ -95,7 +95,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> ScentTrailPipeline::CreatePipelin
 		{
 			if (!object_data)
 			{
-				std::cout << "ScentTrailPipeline: ObjectData is null" << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "ScentTrailPipeline: ObjectData is null";
 				return;
 			}
 

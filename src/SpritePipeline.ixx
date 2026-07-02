@@ -4,7 +4,8 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
+
+#include <glog/logging.h>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
@@ -90,7 +91,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 		{
 			if (!object_data)
 			{
-				std::cout << "SpritePipeline: ObjectData is null" << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "SpritePipeline: ObjectData is null";
 				return;
 			}
 
@@ -98,9 +99,13 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 
 			dh::Texture const * texture = asset_manager.GetTexture(data->tex_id);
 			if (texture)
+			{
 				pipeline.BindTexture(0, *texture);
+			}
 			else
-				std::cout << "SpritePipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex() << std::endl;
+			{
+				LOG_FIRST_N(ERROR, 10) << "SpritePipeline: No texture found in pool for AssetId: " << data->tex_id.GetIndex();
+			}
 
 			pipeline.SetObjectData(
 				ObjectDataVS{

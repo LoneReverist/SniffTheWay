@@ -5,13 +5,13 @@ module;
 #include <expected>
 #include <algorithm>
 #include <functional>
-#include <iostream>
 #include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glog/logging.h>
 
 export module UILabel;
 
@@ -124,7 +124,7 @@ void UILabel::Init(
 	std::expected<dh::Mesh, dh::GraphicsError> mesh = create_mesh();
 	if (!mesh.has_value())
 	{
-		std::cout << "UILabel::UILabel: Failed to create mesh. Error: " << mesh.error().GetMessage() << std::endl;
+		LOG(ERROR) << "UILabel::UILabel: Failed to create mesh. Error: " << mesh.error().GetMessage();
 		return;
 	}
 
@@ -312,7 +312,7 @@ void UILabel::update_mesh() const
 	std::expected<dh::Mesh, dh::GraphicsError> new_mesh = create_mesh();
 	if (!new_mesh.has_value())
 	{
-		std::cout << "UILabel::update_mesh: Failed to create mesh: " << new_mesh.error().GetMessage() << std::endl;
+		LOG(ERROR) << "UILabel::update_mesh: Failed to create mesh: " << new_mesh.error().GetMessage();
 		return;
 	}
 

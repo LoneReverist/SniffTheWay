@@ -5,11 +5,11 @@ module;
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <string>
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glog/logging.h>
 #include <nlohmann/json.hpp>
 
 export module GameplaySceneLoader;
@@ -136,7 +136,7 @@ GameplaySceneLink parse_gameplay_scene_link(json const & j)
 	}
 	else
 	{
-		std::cout << "GameplaySceneLoader: Unknown scene link target id '" << target_scene_id << "'. Using exit." << std::endl;
+		LOG(WARNING) << "GameplaySceneLoader: Unknown scene link target id '" << target_scene_id << "'. Using exit.";
 	}
 
 	if (j.contains("trigger"))
@@ -306,7 +306,7 @@ export namespace GameplaySceneLoader
 		std::ifstream file(filepath);
 		if (!file)
 		{
-			std::cout << "GameplaySceneLoader: Failed to open gameplay scene file: " << filepath << std::endl;
+			LOG(ERROR) << "GameplaySceneLoader: Failed to open gameplay scene file: " << filepath;
 			return scene_data;
 		}
 
@@ -334,7 +334,7 @@ export namespace GameplaySceneLoader
 		}
 		catch (std::exception const & ex)
 		{
-			std::cout << "GameplaySceneLoader: Failed to parse gameplay scene file " << filepath << ": " << ex.what() << std::endl;
+			LOG(ERROR) << "GameplaySceneLoader: Failed to parse gameplay scene file " << filepath << ": " << ex.what();
 			return GameplaySceneData{};
 		}
 
@@ -356,8 +356,8 @@ export namespace GameplaySceneLoader
 				}
 				catch (std::exception const & ex)
 				{
-					std::cout << "GameplaySceneLoader: Existing gameplay scene file could not be parsed before save: "
-						<< filepath << ": " << ex.what() << std::endl;
+					LOG(WARNING) << "GameplaySceneLoader: Existing gameplay scene file could not be parsed before save: "
+						<< filepath << ": " << ex.what();
 					root = json::object();
 				}
 			}
@@ -368,18 +368,18 @@ export namespace GameplaySceneLoader
 		std::ofstream out_file(filepath);
 		if (!out_file)
 		{
-			std::cout << "GameplaySceneLoader: Failed to open gameplay scene file for writing: " << filepath << std::endl;
+			LOG(ERROR) << "GameplaySceneLoader: Failed to open gameplay scene file for writing: " << filepath;
 			return false;
 		}
 
 		out_file << std::setw(2) << root << '\n';
 		if (!out_file)
 		{
-			std::cout << "GameplaySceneLoader: Failed to write gameplay scene file: " << filepath << std::endl;
+			LOG(ERROR) << "GameplaySceneLoader: Failed to write gameplay scene file: " << filepath;
 			return false;
 		}
 
-		std::cout << "GameplaySceneLoader: Saved gameplay scene file: " << filepath << std::endl;
+		LOG(INFO) << "GameplaySceneLoader: Saved gameplay scene file: " << filepath;
 		return true;
 	}
 }

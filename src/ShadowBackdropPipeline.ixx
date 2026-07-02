@@ -4,7 +4,8 @@ module;
 
 #include <expected>
 #include <filesystem>
-#include <iostream>
+
+#include <glog/logging.h>
 
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
@@ -84,7 +85,7 @@ std::expected<dh::Pipeline, dh::GraphicsError> ShadowBackdropPipeline::CreatePip
 		{
 			if (!object_data)
 			{
-				std::cout << "ShadowBackdropPipeline: ObjectData is null" << std::endl;
+				LOG_FIRST_N(ERROR, 10) << "ShadowBackdropPipeline: ObjectData is null";
 				return;
 			}
 

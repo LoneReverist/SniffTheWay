@@ -26,6 +26,7 @@ import Camera;
 import DecorationAtlas;
 import FontAtlas;
 import FPSLabel;
+import GameViewport;
 import Input;
 import IScene;
 import PauseOverlay;
@@ -48,7 +49,7 @@ public:
 		dh::RenderContext const & render_context,
 		SceneId scene_id);
 
-	void OnWindowResized(int width, int height) override;
+	void OnViewportChanged(GameViewport const & viewport) override;
 
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
@@ -75,7 +76,7 @@ private:
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
-	glm::ivec4 m_viewport{ 0 };
+	GameViewport m_viewport;
 	SceneState m_scene_state = SceneState::Paused;
 	SceneState m_state_before_pause = SceneState::Story;
 	SceneId m_scene_id = SceneId::Exit;
@@ -161,14 +162,12 @@ StoryScene::StoryScene(
 	ChangeSceneState(SceneState::Story);
 }
 
-void StoryScene::OnWindowResized(int width, int height)
+void StoryScene::OnViewportChanged(GameViewport const & viewport)
 {
-	int game_width = static_cast<int>(height * 16.0f / 9.0f);
-	int x_offset = (width - game_width) / 2;
-	m_viewport = glm::ivec4{ x_offset, 0, game_width, height };
-	m_renderer.SetViewport(x_offset, 0, game_width, height);
-
-	m_camera2d.SetViewportSize(game_width, height);
+	m_viewport = viewport;
+	const auto & pixels = viewport.pixels;
+	m_renderer.SetViewport(pixels.x, pixels.y, pixels.z, pixels.w);
+	m_camera2d.SetViewportSize(pixels.z, pixels.w);
 }
 
 std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)

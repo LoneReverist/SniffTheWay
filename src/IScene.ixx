@@ -6,6 +6,7 @@ module;
 
 export module IScene;
 
+import GameViewport;
 import Input;
 import SniffTheWayConstants;
 
@@ -20,7 +21,7 @@ export class IScene
 public:
     virtual ~IScene() = default;
 
-    virtual void OnWindowResized(int width, int height) {};
+	virtual void OnViewportChanged(SniffTheWay::GameViewport const & viewport) {}
 
     // Returns a transition if the scene wants to hand off control,
     // or nullopt to keep running.

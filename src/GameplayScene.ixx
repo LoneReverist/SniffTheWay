@@ -25,6 +25,7 @@ import ColorPipeline;
 import Dog;
 import FontAtlas;
 import FPSLabel;
+import GameViewport;
 #ifdef _DEBUG
 import GameplaySceneEditor;
 #endif
@@ -52,7 +53,7 @@ export class GameplayScene : public IScene
 public:
 	explicit GameplayScene(dh::RenderContext const & render_context, SceneId scene_id, SceneTransition const & transition);
 
-	void OnWindowResized(int width, int height) override;
+	void OnViewportChanged(GameViewport const & viewport) override;
 
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
@@ -80,7 +81,7 @@ private:
 	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
 	Camera2d m_camera2d;
-	glm::ivec4 m_game_viewport{ 0, 0, 0, 0 };
+	GameViewport m_game_viewport;
 	SceneState m_scene_state = SceneState::Paused;
 	SceneState m_state_before_pause = SceneState::Gameplay;
 	SceneId m_scene_id = SceneId::Exit;
@@ -169,15 +170,13 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 	ChangeSceneState(arrived_from_gameplay_scene ? SceneState::Gameplay : m_scene_data.initial_state);
 }
 
-void GameplayScene::OnWindowResized(int width, int height)
+void GameplayScene::OnViewportChanged(GameViewport const & viewport)
 {
-	int game_width = static_cast<int>(height * 16.0f / 9.0f);
-	int x_offset = (width - game_width) / 2;
-	m_game_viewport = glm::ivec4{ x_offset, 0, game_width, height };
-	m_renderer.SetViewport(x_offset, 0, game_width, height);
-
-	m_camera3d.SetViewportSize(game_width, height);
-	m_camera2d.SetViewportSize(game_width, height);
+	m_game_viewport = viewport;
+	const auto & pixels = viewport.pixels;
+	m_renderer.SetViewport(pixels.x, pixels.y, pixels.z, pixels.w);
+	m_camera3d.SetViewportSize(pixels.z, pixels.w);
+	m_camera2d.SetViewportSize(pixels.z, pixels.w);
 }
 
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
@@ -245,7 +244,7 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 	if (!m_editor.HasActiveEditMode() && input.KeyJustPressed('R'))
 		reload_scene_data();
 
-	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport, m_scene_state);
+	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport.pixels, m_scene_state);
 	if (m_editor.ConsumeCameraChanged())
 	{
 		store_camera_data();

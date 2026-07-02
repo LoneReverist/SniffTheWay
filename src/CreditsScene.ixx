@@ -16,6 +16,7 @@ import Background;
 import Camera;
 import ColorPipeline;
 import FontAtlas;
+import GameViewport;
 import Input;
 import IScene;
 import SceneRenderer;
@@ -33,7 +34,7 @@ export class CreditsScene : public IScene
 public:
 	explicit CreditsScene(dh::RenderContext const & render_context);
 
-	void OnWindowResized(int width, int height) override;
+	void OnViewportChanged(GameViewport const & viewport) override;
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
 	void Render() const override;
@@ -137,12 +138,11 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context)
 		StoryTextColor);
 }
 
-void CreditsScene::OnWindowResized(int width, int height)
+void CreditsScene::OnViewportChanged(GameViewport const & viewport)
 {
-	const int game_width = static_cast<int>(height * 16.0f / 9.0f);
-	const int x_offset = (width - game_width) / 2;
-	m_renderer.SetViewport(x_offset, 0, game_width, height);
-	m_camera2d.SetViewportSize(game_width, height);
+	const auto & pixels = viewport.pixels;
+	m_renderer.SetViewport(pixels.x, pixels.y, pixels.z, pixels.w);
+	m_camera2d.SetViewportSize(pixels.z, pixels.w);
 }
 
 std::optional<SceneTransition> CreditsScene::Update(float /*dt*/, Input const & input)

@@ -15,6 +15,7 @@ import AssetManager;
 import AssetPool;
 import Background;
 import Camera;
+import GameViewport;
 import IScene;
 import Input;
 import SceneRenderer;
@@ -31,19 +32,16 @@ export class TitleScene : public IScene
 public:
 	explicit TitleScene(dh::RenderContext const & render_context);
 
-	void OnWindowResized(int width, int height) override;
+	void OnViewportChanged(GameViewport const & viewport) override;
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
 	void Render() const override;
 
 private:
-	std::optional<glm::vec2> screen_to_ui(glm::vec2 screen_position) const;
-
-private:
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
-	glm::ivec4 m_viewport{ 0 };
+	GameViewport m_viewport;
 	Background m_background;
 	UIImage m_dog_image;
 	UIImage m_baby_image;
@@ -194,13 +192,12 @@ TitleScene::TitleScene(dh::RenderContext const & render_context)
 		m_credits_button.GetPipelineData());
 }
 
-void TitleScene::OnWindowResized(int width, int height)
+void TitleScene::OnViewportChanged(GameViewport const & viewport)
 {
-	const int game_width = static_cast<int>(height * 16.0f / 9.0f);
-	const int x_offset = (width - game_width) / 2;
-	m_viewport = glm::ivec4{ x_offset, 0, game_width, height };
-	m_renderer.SetViewport(x_offset, 0, game_width, height);
-	m_camera2d.SetViewportSize(game_width, height);
+	m_viewport = viewport;
+	const auto & pixels = viewport.pixels;
+	m_renderer.SetViewport(pixels.x, pixels.y, pixels.z, pixels.w);
+	m_camera2d.SetViewportSize(pixels.z, pixels.w);
 }
 
 std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & input)
@@ -208,7 +205,7 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
 
-	const std::optional<glm::vec2> pointer_position = screen_to_ui(input.GetMousePos());
+	const std::optional<glm::vec2> pointer_position = m_viewport.FramebufferToUI(input.GetMousePos());
 	m_start_button.Update(input, pointer_position);
 	m_settings_button.Update(input, pointer_position);
 	m_credits_button.Update(input, pointer_position);
@@ -218,23 +215,6 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 		return SceneTransition{ SceneId::Credits, SceneId::Title };
 
 	return std::nullopt;
-}
-
-std::optional<glm::vec2> TitleScene::screen_to_ui(glm::vec2 screen_position) const
-{
-	if (m_viewport.z <= 0 || m_viewport.w <= 0
-		|| screen_position.x < static_cast<float>(m_viewport.x)
-		|| screen_position.x > static_cast<float>(m_viewport.x + m_viewport.z)
-		|| screen_position.y < static_cast<float>(m_viewport.y)
-		|| screen_position.y > static_cast<float>(m_viewport.y + m_viewport.w))
-	{
-		return std::nullopt;
-	}
-
-	return glm::vec2{
-		(screen_position.x - static_cast<float>(m_viewport.x)) * UIWidth / static_cast<float>(m_viewport.z),
-		(screen_position.y - static_cast<float>(m_viewport.y)) * UIHeight / static_cast<float>(m_viewport.w),
-	};
 }
 
 void TitleScene::DestroyPendingAssets() const

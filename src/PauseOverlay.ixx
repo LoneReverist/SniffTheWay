@@ -15,6 +15,7 @@ import AssetPool;
 import Camera;
 import ColorPipeline;
 import FontAtlas;
+import GameViewport;
 import Input;
 import SceneRenderer;
 import SniffTheWayConstants;
@@ -40,7 +41,7 @@ public:
 		Camera2d const & camera2d,
 		FontAtlas const & font_atlas);
 
-	PauseAction Update(Input const & input, glm::ivec4 viewport);
+	PauseAction Update(Input const & input, GameViewport const & viewport);
 	void SetVisible(bool visible);
 	bool IsVisible() const { return m_visible; }
 
@@ -52,7 +53,6 @@ private:
 		ReturnToTitle,
 	};
 
-	std::optional<glm::vec2> screen_to_ui(glm::vec2 screen_position, glm::ivec4 viewport) const;
 	Button hovered_button(std::optional<glm::vec2> pointer_position) const;
 	PauseAction action_for_button(Button button) const;
 	void update_button_colors();
@@ -123,12 +123,12 @@ void PauseOverlay::Init(
 	SetVisible(false);
 }
 
-PauseAction PauseOverlay::Update(Input const & input, glm::ivec4 viewport)
+PauseAction PauseOverlay::Update(Input const & input, GameViewport const & viewport)
 {
 	if (!m_visible)
 		return PauseAction::None;
 
-	const std::optional<glm::vec2> pointer_position = screen_to_ui(input.GetMousePos(), viewport);
+	const std::optional<glm::vec2> pointer_position = viewport.FramebufferToUI(input.GetMousePos());
 	if (pointer_position.has_value())
 	{
 		const glm::vec2 position = pointer_position.value();
@@ -189,23 +189,6 @@ void PauseOverlay::SetVisible(bool visible)
 	m_renderer->Show(m_resume_ro_id, visible);
 	m_renderer->Show(m_return_to_title_ro_id, visible);
 	update_button_colors();
-}
-
-std::optional<glm::vec2> PauseOverlay::screen_to_ui(glm::vec2 screen_position, glm::ivec4 viewport) const
-{
-	if (viewport.z <= 0 || viewport.w <= 0
-		|| screen_position.x < static_cast<float>(viewport.x)
-		|| screen_position.x > static_cast<float>(viewport.x + viewport.z)
-		|| screen_position.y < static_cast<float>(viewport.y)
-		|| screen_position.y > static_cast<float>(viewport.y + viewport.w))
-	{
-		return std::nullopt;
-	}
-
-	return glm::vec2{
-		(screen_position.x - static_cast<float>(viewport.x)) * UIWidth / static_cast<float>(viewport.z),
-		(screen_position.y - static_cast<float>(viewport.y)) * UIHeight / static_cast<float>(viewport.w),
-	};
 }
 
 PauseOverlay::Button PauseOverlay::hovered_button(std::optional<glm::vec2> pointer_position) const

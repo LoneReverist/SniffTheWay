@@ -9,11 +9,13 @@ export module SceneManager;
 
 import Dreamhearth;
 
+import GameViewport;
 import Input;
 import IScene;
 import SceneRegistry;
 
 namespace dh = Dreamhearth;
+using namespace SniffTheWay;
 
 export class SceneManager
 {
@@ -33,7 +35,7 @@ public:
 
 private:
     dh::RenderContext const & m_render_context;
-    int m_viewport_w = 0, m_viewport_h = 0;
+	GameViewport m_game_viewport;
 
 	SceneRegistry m_scene_registry;
     std::unique_ptr<IScene> m_cur_scene;
@@ -49,11 +51,10 @@ SceneManager::SceneManager(dh::RenderContext const & ctx, SceneTransition initia
 void SceneManager::OnWindowResized(int w, int h)
 {
 	m_render_context.WaitForLastFrame(); // GPU drains before recreating meshes
-	
-	m_viewport_w = w;
-	m_viewport_h = h;
+
+	m_game_viewport = CalculateGameViewport(w, h);
 	if (m_cur_scene)
-		m_cur_scene->OnWindowResized(w, h);
+		m_cur_scene->OnViewportChanged(m_game_viewport);
 }
 
 // Returns false when the app should exit.
@@ -84,7 +85,7 @@ bool SceneManager::ApplyPendingTransition()
 	if (!m_cur_scene)
 		return false;
 
-	m_cur_scene->OnWindowResized(m_viewport_w, m_viewport_h);
+	m_cur_scene->OnViewportChanged(m_game_viewport);
 
 	m_pending_scene_transition = std::nullopt;
 	return true;

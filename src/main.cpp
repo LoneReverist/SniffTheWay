@@ -65,20 +65,13 @@ void run_update_render_loop(
 			}
 
 			render_extent = render_context.GetSwapChainExtent();
-			if (render_extent.width > 0 && render_extent.height > 0)
-			{
+			swap_chain_needs_recreation = render_extent.width <= 0 || render_extent.height <= 0;
+			if (!swap_chain_needs_recreation)
 				scene_manager.OnWindowResized(render_extent.width, render_extent.height);
-				swap_chain_needs_recreation = false;
-			}
-			else
-			{
-				swap_chain_needs_recreation = true;
-			}
 		}
 
-		// GLFW and the surface can temporarily disagree during resize/minimize. The
-		// extent chosen by the renderer is the authority on whether drawing is possible.
-		if (render_extent.width == 0 || render_extent.height == 0)
+		// If the window is minimized, the swap chain extent is invalid. Wait until the window is restored before continuing.
+		if (swap_chain_needs_recreation)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds{ 16 });
 			last_update_time = std::chrono::steady_clock::now();

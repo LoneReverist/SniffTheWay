@@ -1,6 +1,7 @@
 // main.cpp
 
 #include <atomic>
+#include <chrono>
 #include <iostream>
 #include <thread>
 
@@ -34,9 +35,28 @@ void run_update_render_loop(
 	scene_manager.OnWindowResized(size.width, size.height);
 
 	auto last_update_time = std::chrono::steady_clock::now();
+	bool swap_chain_needs_recreation = false;
 
 	while (!s_token.stop_requested())
 	{
+		dh::WindowSize new_size = window_size_pixels.load();
+		if (swap_chain_needs_recreation || new_size != size)
+		{
+			render_context.RecreateSwapChain(new_size.width, new_size.height);
+			scene_manager.OnWindowResized(new_size.width, new_size.height);
+			size = new_size;
+			swap_chain_needs_recreation = false;
+		}
+
+		// A minimized GLFW window has no framebuffer. Avoid a hot update/render loop
+		// until the framebuffer becomes drawable again.
+		if (size.width <= 0 || size.height <= 0)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds{ 16 });
+			last_update_time = std::chrono::steady_clock::now();
+			continue;
+		}
+
 		auto cur_time = std::chrono::steady_clock::now();
 		float dt = std::chrono::duration<float>(cur_time - last_update_time).count(); // seconds
 		last_update_time = cur_time;
@@ -49,13 +69,8 @@ void run_update_render_loop(
 		if (draw_result == dh::DrawFrameResult::SurfaceLost)
 			break; // The Cosmic compositor has issues
 
-		dh::WindowSize new_size = window_size_pixels.load();
-		if (draw_result == dh::DrawFrameResult::SwapChainOutOfDate || new_size != size)
-		{
-			render_context.RecreateSwapChain(new_size.width, new_size.height);
-			scene_manager.OnWindowResized(new_size.width, new_size.height);
-			size = new_size;
-		}
+		if (draw_result == dh::DrawFrameResult::SwapChainOutOfDate)
+			swap_chain_needs_recreation = true;
 
 		if (!scene_manager.ApplyPendingTransition())
 			break;

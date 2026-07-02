@@ -25,8 +25,8 @@ namespace dh = Dreamhearth;
 
 namespace
 {
-	constexpr float ScentTrailWidth = 0.24f;
-	constexpr float ScentTrailVisibleDistance = 1.5f;
+	constexpr float ScentTrailWidth = 0.36f;
+	constexpr float ScentTrailVisibleDistance = 2.0f;
 }
 
 export class ScentTrail

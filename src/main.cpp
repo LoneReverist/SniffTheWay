@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
+#include <utility>
 
 import Dreamhearth;
 import DreamhearthWindow;
@@ -21,36 +22,63 @@ void on_error(std::string msg)
 	std::cout << msg << std::endl;
 }
 
+void on_graphics_diagnostic(dh::GraphicsDiagnostic const & diagnostic)
+{
+	on_error(diagnostic.message);
+}
+
 void run_update_render_loop(
 	dh::Window const & window,
 	Input & input,
 	std::atomic<dh::WindowSize> const & window_size_pixels,
 	std::stop_token const & s_token)
 {
-	dh::WindowSize size = window_size_pixels.load();
+	dh::WindowSize last_window_size = window_size_pixels.load();
 
-	dh::RenderContext render_context = window.CreateRenderContext(size);
+	auto render_context_result = window.CreateRenderContext(last_window_size, on_graphics_diagnostic);
+	if (!render_context_result)
+	{
+		on_error(render_context_result.error().GetMessage());
+		window.SetShouldClose(true);
+		return;
+	}
+	dh::RenderContext render_context = std::move(render_context_result).value();
 
 	SceneManager scene_manager{render_context, SceneTransition{ SceneId::Title }};
-	scene_manager.OnWindowResized(size.width, size.height);
+	dh::RenderExtent render_extent = render_context.GetSwapChainExtent();
+	scene_manager.OnWindowResized(render_extent.width, render_extent.height);
 
 	auto last_update_time = std::chrono::steady_clock::now();
 	bool swap_chain_needs_recreation = false;
 
 	while (!s_token.stop_requested())
 	{
-		dh::WindowSize new_size = window_size_pixels.load();
-		if (swap_chain_needs_recreation || new_size != size)
+		dh::WindowSize const window_size = window_size_pixels.load();
+		if (swap_chain_needs_recreation || window_size != last_window_size)
 		{
-			render_context.RecreateSwapChain(new_size.width, new_size.height);
-			scene_manager.OnWindowResized(new_size.width, new_size.height);
-			size = new_size;
-			swap_chain_needs_recreation = false;
+			last_window_size = window_size;
+			auto recreate_result = render_context.RecreateSwapChain(window_size.width, window_size.height);
+			if (!recreate_result)
+			{
+				on_error(recreate_result.error().GetMessage());
+				break;
+			}
+
+			render_extent = render_context.GetSwapChainExtent();
+			if (render_extent.width > 0 && render_extent.height > 0)
+			{
+				scene_manager.OnWindowResized(render_extent.width, render_extent.height);
+				swap_chain_needs_recreation = false;
+			}
+			else
+			{
+				swap_chain_needs_recreation = true;
+			}
 		}
 
-		// A minimized GLFW window has no framebuffer. Avoid a hot update/render loop
-		// until the framebuffer becomes drawable again.
-		if (size.width <= 0 || size.height <= 0)
+		// GLFW and the surface can temporarily disagree during resize/minimize. The
+		// extent chosen by the renderer is the authority on whether drawing is possible.
+		if (render_extent.width == 0 || render_extent.height == 0)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds{ 16 });
 			last_update_time = std::chrono::steady_clock::now();

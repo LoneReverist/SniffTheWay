@@ -70,6 +70,7 @@ private:
 	void update_story_texts();
 	void update_decorations();
 	void update_controls_label();
+	float get_current_page_reveal_end_time() const;
 	void pause();
 	void resume();
 
@@ -210,8 +211,18 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 		}
 		if (input.KeyJustPressed(Input::Key::Space) || input.KeyJustPressed(Input::Key::Right) || input.KeyJustPressed('D'))
 		{
-			if (!page_forward())
+			const float reveal_end_time = get_current_page_reveal_end_time();
+			if (m_page_time < reveal_end_time)
+			{
+				m_page_time = reveal_end_time;
+				update_story_texts();
+				update_decorations();
+				update_controls_label();
+			}
+			else if (!page_forward())
+			{
 				return SceneTransition{ m_scene_data.next_scene_id, m_scene_id };
+			}
 		}
 
 #ifdef _DEBUG
@@ -458,6 +469,13 @@ void StoryScene::update_controls_label()
 {
 	constexpr float FadeDuration = 0.5f;
 
+	const float reveal_start_time = get_current_page_reveal_end_time() + FadeDuration;
+	const float opacity = std::clamp((m_page_time - reveal_start_time) / FadeDuration, 0.0f, 1.0f);
+	m_controls_label.SetOpacity(opacity);
+}
+
+float StoryScene::get_current_page_reveal_end_time() const
+{
 	StoryPage const & page = m_scene_data.pages[m_page_index];
 	float reveal_end_time = 0.0f;
 
@@ -467,9 +485,6 @@ void StoryScene::update_controls_label()
 	for (StoryDecoration const & decoration : page.decorations)
 		reveal_end_time = std::max(reveal_end_time, decoration.show_time + std::max(decoration.fade_duration, 0.0f));
 
-	reveal_end_time += FadeDuration;
-
-	const float opacity = std::clamp((m_page_time - reveal_end_time) / FadeDuration, 0.0f, 1.0f);
-	m_controls_label.SetOpacity(opacity);
+	return reveal_end_time;
 }
 

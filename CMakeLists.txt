@@ -19,6 +19,7 @@ find_package(glm CONFIG REQUIRED)
 #find_package(stb CONFIG REQUIRED) # not needed, stb headers are globally available when vcpkg toolchain is set
 find_package(nlohmann_json CONFIG REQUIRED)
 set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
+find_package(glog CONFIG REQUIRED)
 
 set(BUILD_VULKAN ON)
 set(BUILD_OPENGL OFF)
@@ -90,10 +91,12 @@ source_group("SniffTheWay/Shaders" FILES ${SHADER_FILES})
 target_link_libraries(SniffTheWay PRIVATE
     glm::glm
     nlohmann_json::nlohmann_json
+	glog::glog
 )
 
 target_compile_definitions(SniffTheWay PRIVATE
     $<$<CONFIG:Debug>:SNIFF_THE_WAY_DEV_RESOURCES_PATH="${CMAKE_SOURCE_DIR}/resources">
+    $<$<PLATFORM_ID:Windows>:GLOG_NO_ABBREVIATED_SEVERITIES>
 )
 
 if(BUILD_VULKAN)

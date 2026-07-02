@@ -19,6 +19,7 @@ import GameViewport;
 import IScene;
 import Input;
 import SceneRenderer;
+import SceneFadeOverlay;
 import SniffTheWayConstants;
 import Texture2dPipeline;
 import UIButton;
@@ -35,6 +36,7 @@ public:
 	void OnViewportChanged(GameViewport const & viewport) override;
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
+	void SetTransitionOpacity(float opacity) override;
 	void Render() const override;
 
 private:
@@ -49,6 +51,7 @@ private:
 	UIButton m_start_button;
 	UIButton m_settings_button;
 	UIButton m_credits_button;
+	SceneFadeOverlay m_scene_fade_overlay;
 };
 
 TitleScene::TitleScene(dh::RenderContext const & render_context)
@@ -190,6 +193,8 @@ TitleScene::TitleScene(dh::RenderContext const & render_context)
 		m_credits_button.GetMeshId(),
 		texture_pipeline_id,
 		m_credits_button.GetPipelineData());
+
+	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 }
 
 void TitleScene::OnViewportChanged(GameViewport const & viewport)
@@ -220,6 +225,11 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 void TitleScene::DestroyPendingAssets() const
 {
 	m_asset_manager.DestroyPendingAssets();
+}
+
+void TitleScene::SetTransitionOpacity(float opacity)
+{
+	m_scene_fade_overlay.SetOpacity(opacity);
 }
 
 void TitleScene::Render() const

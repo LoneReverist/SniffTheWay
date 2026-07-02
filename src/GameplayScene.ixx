@@ -35,6 +35,7 @@ import Input;
 import IScene;
 import PauseOverlay;
 import SceneRenderer;
+import SceneFadeOverlay;
 import ScentTrail;
 import ScentTrailPipeline;
 import SniffTheWayConstants;
@@ -57,6 +58,7 @@ public:
 
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
+	void SetTransitionOpacity(float opacity) override;
 	void Render() const override;
 
 	void ChangeSceneState(SceneState new_state);
@@ -102,6 +104,7 @@ private:
 	std::vector<UILabel> m_story_labels;
 	UIDarkBackdrop m_story_shadow;
 	PauseOverlay m_pause_overlay;
+	SceneFadeOverlay m_scene_fade_overlay;
 
 #ifdef _DEBUG
 	GameplaySceneEditor m_editor;
@@ -164,6 +167,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 
 	create_story_labels(m_text_pipeline_id);
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 
 	const bool arrived_from_gameplay_scene = transition.previous_scene_id.has_value()
 		&& IsGameplayScene(transition.previous_scene_id.value());
@@ -276,6 +280,11 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 void GameplayScene::DestroyPendingAssets() const
 {
 	m_asset_manager.DestroyPendingAssets();
+}
+
+void GameplayScene::SetTransitionOpacity(float opacity)
+{
+	m_scene_fade_overlay.SetOpacity(opacity);
 }
 
 void GameplayScene::Render() const

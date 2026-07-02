@@ -20,6 +20,7 @@ import GameViewport;
 import Input;
 import IScene;
 import SceneRenderer;
+import SceneFadeOverlay;
 import SniffTheWayConstants;
 import Texture2dPipeline;
 import UIDarkBackdrop;
@@ -37,6 +38,7 @@ public:
 	void OnViewportChanged(GameViewport const & viewport) override;
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
+	void SetTransitionOpacity(float opacity) override;
 	void Render() const override;
 
 private:
@@ -50,6 +52,7 @@ private:
 	UIShadowedLabel m_creator_label;
 	UIShadowedLabel m_thanks_label;
 	UIShadowedLabel m_controls_label;
+	SceneFadeOverlay m_scene_fade_overlay;
 };
 
 CreditsScene::CreditsScene(dh::RenderContext const & render_context)
@@ -136,6 +139,8 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context)
 		glm::vec2{ UIWidth * 0.5f, 1026.0f },
 		UILabel::Align::Center,
 		StoryTextColor);
+
+	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 }
 
 void CreditsScene::OnViewportChanged(GameViewport const & viewport)
@@ -160,6 +165,11 @@ std::optional<SceneTransition> CreditsScene::Update(float /*dt*/, Input const & 
 void CreditsScene::DestroyPendingAssets() const
 {
 	m_asset_manager.DestroyPendingAssets();
+}
+
+void CreditsScene::SetTransitionOpacity(float opacity)
+{
+	m_scene_fade_overlay.SetOpacity(opacity);
 }
 
 void CreditsScene::Render() const

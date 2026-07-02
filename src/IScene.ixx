@@ -32,5 +32,7 @@ public:
 	// giving scenes a safe point to destroy retired GPU assets.
 	virtual void DestroyPendingAssets() const {}
 
+	virtual void SetTransitionOpacity(float opacity) = 0;
+
     virtual void Render() const = 0;
 };

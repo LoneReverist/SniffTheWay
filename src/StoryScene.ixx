@@ -31,6 +31,7 @@ import Input;
 import IScene;
 import PauseOverlay;
 import SceneRenderer;
+import SceneFadeOverlay;
 import SniffTheWayConstants;
 import StoryData;
 import StoryLoader;
@@ -53,13 +54,23 @@ public:
 
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
 	void DestroyPendingAssets() const override;
+	void SetTransitionOpacity(float opacity) override;
 	void Render() const override;
 
 	void ChangeSceneState(SceneState new_state);
 
 private:
+	enum class PageTransitionState
+	{
+		None,
+		FadingOut,
+		FadingIn,
+	};
+
 	bool page_forward();
 	void page_backward();
+	void start_page_transition(std::uint8_t page_index);
+	void update_page_transition(float dt);
 	std::filesystem::path get_story_filepath() const;
 	void load_background_textures();
 	void ensure_story_label_count(std::size_t count);
@@ -85,6 +96,10 @@ private:
 	StorySceneData m_scene_data;
 	std::uint8_t m_page_index = 0;
 	float m_page_time = 0.0f;
+	std::uint8_t m_pending_page_index = 0;
+	PageTransitionState m_page_transition_state = PageTransitionState::None;
+	float m_page_transition_opacity = 0.0f;
+	static constexpr float PageTransitionDuration = 0.5f;
 
 	Background m_background;
 	std::vector<AssetId> m_bg_tex_ids;
@@ -97,6 +112,8 @@ private:
 	std::vector<UIShadowedLabel> m_story_labels;
 	std::vector<UIShadowedDecoration> m_decorations;
 	PauseOverlay m_pause_overlay;
+	SceneFadeOverlay m_page_fade_overlay;
+	SceneFadeOverlay m_scene_fade_overlay;
 };
 
 StoryScene::StoryScene(
@@ -160,6 +177,9 @@ StoryScene::StoryScene(
 
 	apply_current_page();
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	m_page_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
+	m_page_fade_overlay.SetOpacity(0.0f);
+	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 
 	ChangeSceneState(SceneState::Story);
 }
@@ -174,6 +194,13 @@ void StoryScene::OnViewportChanged(GameViewport const & viewport)
 
 std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 {
+	if (m_page_transition_state != PageTransitionState::None)
+	{
+		update_page_transition(dt);
+		m_fps_label.Update(dt);
+		return std::nullopt;
+	}
+
 	if (input.KeyJustPressed(Input::Key::Esc))
 	{
 		if (m_scene_state == SceneState::Paused)
@@ -241,6 +268,11 @@ void StoryScene::DestroyPendingAssets() const
 	m_asset_manager.DestroyPendingAssets();
 }
 
+void StoryScene::SetTransitionOpacity(float opacity)
+{
+	m_scene_fade_overlay.SetOpacity(opacity);
+}
+
 void StoryScene::Render() const
 {
 	m_fps_label.RenderOffscreenTexture();
@@ -276,17 +308,46 @@ bool StoryScene::page_forward()
 	if (m_page_index + 1 >= m_bg_tex_ids.size())
 		return false;
 
-	m_page_index++;
-	apply_current_page();
+	start_page_transition(static_cast<std::uint8_t>(m_page_index + 1));
 	return true;
 }
 
 void StoryScene::page_backward()
 {
-	if (m_page_index > 0)
-		m_page_index--;
+	if (m_page_index == 0)
+		return;
 
-	apply_current_page();
+	start_page_transition(static_cast<std::uint8_t>(m_page_index - 1));
+}
+
+void StoryScene::start_page_transition(std::uint8_t page_index)
+{
+	m_pending_page_index = page_index;
+	m_page_transition_state = PageTransitionState::FadingOut;
+	m_page_transition_opacity = 0.0f;
+	m_page_fade_overlay.SetOpacity(m_page_transition_opacity);
+}
+
+void StoryScene::update_page_transition(float dt)
+{
+	const float transition_step = std::max(dt, 0.0f) / PageTransitionDuration;
+	if (m_page_transition_state == PageTransitionState::FadingOut)
+	{
+		m_page_transition_opacity = std::clamp(m_page_transition_opacity + transition_step, 0.0f, 1.0f);
+		m_page_fade_overlay.SetOpacity(m_page_transition_opacity);
+		if (m_page_transition_opacity >= 1.0f)
+		{
+			m_page_index = m_pending_page_index;
+			apply_current_page();
+			m_page_transition_state = PageTransitionState::FadingIn;
+		}
+		return;
+	}
+
+	m_page_transition_opacity = std::clamp(m_page_transition_opacity - transition_step, 0.0f, 1.0f);
+	m_page_fade_overlay.SetOpacity(m_page_transition_opacity);
+	if (m_page_transition_opacity <= 0.0f)
+		m_page_transition_state = PageTransitionState::None;
 }
 
 std::filesystem::path StoryScene::get_story_filepath() const

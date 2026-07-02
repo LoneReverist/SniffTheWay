@@ -69,6 +69,7 @@ private:
 	void apply_current_page();
 	void update_story_texts();
 	void update_decorations();
+	void update_controls_label();
 	void pause();
 	void resume();
 
@@ -201,6 +202,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 		m_page_time += dt;
 		update_story_texts();
 		update_decorations();
+		update_controls_label();
 
 		if (input.KeyJustPressed(Input::Key::Left) || input.KeyJustPressed('A'))
 		{
@@ -421,6 +423,7 @@ void StoryScene::apply_current_page()
 	}
 
 	m_page_number_label.SetText(std::to_string(m_page_index + 1) + "/" + std::to_string(m_bg_tex_ids.size()));
+	update_controls_label();
 }
 
 void StoryScene::update_story_texts()
@@ -449,5 +452,24 @@ void StoryScene::update_decorations()
 			: std::clamp((m_page_time - decoration.show_time) / fade_duration, 0.0f, 1.0f);
 		m_decorations[i].SetOpacity(opacity);
 	}
+}
+
+void StoryScene::update_controls_label()
+{
+	constexpr float FadeDuration = 0.5f;
+
+	StoryPage const & page = m_scene_data.pages[m_page_index];
+	float reveal_end_time = 0.0f;
+
+	for (StoryText const & story_text : page.story_texts)
+		reveal_end_time = std::max(reveal_end_time, story_text.show_time + std::max(story_text.fade_duration, 0.0f));
+
+	for (StoryDecoration const & decoration : page.decorations)
+		reveal_end_time = std::max(reveal_end_time, decoration.show_time + std::max(decoration.fade_duration, 0.0f));
+
+	reveal_end_time += FadeDuration;
+
+	const float opacity = std::clamp((m_page_time - reveal_end_time) / FadeDuration, 0.0f, 1.0f);
+	m_controls_label.SetOpacity(opacity);
 }
 

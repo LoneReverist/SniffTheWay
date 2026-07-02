@@ -31,7 +31,8 @@ export namespace SniffTheWay
 	constexpr float StoryMediumFontSize = 56.0f;
 	constexpr float StorySmallFontSize = 36.0f;
 
-	constexpr glm::vec4 StoryTextColor{ 0.93f, 0.89f, 0.70f, 1.0f };
+	// tried making this constexpr, but msvc produces corrupted code
+	const glm::vec4 StoryTextColor{ 0.93f, 0.89f, 0.70f, 1.0f };
 
 	enum class RenderLayer : std::uint8_t
 	{

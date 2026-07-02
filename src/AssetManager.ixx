@@ -199,7 +199,7 @@ void AssetManager::UpdateMesh(
 	std::expected<void, dh::GraphicsError> result = new_mesh.Create(vertices, indices);
 	if (!result.has_value())
 	{
-		std::cout << "AssetManager::UpdateMesh: Failed to create mesh. Error: " << result.error().GetMessage() << std::endl;
+		std::cout << "AssetManager::UpdateMesh: Failed to create mesh. Error: " << result.error().GetMessage().c_str() << std::endl;
 		return;
 	}
 

@@ -230,8 +230,9 @@ PauseAction PauseOverlay::action_for_button(Button button) const
 
 void PauseOverlay::update_button_colors()
 {
-	constexpr glm::vec4 SelectedColor{ 1.0f, 0.72f, 0.22f, 1.0f };
-	constexpr glm::vec4 UnselectedColor = StoryTextColor;
+	// tried making these colors constexpr, but msvc produces corrupted code
+	const glm::vec4 SelectedColor{ 1.0f, 0.72f, 0.22f, 1.0f };
+	const glm::vec4 UnselectedColor = StoryTextColor;
 	const bool resume_selected = m_selected_button == Button::Resume;
 	const bool return_to_title_selected = m_selected_button == Button::ReturnToTitle;
 

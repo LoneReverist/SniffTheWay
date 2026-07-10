@@ -203,6 +203,8 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 			break;
 		case PauseAction::ReturnToTitle:
 			return SceneTransition{ SceneId::Title, m_scene_id };
+		case PauseAction::Exit:
+			return SceneTransition{ SceneId::Exit };
 		case PauseAction::None:
 			break;
 		}

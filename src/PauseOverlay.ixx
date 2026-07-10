@@ -30,6 +30,7 @@ export enum class PauseAction
 	None,
 	Resume,
 	ReturnToTitle,
+	Exit,
 };
 
 export class PauseOverlay
@@ -51,6 +52,7 @@ private:
 		None,
 		Resume,
 		ReturnToTitle,
+		Exit,
 	};
 
 	Button hovered_button(std::optional<glm::vec2> pointer_position) const;
@@ -63,10 +65,12 @@ private:
 	UILabel m_title_label;
 	UILabel m_resume_label;
 	UILabel m_return_to_title_label;
+	UILabel m_exit_label;
 	AssetId m_backdrop_ro_id;
 	AssetId m_title_ro_id;
 	AssetId m_resume_ro_id;
 	AssetId m_return_to_title_ro_id;
+	AssetId m_exit_ro_id;
 	Button m_selected_button = Button::Resume;
 	Button m_armed_button = Button::None;
 	glm::vec2 m_last_pointer_position{ 0.0f };
@@ -119,6 +123,8 @@ void PauseOverlay::Init(
 		StoryMediumFontSize, glm::vec2{ UIWidth * 0.5f, 520.0f });
 	init_label(m_return_to_title_label, m_return_to_title_ro_id, "pause return to title", "Return to Title",
 		StoryMediumFontSize, glm::vec2{ UIWidth * 0.5f, 650.0f });
+	init_label(m_exit_label, m_exit_ro_id, "pause exit", "Exit",
+		StoryMediumFontSize, glm::vec2{ UIWidth * 0.5f, 780.0f });
 
 	SetVisible(false);
 }
@@ -145,11 +151,25 @@ PauseAction PauseOverlay::Update(Input const & input, GameViewport const & viewp
 		}
 	}
 
-	if (input.KeyJustPressed(Input::Key::Up) || input.KeyJustPressed('W') || input.KeyJustPressed(Input::Key::Down) || input.KeyJustPressed('S'))
+	if (input.KeyJustPressed(Input::Key::Up) || input.KeyJustPressed('W'))
 	{
-		m_selected_button = m_selected_button == Button::Resume
-			? Button::ReturnToTitle
-			: Button::Resume;
+		switch (m_selected_button)
+		{
+		case Button::Resume: m_selected_button = Button::Exit; break;
+		case Button::ReturnToTitle: m_selected_button = Button::Resume; break;
+		case Button::Exit: m_selected_button = Button::ReturnToTitle; break;
+		case Button::None: m_selected_button = Button::Resume; break;
+		}
+	}
+	if (input.KeyJustPressed(Input::Key::Down) || input.KeyJustPressed('S'))
+	{
+		switch (m_selected_button)
+		{
+		case Button::Resume: m_selected_button = Button::ReturnToTitle; break;
+		case Button::ReturnToTitle: m_selected_button = Button::Exit; break;
+		case Button::Exit: m_selected_button = Button::Resume; break;
+		case Button::None: m_selected_button = Button::Resume; break;
+		}
 	}
 
 	if (input.MouseButtonJustPressed(Input::MouseButton::Left))
@@ -188,6 +208,7 @@ void PauseOverlay::SetVisible(bool visible)
 	m_renderer->Show(m_title_ro_id, visible);
 	m_renderer->Show(m_resume_ro_id, visible);
 	m_renderer->Show(m_return_to_title_ro_id, visible);
+	m_renderer->Show(m_exit_ro_id, visible);
 	update_button_colors();
 }
 
@@ -210,6 +231,8 @@ PauseOverlay::Button PauseOverlay::hovered_button(std::optional<glm::vec2> point
 		return Button::Resume;
 	if (contains(m_return_to_title_label))
 		return Button::ReturnToTitle;
+	if (contains(m_exit_label))
+		return Button::Exit;
 	return Button::None;
 }
 
@@ -221,6 +244,8 @@ PauseAction PauseOverlay::action_for_button(Button button) const
 		return PauseAction::Resume;
 	case Button::ReturnToTitle:
 		return PauseAction::ReturnToTitle;
+	case Button::Exit:
+		return PauseAction::Exit;
 	case Button::None:
 		return PauseAction::None;
 	}
@@ -235,6 +260,7 @@ void PauseOverlay::update_button_colors()
 	const glm::vec4 UnselectedColor = StoryTextColor;
 	const bool resume_selected = m_selected_button == Button::Resume;
 	const bool return_to_title_selected = m_selected_button == Button::ReturnToTitle;
+	const bool exit_selected = m_selected_button == Button::Exit;
 
 	m_resume_label.SetText(resume_selected ? ">  Resume  <" : "Resume");
 	m_resume_label.SetTextColor(resume_selected ? SelectedColor : UnselectedColor);
@@ -242,4 +268,6 @@ void PauseOverlay::update_button_colors()
 		return_to_title_selected ? ">  Return to Title  <" : "Return to Title");
 	m_return_to_title_label.SetTextColor(
 		return_to_title_selected ? SelectedColor : UnselectedColor);
+	m_exit_label.SetText(exit_selected ? ">  Exit  <" : "Exit");
+	m_exit_label.SetTextColor(exit_selected ? SelectedColor : UnselectedColor);
 }

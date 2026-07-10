@@ -219,6 +219,8 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 			break;
 		case PauseAction::ReturnToTitle:
 			return SceneTransition{ SceneId::Title, m_scene_id };
+		case PauseAction::Exit:
+			return SceneTransition{ SceneId::Exit };
 		case PauseAction::None:
 			break;
 		}

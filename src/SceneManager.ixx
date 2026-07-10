@@ -10,10 +10,12 @@ export module SceneManager;
 
 import Dreamhearth;
 
+import AudioSystem;
 import GameViewport;
 import Input;
 import IScene;
 import SceneRegistry;
+import SniffTheWayConstants;
 
 namespace dh = Dreamhearth;
 using namespace SniffTheWay;
@@ -21,7 +23,7 @@ using namespace SniffTheWay;
 export class SceneManager
 {
 public:
-    SceneManager(dh::RenderContext const & ctx, SceneTransition initial_trans);
+    SceneManager(AudioSystem & audio_system, dh::RenderContext const & ctx, SceneTransition initial_trans);
 
     void OnWindowResized(int w, int h);
 
@@ -44,9 +46,11 @@ private:
 	};
 
 	void set_transition_opacity(float opacity);
+	void update_music(SniffTheWay::SceneId scene_id);
 
 	static constexpr float TransitionDuration = 0.5f;
 
+	AudioSystem & m_audio_system;
     dh::RenderContext const & m_render_context;
 	GameViewport m_game_viewport;
 
@@ -57,9 +61,11 @@ private:
 	float m_transition_opacity = 1.0f;
 };
 
-SceneManager::SceneManager(dh::RenderContext const & ctx, SceneTransition initial_trans)
-	: m_render_context{ctx}
+SceneManager::SceneManager(AudioSystem & audio_system, dh::RenderContext const & ctx, SceneTransition initial_trans)
+	: m_audio_system{ audio_system }
+	, m_render_context{ctx}
 {
+	update_music(initial_trans.next_scene_id);
 	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context);
 	if (m_cur_scene)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
@@ -120,6 +126,7 @@ bool SceneManager::ApplyPendingTransition()
 		return true;
 
 	SceneTransition const transition = *m_pending_scene_transition;
+	update_music(transition.next_scene_id);
 	m_render_context.WaitForLastFrame(); // GPU drains before old scene dies
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
 
@@ -146,4 +153,12 @@ void SceneManager::set_transition_opacity(float opacity)
 	m_transition_opacity = std::clamp(opacity, 0.0f, 1.0f);
 	if (m_cur_scene)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
+}
+
+void SceneManager::update_music(SceneId scene_id)
+{
+	if (scene_id == SceneId::Title)
+		m_audio_system.PlayMusic(MusicCue::Title);
+	else
+		m_audio_system.StopMusic();
 }

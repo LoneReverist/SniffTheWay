@@ -6,6 +6,5 @@ build-release/*
 build-clangwin/*
 build-clangwin-release/*
 concept/*
-resources/music/*
 
 *.user

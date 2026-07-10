@@ -20,6 +20,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
 find_package(glog CONFIG REQUIRED)
+find_path(MINIAUDIO_INCLUDE_DIR NAMES miniaudio.h REQUIRED)
 
 set(BUILD_VULKAN ON)
 set(BUILD_OPENGL OFF)
@@ -93,6 +94,8 @@ target_link_libraries(SniffTheWay PRIVATE
     nlohmann_json::nlohmann_json
 	glog::glog
 )
+
+target_include_directories(SniffTheWay PRIVATE ${MINIAUDIO_INCLUDE_DIR})
 
 target_compile_definitions(SniffTheWay PRIVATE
     $<$<CONFIG:Debug>:SNIFF_THE_WAY_DEV_RESOURCES_PATH="${CMAKE_SOURCE_DIR}/resources">

@@ -18,7 +18,8 @@ Push-Location C:\vcpkg
     stb:x64-windows-static `
     nlohmann-json:x64-windows-static `
     glog:x64-windows-static `
-    assimp:x64-windows-static
+    assimp:x64-windows-static `
+	miniaudio:x64-windows-static
 
 # add vcpkg to path
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\vcpkg", [EnvironmentVariableTarget]::Machine)

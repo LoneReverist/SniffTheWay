@@ -10,6 +10,7 @@
 import Dreamhearth;
 import DreamhearthWindow;
 
+import AudioSystem;
 import Input;
 import IScene;
 import SceneManager;
@@ -79,7 +80,8 @@ void run_update_render_loop(
 	}
 	dh::RenderContext render_context = std::move(render_context_result).value();
 
-	SceneManager scene_manager{render_context, SceneTransition{ SceneId::Title }};
+	AudioSystem audio_system;
+	SceneManager scene_manager{audio_system, render_context, SceneTransition{ SceneId::Title }};
 	dh::RenderExtent render_extent = render_context.GetSwapChainExtent();
 	scene_manager.OnWindowResized(render_extent.width, render_extent.height);
 

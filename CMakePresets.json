@@ -3,8 +3,8 @@
 	"configurePresets": [
 		{
 			"name": "default",
-			"description": "Default Clang debug build on Windows",
-			"inherits": "x64-windows-clang-debug"
+			"description": "Default build on Windows",
+			"inherits": "x64-windows-static"
 		},
 		{
 			"name": "x64-windows-static",

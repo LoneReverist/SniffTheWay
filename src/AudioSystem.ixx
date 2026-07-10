@@ -7,6 +7,12 @@ export module AudioSystem;
 export enum class MusicCue
 {
 	Title,
+	EarlyForest,
+};
+
+export enum class AmbienceCue
+{
+	EarlyForest,
 };
 
 export class AudioSystem
@@ -23,6 +29,8 @@ public:
 	bool IsAvailable() const;
 	bool PlayMusic(MusicCue cue);
 	void StopMusic();
+	bool PlayAmbience(AmbienceCue cue);
+	void StopAmbience();
 
 private:
 	class Impl;

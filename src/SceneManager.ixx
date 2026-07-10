@@ -46,7 +46,7 @@ private:
 	};
 
 	void set_transition_opacity(float opacity);
-	void update_music(SniffTheWay::SceneId scene_id);
+	void update_audio(SniffTheWay::SceneId scene_id);
 
 	static constexpr float TransitionDuration = 0.5f;
 
@@ -65,7 +65,7 @@ SceneManager::SceneManager(AudioSystem & audio_system, dh::RenderContext const &
 	: m_audio_system{ audio_system }
 	, m_render_context{ctx}
 {
-	update_music(initial_trans.next_scene_id);
+	update_audio(initial_trans.next_scene_id);
 	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context);
 	if (m_cur_scene)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
@@ -126,7 +126,7 @@ bool SceneManager::ApplyPendingTransition()
 		return true;
 
 	SceneTransition const transition = *m_pending_scene_transition;
-	update_music(transition.next_scene_id);
+	update_audio(transition.next_scene_id);
 	m_render_context.WaitForLastFrame(); // GPU drains before old scene dies
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
 
@@ -155,10 +155,28 @@ void SceneManager::set_transition_opacity(float opacity)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
 }
 
-void SceneManager::update_music(SceneId scene_id)
+void SceneManager::update_audio(SceneId scene_id)
 {
-	if (scene_id == SceneId::Title)
+	switch (scene_id)
+	{
+	case SceneId::Title:
 		m_audio_system.PlayMusic(MusicCue::Title);
-	else
+		m_audio_system.StopAmbience();
+		break;
+	case SceneId::ForestPath:
+	case SceneId::ForestPath2:
+	case SceneId::RightTurn:
+	case SceneId::ForestLake:
+	case SceneId::Playground:
+	case SceneId::ForestHorizontal:
+	case SceneId::ThickerForestTransition:
+	case SceneId::BeforeCreek:
+		m_audio_system.PlayMusic(MusicCue::EarlyForest);
+		m_audio_system.PlayAmbience(AmbienceCue::EarlyForest);
+		break;
+	default:
 		m_audio_system.StopMusic();
+		m_audio_system.StopAmbience();
+		break;
+	}
 }

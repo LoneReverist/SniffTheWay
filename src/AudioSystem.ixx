@@ -40,6 +40,7 @@ public:
 	void StopMusic();
 	bool PlayAmbience(AmbienceCue cue);
 	void StopAmbience();
+	void SetTransitionVolume(float volume_factor);
 
 private:
 	class Impl;

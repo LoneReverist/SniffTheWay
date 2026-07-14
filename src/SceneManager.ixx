@@ -47,8 +47,10 @@ private:
 
 	void set_transition_opacity(float opacity);
 	void update_audio(SniffTheWay::SceneId scene_id);
+	static bool is_story_gameplay_transition(SceneTransition const & transition);
 
-	static constexpr float TransitionDuration = 0.5f;
+	static constexpr float DefaultTransitionDuration = 0.5f;
+	static constexpr float StoryGameplayTransitionDuration = 1.5f;
 
 	AudioSystem & m_audio_system;
     dh::RenderContext const & m_render_context;
@@ -59,6 +61,8 @@ private:
     std::optional<SceneTransition> m_pending_scene_transition;
 	TransitionState m_transition_state = TransitionState::FadingIn;
 	float m_transition_opacity = 1.0f;
+	float m_transition_duration = DefaultTransitionDuration;
+	bool m_fade_audio = false;
 };
 
 SceneManager::SceneManager(AudioSystem & audio_system, dh::RenderContext const & ctx, SceneTransition initial_trans)
@@ -86,7 +90,7 @@ void SceneManager::Update(float dt, Input const & input)
 	if (!m_cur_scene)
 		return;
 
-	const float transition_step = std::max(dt, 0.0f) / TransitionDuration;
+	const float transition_step = std::max(dt, 0.0f) / m_transition_duration;
 	switch (m_transition_state)
 	{
 	case TransitionState::FadingIn:
@@ -98,11 +102,17 @@ void SceneManager::Update(float dt, Input const & input)
 		if (std::optional<SceneTransition> transition = m_cur_scene->Update(dt, input))
 		{
 			m_pending_scene_transition = std::move(transition);
+			m_fade_audio = is_story_gameplay_transition(*m_pending_scene_transition);
+			m_transition_duration = m_fade_audio
+				? StoryGameplayTransitionDuration
+				: DefaultTransitionDuration;
 			m_transition_state = TransitionState::FadingOut;
 		}
 		break;
 	case TransitionState::FadingOut:
 		set_transition_opacity(m_transition_opacity + transition_step);
+		if (m_fade_audio)
+			m_audio_system.SetTransitionVolume(1.0f - m_transition_opacity);
 		if (m_transition_opacity >= 1.0f)
 			m_transition_state = TransitionState::ReadyToSwitch;
 		break;
@@ -127,6 +137,7 @@ bool SceneManager::ApplyPendingTransition()
 
 	SceneTransition const transition = *m_pending_scene_transition;
 	update_audio(transition.next_scene_id);
+	m_audio_system.SetTransitionVolume(1.0f);
 	m_render_context.WaitForLastFrame(); // GPU drains before old scene dies
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
 
@@ -140,6 +151,18 @@ bool SceneManager::ApplyPendingTransition()
 
 	m_pending_scene_transition = std::nullopt;
 	return true;
+}
+
+bool SceneManager::is_story_gameplay_transition(SceneTransition const & transition)
+{
+	if (!transition.previous_scene_id)
+		return false;
+
+	const bool leaving_story = IsStoryScene(*transition.previous_scene_id);
+	const bool entering_story = IsStoryScene(transition.next_scene_id);
+	const bool leaving_gameplay = IsGameplayScene(*transition.previous_scene_id);
+	const bool entering_gameplay = IsGameplayScene(transition.next_scene_id);
+	return (leaving_story && entering_gameplay) || (leaving_gameplay && entering_story);
 }
 
 bool SceneManager::HasPendingTransition() const

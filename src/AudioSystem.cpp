@@ -1,5 +1,6 @@
 module;
 
+#include <algorithm>
 #include <array>
 #include <filesystem>
 #include <memory>
@@ -97,6 +98,7 @@ public:
 	void StopMusic();
 	bool PlayAmbience(AmbienceCue cue);
 	void StopAmbience();
+	void SetTransitionVolume(float volume_factor);
 
 private:
 	ma_engine m_engine{};
@@ -105,10 +107,13 @@ private:
 	bool m_music_initialized = false;
 	bool m_has_current_cue = false;
 	MusicCue m_current_cue = MusicCue::Title;
+	float m_music_volume = 1.0f;
 	std::array<ma_sound, AmbienceLayerCount> m_ambience{};
+	std::array<float, AmbienceLayerCount> m_ambience_volumes{};
 	std::size_t m_ambience_initialized_count = 0;
 	bool m_has_current_ambience_cue = false;
 	AmbienceCue m_current_ambience_cue = AmbienceCue::EarlyForest;
+	float m_transition_volume = 1.0f;
 };
 
 AudioSystem::Impl::Impl()
@@ -175,7 +180,8 @@ bool AudioSystem::Impl::PlayMusic(MusicCue cue)
 	m_has_current_cue = true;
 	m_current_cue = cue;
 	ma_sound_set_looping(&m_music, MA_TRUE);
-	ma_sound_set_volume(&m_music, music_track.volume);
+	m_music_volume = music_track.volume;
+	ma_sound_set_volume(&m_music, m_music_volume * m_transition_volume);
 
 	result = ma_sound_start(&m_music);
 	if (result != MA_SUCCESS)
@@ -250,7 +256,8 @@ bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
 
 		++m_ambience_initialized_count;
 		ma_sound_set_looping(&m_ambience[i], MA_TRUE);
-		ma_sound_set_volume(&m_ambience[i], ambience_tracks[i].volume);
+		m_ambience_volumes[i] = ambience_tracks[i].volume;
+		ma_sound_set_volume(&m_ambience[i], m_ambience_volumes[i] * m_transition_volume);
 	}
 
 	const ma_uint64 start_time = ma_engine_get_time_in_pcm_frames(&m_engine)
@@ -287,6 +294,16 @@ void AudioSystem::Impl::StopAmbience()
 	m_has_current_ambience_cue = false;
 }
 
+void AudioSystem::Impl::SetTransitionVolume(float volume_factor)
+{
+	m_transition_volume = std::clamp(volume_factor, 0.0f, 1.0f);
+	if (m_music_initialized)
+		ma_sound_set_volume(&m_music, m_music_volume * m_transition_volume);
+
+	for (std::size_t i = 0; i < m_ambience_initialized_count; ++i)
+		ma_sound_set_volume(&m_ambience[i], m_ambience_volumes[i] * m_transition_volume);
+}
+
 AudioSystem::AudioSystem()
 	: m_impl{ std::make_unique<Impl>() }
 {}
@@ -316,4 +333,9 @@ bool AudioSystem::PlayAmbience(AmbienceCue cue)
 void AudioSystem::StopAmbience()
 {
 	m_impl->StopAmbience();
+}
+
+void AudioSystem::SetTransitionVolume(float volume_factor)
+{
+	m_impl->SetTransitionVolume(volume_factor);
 }

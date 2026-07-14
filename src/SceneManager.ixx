@@ -207,6 +207,7 @@ void SceneManager::update_audio(SceneId scene_id)
 		m_audio_system.PlayAmbience(AmbienceCue::LateForest);
 		break;
 	case SceneId::Home:
+	case SceneId::Credits:
 		m_audio_system.PlayMusic(MusicCue::Home);
 		m_audio_system.StopAmbience();
 		break;

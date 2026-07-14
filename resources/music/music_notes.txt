@@ -1,0 +1,42 @@
+Genre / Style: Pastoral fantasy, cozy RPG soundtrack, orchestral folk, cinematic indie game music. Inspired by Studio Ghibli, Harry Potter, Kingdon Hearts, Final Fantasy
+
+Instrumentation: Acoustic guitar, solo piano, legato strings, woodwinds, flute, light orchestral phrasing.
+
+Mood / Texture: Whimsical, wistful, melancholic but hopeful, gentle, melodic, warm, nostalgic. 
+
+
+
+Title:
+Sunlight_on_the_Forest_Floor.mp3
+
+Picnic Scene:
+The_Afternoon_Meadow.mp3
+
+1st Gameplay sequence:
+Through_the_Sun_Dappled_Thicket.mp3
+Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav
+Firefly_audio_clip_birds_chirping_softly_#1.wav
+
+Creek Scene:
+The_Crossing_at_Dawn.mp3
+Firefly_audio_water_trickling,_small_creek_variation1.wav
+
+2nd Gameplay sequence:
+Stepping_Stones_at_Dawn.mp3
+Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav
+
+Night Scene:
+The_Quiet_Between_Pines.mp3
+
+3rd Gameplay sequence:
+Noon_in_the_Hidden_Clearing.mp3
+Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav
+Firefly_audio_clip_birds_chirping_softly_#1.wav
+
+Home Scene:
+The_Hearth_s_Last_Glow.mp3
+
+Not used:
+Sunlight_on_the_Glade.mp3
+
+

@@ -3,6 +3,7 @@ module;
 #include <array>
 #include <filesystem>
 #include <memory>
+#include <vector>
 
 #include <glog/logging.h>
 
@@ -38,18 +39,43 @@ namespace
 		{
 		case MusicCue::Title:
 			return { GetResourcesPath() / "music" / "Sunlight_on_the_Forest_Floor.mp3", 0.45f };
+		case MusicCue::Picnic:
+			return { GetResourcesPath() / "music" / "The_Afternoon_Meadow.mp3", 0.45f };
 		case MusicCue::EarlyForest:
 			return { GetResourcesPath() / "music" / "Through_the_Sun_Dappled_Thicket.mp3", 0.45f };
+		case MusicCue::Creek:
+			return { GetResourcesPath() / "music" / "The_Crossing_at_Dawn.mp3", 0.45f };
+		case MusicCue::MiddleForest:
+			return { GetResourcesPath() / "music" / "Stepping_Stones_at_Dawn.mp3", 0.45f };
+		case MusicCue::Night:
+			return { GetResourcesPath() / "music" / "The_Quiet_Between_Pines.mp3", 0.45f };
+		case MusicCue::LateForest:
+			return { GetResourcesPath() / "music" / "Noon_in_the_Hidden_Clearing.mp3", 0.45f };
+		case MusicCue::Home:
+			return { GetResourcesPath() / "music" / "The_Hearth_s_Last_Glow.mp3", 0.45f };
 		}
 
 		return {};
 	}
 
-	std::array<TrackConfig, AmbienceLayerCount> AmbienceTracks(AmbienceCue cue)
+	std::vector<TrackConfig> AmbienceTracks(AmbienceCue cue)
 	{
 		switch (cue)
 		{
 		case AmbienceCue::EarlyForest:
+			return {
+				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_birds_chirping_softly_#1.wav", 0.22f },
+				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
+			};
+		case AmbienceCue::Creek:
+			return {
+				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_water_trickling,_small_creek_variation1.wav", 0.35f },
+			};
+		case AmbienceCue::MiddleForest:
+			return {
+				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
+			};
+		case AmbienceCue::LateForest:
 			return {
 				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_birds_chirping_softly_#1.wav", 0.22f },
 				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },

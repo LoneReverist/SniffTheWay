@@ -7,12 +7,21 @@ export module AudioSystem;
 export enum class MusicCue
 {
 	Title,
+	Picnic,
 	EarlyForest,
+	Creek,
+	MiddleForest,
+	Night,
+	LateForest,
+	Home,
 };
 
 export enum class AmbienceCue
 {
 	EarlyForest,
+	Creek,
+	MiddleForest,
+	LateForest,
 };
 
 export class AudioSystem

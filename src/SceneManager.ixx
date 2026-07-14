@@ -163,6 +163,10 @@ void SceneManager::update_audio(SceneId scene_id)
 		m_audio_system.PlayMusic(MusicCue::Title);
 		m_audio_system.StopAmbience();
 		break;
+	case SceneId::Picnic:
+		m_audio_system.PlayMusic(MusicCue::Picnic);
+		m_audio_system.StopAmbience();
+		break;
 	case SceneId::ForestPath:
 	case SceneId::ForestPath2:
 	case SceneId::RightTurn:
@@ -173,6 +177,38 @@ void SceneManager::update_audio(SceneId scene_id)
 	case SceneId::BeforeCreek:
 		m_audio_system.PlayMusic(MusicCue::EarlyForest);
 		m_audio_system.PlayAmbience(AmbienceCue::EarlyForest);
+		break;
+	case SceneId::Creek:
+		m_audio_system.PlayMusic(MusicCue::Creek);
+		m_audio_system.PlayAmbience(AmbienceCue::Creek);
+		break;
+	case SceneId::AfterCreek:
+	case SceneId::GoldenIntersection:
+	case SceneId::FallenTree:
+	case SceneId::GoldenPath:
+	case SceneId::GoldenHour:
+	case SceneId::DeepForest:
+	case SceneId::DarkForest:
+	case SceneId::DarkForest2:
+		m_audio_system.PlayMusic(MusicCue::MiddleForest);
+		m_audio_system.PlayAmbience(AmbienceCue::MiddleForest);
+		break;
+	case SceneId::Night:
+		m_audio_system.PlayMusic(MusicCue::Night);
+		m_audio_system.StopAmbience();
+		break;
+	case SceneId::MorningForest:
+	case SceneId::MorningForest2:
+	case SceneId::DirtPath:
+	case SceneId::DirtIntersection:
+	case SceneId::BenchPath:
+	case SceneId::HousePath:
+		m_audio_system.PlayMusic(MusicCue::LateForest);
+		m_audio_system.PlayAmbience(AmbienceCue::LateForest);
+		break;
+	case SceneId::Home:
+		m_audio_system.PlayMusic(MusicCue::Home);
+		m_audio_system.StopAmbience();
 		break;
 	default:
 		m_audio_system.StopMusic();

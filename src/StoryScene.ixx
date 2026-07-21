@@ -238,7 +238,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 		{
 			page_backward();
 		}
-		if (input.KeyJustPressed(Input::Key::Space) || input.KeyJustPressed(Input::Key::Right) || input.KeyJustPressed('D'))
+		if (input.KeyJustPressed(Input::Key::Space) || input.KeyJustPressed(Input::Key::Right) || input.KeyJustPressed('D') || input.MouseButtonJustPressed(Input::MouseButton::Left))
 		{
 			const float reveal_end_time = get_current_page_reveal_end_time();
 			if (m_page_time < reveal_end_time)

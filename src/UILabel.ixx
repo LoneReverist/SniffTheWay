@@ -69,6 +69,11 @@ public:
 	AssetId GetROId() const { return m_ro_id; }
     TextPipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
 	Bounds const & GetBounds() const { return m_bounds; }
+	Bounds GetCharacterBounds(std::size_t index) const
+	{
+		return index < m_character_bounds.size() ? m_character_bounds[index] : Bounds{};
+	}
+	std::string_view GetText() const { return m_text; }
 
 private:
 	std::expected<dh::Mesh, dh::GraphicsError> create_mesh() const;
@@ -88,6 +93,7 @@ private:
 	Align m_align = Align::Left;
 	TextPipeline::ObjectData m_pipeline_data;
 	mutable Bounds m_bounds;
+	mutable std::vector<Bounds> m_character_bounds;
 };
 
 void UILabel::Init(
@@ -183,6 +189,7 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 	if (!m_asset_manager || !m_font_atlas)
 		return std::unexpected{ dh::GraphicsError{ "UILabel::create_mesh called before Init." } };
 
+	m_character_bounds.assign(m_text.size(), Bounds{});
 	if (m_font_tex_width == 0 || m_font_tex_height == 0 || m_text.empty())
 	{
 		m_bounds = Bounds{};
@@ -194,9 +201,11 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 
 	glm::vec2 pen = m_origin;
 	std::size_t line_start_vi = 0;
+	std::size_t line_start_ci = 0;
 	const float line_height = m_font_atlas->GetLineHeight() * m_font_size;
 
-	auto align_line = [&](std::size_t start_vi, std::size_t end_vi, float line_end_x)
+	auto align_line = [&](std::size_t start_vi, std::size_t end_vi,
+		std::size_t start_ci, std::size_t end_ci, float line_end_x)
 	{
 		if (start_vi == end_vi)
 			return;
@@ -211,20 +220,29 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 		{
 			for (std::size_t i = start_vi; i < end_vi; ++i)
 				verts[i].pos.x += x_offset;
+			for (std::size_t i = start_ci; i < end_ci; ++i)
+			{
+				if (!m_character_bounds[i].is_valid)
+					continue;
+				m_character_bounds[i].min.x += x_offset;
+				m_character_bounds[i].max.x += x_offset;
+			}
 		}
 	};
 
-	for (char c : m_text)
+	for (std::size_t character_index = 0; character_index < m_text.size(); ++character_index)
 	{
+		const char c = m_text[character_index];
 		if (c == '\r')
 			continue;
 
 		if (c == '\n')
 		{
-			align_line(line_start_vi, verts.size(), pen.x);
+			align_line(line_start_vi, verts.size(), line_start_ci, character_index, pen.x);
 			pen.x = m_origin.x;
 			pen.y += line_height;
 			line_start_vi = verts.size();
+			line_start_ci = character_index + 1;
 			continue;
 		}
 
@@ -259,6 +277,11 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 		verts.push_back({ { pen.x + pb.z, pen.y - pb.w }, { uv.z, uv.w } }); // top-right
 		verts.push_back({ { pen.x + pb.x, pen.y - pb.y }, { uv.x, uv.y } }); // bottom-left
 		verts.push_back({ { pen.x + pb.z, pen.y - pb.y }, { uv.z, uv.y } }); // bottom-right
+		m_character_bounds[character_index] = Bounds{
+			.min = { pen.x + pb.x, pen.y - pb.w },
+			.max = { pen.x + pb.z, pen.y - pb.y },
+			.is_valid = true
+		};
 
 		indices.push_back(static_cast<dh::Mesh::IndexT>(start_vi + 1));
 		indices.push_back(static_cast<dh::Mesh::IndexT>(start_vi + 0));
@@ -269,7 +292,7 @@ std::expected<dh::Mesh, dh::GraphicsError> UILabel::create_mesh() const
 
 		pen.x += g.advance * m_font_size;
 	}
-	align_line(line_start_vi, verts.size(), pen.x);
+	align_line(line_start_vi, verts.size(), line_start_ci, m_text.size(), pen.x);
 
 	if (verts.empty())
 	{

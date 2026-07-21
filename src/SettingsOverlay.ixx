@@ -52,6 +52,7 @@ private:
 	};
 
 	Row hovered_row(std::optional<glm::vec2> pointer_position) const;
+	std::optional<float> clicked_adjustment(Row row, glm::vec2 pointer_position) const;
 	void adjust_selected(float amount);
 	void update_labels();
 	static std::string volume_text(std::string_view name, float volume, bool selected);
@@ -189,7 +190,11 @@ bool SettingsOverlay::Update(Input const & input, GameViewport const & viewport)
 				m_audio_system->PlaySound(SoundCue::ShortChime);
 				return true;
 			}
-			adjust_selected(pointer_position && pointer_position->x < UIWidth * 0.5f ? -0.05f : 0.05f);
+			if (pointer_position)
+			{
+				if (const std::optional<float> adjustment = clicked_adjustment(released_over, *pointer_position))
+					adjust_selected(*adjustment);
+			}
 		}
 		m_armed_row.reset();
 	}
@@ -243,6 +248,38 @@ SettingsOverlay::Row SettingsOverlay::hovered_row(std::optional<glm::vec2> point
 	if (contains(m_sound_effects_label)) return Row::SoundEffects;
 	if (contains(m_back_label)) return Row::Back;
 	return Row::None;
+}
+
+std::optional<float> SettingsOverlay::clicked_adjustment(Row row, glm::vec2 pointer_position) const
+{
+	UILabel const * label = nullptr;
+	switch (row)
+	{
+	case Row::Master: label = &m_master_label; break;
+	case Row::Music: label = &m_music_label; break;
+	case Row::SoundEffects: label = &m_sound_effects_label; break;
+	case Row::None:
+	case Row::Back:
+		return std::nullopt;
+	}
+
+	const std::string_view text = label->GetText();
+	const std::size_t decrease_index = text.find('<');
+	const std::size_t increase_index = decrease_index == std::string_view::npos
+		? std::string_view::npos
+		: text.find('>', decrease_index + 1);
+
+	auto contains = [&](std::size_t character_index)
+	{
+		const UILabel::Bounds bounds = label->GetCharacterBounds(character_index);
+		return bounds.is_valid
+			&& pointer_position.x >= bounds.min.x && pointer_position.x <= bounds.max.x
+			&& pointer_position.y >= bounds.min.y && pointer_position.y <= bounds.max.y;
+	};
+
+	if (contains(decrease_index)) return -0.05f;
+	if (contains(increase_index)) return 0.05f;
+	return std::nullopt;
 }
 
 void SettingsOverlay::adjust_selected(float amount)

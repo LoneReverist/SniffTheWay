@@ -55,6 +55,7 @@ public:
 	void SetKey(int key, bool pressed);
 	void SetMouseButton(int button, bool pressed);
 	void SetMousePos(float x, float y);
+	void Clear();
 	void NewFrame();
 
 	bool KeyIsDown(int key) const;
@@ -87,6 +88,7 @@ private:
 	std::unordered_map<int, std::uint8_t> m_pending_state;
 	std::unordered_map<int, std::uint8_t> m_pending_mouse_button_state;
 	glm::vec2 m_pending_mouse_pos{ 0.0f };
+	bool m_clear_pending = false;
 	std::unordered_map<int, std::uint8_t> m_key_state;
 	std::unordered_map<int, std::uint8_t> m_mouse_button_state;
 	glm::vec2 m_mouse_pos{ 0.0f };
@@ -116,12 +118,26 @@ void Input::SetMousePos(float x, float y)
 	m_pending_mouse_pos = glm::vec2{ x, y };
 }
 
+void Input::Clear()
+{
+	std::lock_guard lock(m_pending_mutex);
+	m_pending_state.clear();
+	m_pending_mouse_button_state.clear();
+	m_clear_pending = true;
+}
+
 void Input::NewFrame()
 {
 	prepare_state_for_new_frame(m_key_state);
 	prepare_state_for_new_frame(m_mouse_button_state);
 
 	std::lock_guard lock(m_pending_mutex);
+	if (m_clear_pending)
+	{
+		m_key_state.clear();
+		m_mouse_button_state.clear();
+		m_clear_pending = false;
+	}
 	apply_pending_state(m_pending_state, m_key_state);
 	apply_pending_state(m_pending_mouse_button_state, m_mouse_button_state);
 	m_mouse_pos = m_pending_mouse_pos;

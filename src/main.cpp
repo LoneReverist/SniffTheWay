@@ -1,5 +1,6 @@
 // main.cpp
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <thread>
@@ -76,6 +77,7 @@ void run_update_render_loop(
 	{
 		on_error(render_context_result.error().GetMessage());
 		window.SetShouldClose(true);
+		window.WakeEventLoop();
 		return;
 	}
 	dh::RenderContext render_context = std::move(render_context_result).value();
@@ -117,6 +119,7 @@ void run_update_render_loop(
 
 		auto cur_time = std::chrono::steady_clock::now();
 		float dt = std::chrono::duration<float>(cur_time - last_update_time).count(); // seconds
+		dt = std::clamp(dt, 0.0f, 0.05f);
 		last_update_time = cur_time;
 
 		input.NewFrame();
@@ -136,6 +139,7 @@ void run_update_render_loop(
 
 	render_context.WaitForLastFrame();
 	window.SetShouldClose(true); // signal main thread to exit
+	window.WakeEventLoop();
 }
 
 int main(int argc, char * argv[])
@@ -175,6 +179,11 @@ int main(int argc, char * argv[])
 		{
 			input.SetMousePos(x_pixels, y_pixels);
 		});
+	window.SetOnFocusChanged([&input](bool focused)
+		{
+			if (!focused)
+				input.Clear();
+		});
 
 	LOG(INFO) << "Running app...";
 
@@ -185,5 +194,5 @@ int main(int argc, char * argv[])
 		});
 
 	while (!window.ShouldClose())
-		window.PollEvents(); // must only be called from main thread
+		window.WaitEvents(1.0 / 120.0); // wakes immediately for input and window events
 }

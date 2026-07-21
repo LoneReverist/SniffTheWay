@@ -17,6 +17,7 @@ import Dreamhearth;
 
 import AssetManager;
 import AssetPool;
+import AudioSystem;
 import Baby;
 import Background;
 import Texture2dPipeline;
@@ -36,6 +37,7 @@ import IScene;
 import PauseOverlay;
 import SceneRenderer;
 import SceneFadeOverlay;
+import SettingsOverlay;
 import ScentTrail;
 import ScentTrailPipeline;
 import SniffTheWayConstants;
@@ -52,7 +54,11 @@ using namespace SniffTheWay;
 export class GameplayScene : public IScene
 {
 public:
-	explicit GameplayScene(dh::RenderContext const & render_context, SceneId scene_id, SceneTransition const & transition);
+	explicit GameplayScene(
+		dh::RenderContext const & render_context,
+		AudioSystem & audio_system,
+		SceneId scene_id,
+		SceneTransition const & transition);
 
 	void OnViewportChanged(GameViewport const & viewport) override;
 
@@ -104,6 +110,7 @@ private:
 	std::vector<UILabel> m_story_labels;
 	UIDarkBackdrop m_story_shadow;
 	PauseOverlay m_pause_overlay;
+	SettingsOverlay m_settings_overlay;
 	SceneFadeOverlay m_scene_fade_overlay;
 
 #ifdef _DEBUG
@@ -111,7 +118,11 @@ private:
 #endif
 };
 
-GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId scene_id, SceneTransition const & transition)
+GameplayScene::GameplayScene(
+	dh::RenderContext const & render_context,
+	AudioSystem & audio_system,
+	SceneId scene_id,
+	SceneTransition const & transition)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
@@ -167,6 +178,7 @@ GameplayScene::GameplayScene(dh::RenderContext const & render_context, SceneId s
 
 	create_story_labels(m_text_pipeline_id);
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 
 	const bool arrived_from_gameplay_scene = transition.previous_scene_id.has_value()
@@ -185,6 +197,16 @@ void GameplayScene::OnViewportChanged(GameViewport const & viewport)
 
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
 {
+	if (m_settings_overlay.IsVisible())
+	{
+		if (m_settings_overlay.Update(input, m_game_viewport))
+		{
+			m_settings_overlay.SetVisible(false);
+			m_pause_overlay.SetVisible(true);
+		}
+		return std::nullopt;
+	}
+
 	if (m_scene_state != SceneState::Editing && input.KeyJustPressed(Input::Key::Esc))
 	{
 		if (m_scene_state == SceneState::Paused)
@@ -200,6 +222,10 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		{
 		case PauseAction::Resume:
 			resume();
+			break;
+		case PauseAction::Settings:
+			m_pause_overlay.SetVisible(false);
+			m_settings_overlay.SetVisible(true);
 			break;
 		case PauseAction::ReturnToTitle:
 			return SceneTransition{ SceneId::Title, m_scene_id };
@@ -324,11 +350,13 @@ void GameplayScene::pause()
 	m_state_before_pause = m_scene_state;
 	ChangeSceneState(SceneState::Paused);
 	m_pause_overlay.SetVisible(true);
+	m_settings_overlay.SetVisible(false);
 }
 
 void GameplayScene::resume()
 {
 	m_pause_overlay.SetVisible(false);
+	m_settings_overlay.SetVisible(false);
 	ChangeSceneState(m_state_before_pause);
 }
 

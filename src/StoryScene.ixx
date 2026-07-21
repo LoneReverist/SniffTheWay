@@ -20,6 +20,7 @@ import Dreamhearth;
 
 import AssetManager;
 import AssetPool;
+import AudioSystem;
 import Background;
 import Texture2dPipeline;
 import Camera;
@@ -32,6 +33,7 @@ import IScene;
 import PauseOverlay;
 import SceneRenderer;
 import SceneFadeOverlay;
+import SettingsOverlay;
 import SniffTheWayConstants;
 import StoryData;
 import StoryLoader;
@@ -48,6 +50,7 @@ export class StoryScene : public IScene
 public:
 	explicit StoryScene(
 		dh::RenderContext const & render_context,
+		AudioSystem & audio_system,
 		SceneId scene_id);
 
 	void OnViewportChanged(GameViewport const & viewport) override;
@@ -112,12 +115,14 @@ private:
 	std::vector<UIShadowedLabel> m_story_labels;
 	std::vector<UIShadowedDecoration> m_decorations;
 	PauseOverlay m_pause_overlay;
+	SettingsOverlay m_settings_overlay;
 	SceneFadeOverlay m_page_fade_overlay;
 	SceneFadeOverlay m_scene_fade_overlay;
 };
 
 StoryScene::StoryScene(
 	dh::RenderContext const & render_context,
+	AudioSystem & audio_system,
 	SceneId scene_id)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
@@ -177,6 +182,7 @@ StoryScene::StoryScene(
 
 	apply_current_page();
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_page_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 	m_page_fade_overlay.SetOpacity(0.0f);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
@@ -201,6 +207,16 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 		return std::nullopt;
 	}
 
+	if (m_settings_overlay.IsVisible())
+	{
+		if (m_settings_overlay.Update(input, m_viewport))
+		{
+			m_settings_overlay.SetVisible(false);
+			m_pause_overlay.SetVisible(true);
+		}
+		return std::nullopt;
+	}
+
 	if (input.KeyJustPressed(Input::Key::Esc))
 	{
 		if (m_scene_state == SceneState::Paused)
@@ -216,6 +232,10 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 		{
 		case PauseAction::Resume:
 			resume();
+			break;
+		case PauseAction::Settings:
+			m_pause_overlay.SetVisible(false);
+			m_settings_overlay.SetVisible(true);
 			break;
 		case PauseAction::ReturnToTitle:
 			return SceneTransition{ SceneId::Title, m_scene_id };
@@ -297,11 +317,13 @@ void StoryScene::pause()
 	m_state_before_pause = m_scene_state;
 	ChangeSceneState(SceneState::Paused);
 	m_pause_overlay.SetVisible(true);
+	m_settings_overlay.SetVisible(false);
 }
 
 void StoryScene::resume()
 {
 	m_pause_overlay.SetVisible(false);
+	m_settings_overlay.SetVisible(false);
 	ChangeSceneState(m_state_before_pause);
 }
 

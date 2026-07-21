@@ -13,13 +13,16 @@ import Dreamhearth;
 
 import AssetManager;
 import AssetPool;
+import AudioSystem;
 import Background;
 import Camera;
 import GameViewport;
+import FontAtlas;
 import IScene;
 import Input;
 import SceneRenderer;
 import SceneFadeOverlay;
+import SettingsOverlay;
 import SniffTheWayConstants;
 import Texture2dPipeline;
 import UIButton;
@@ -31,7 +34,7 @@ using namespace SniffTheWay;
 export class TitleScene : public IScene
 {
 public:
-	explicit TitleScene(dh::RenderContext const & render_context);
+	explicit TitleScene(dh::RenderContext const & render_context, AudioSystem & audio_system);
 
 	void OnViewportChanged(GameViewport const & viewport) override;
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
@@ -44,6 +47,7 @@ private:
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
 	GameViewport m_viewport;
+	FontAtlas m_font_atlas;
 	Background m_background;
 	UIImage m_dog_image;
 	UIImage m_baby_image;
@@ -51,15 +55,22 @@ private:
 	UIButton m_start_button;
 	UIButton m_settings_button;
 	UIButton m_credits_button;
+	SettingsOverlay m_settings_overlay;
 	SceneFadeOverlay m_scene_fade_overlay;
 };
 
-TitleScene::TitleScene(dh::RenderContext const & render_context)
+TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & audio_system)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 {
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
+	const AssetId font_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetFontsPath() / "Alice.png",
+		dh::PixelFormat::RGB_UNORM,
+		true /*flip_vertically*/,
+		false /*use_mip_map*/);
+	m_font_atlas.Init(font_texture_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
 	const auto texture_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 	const AssetId background_texture_id = m_asset_manager.AddTexture(
@@ -194,6 +205,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context)
 		texture_pipeline_id,
 		m_credits_button.GetPipelineData());
 
+	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 }
 
@@ -207,6 +219,13 @@ void TitleScene::OnViewportChanged(GameViewport const & viewport)
 
 std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & input)
 {
+	if (m_settings_overlay.IsVisible())
+	{
+		if (m_settings_overlay.Update(input, m_viewport))
+			m_settings_overlay.SetVisible(false);
+		return std::nullopt;
+	}
+
 	if (input.KeyJustPressed(Input::Key::Esc))
 		return SceneTransition{ SceneId::Exit };
 
@@ -218,6 +237,8 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 		return SceneTransition{ SceneId::Picnic, SceneId::Title };
 	if (m_credits_button.WasActivated())
 		return SceneTransition{ SceneId::Credits, SceneId::Title };
+	if (m_settings_button.WasActivated())
+		m_settings_overlay.SetVisible(true);
 
 	return std::nullopt;
 }

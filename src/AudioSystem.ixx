@@ -41,6 +41,13 @@ public:
 	bool PlayAmbience(AmbienceCue cue);
 	void StopAmbience();
 	void SetTransitionVolume(float volume_factor);
+	void SetMasterVolume(float volume);
+	void SetMusicVolume(float volume);
+	void SetSoundEffectsVolume(float volume);
+	bool PlayVolumeChangeChime();
+	float GetMasterVolume() const;
+	float GetMusicVolume() const;
+	float GetSoundEffectsVolume() const;
 
 private:
 	class Impl;

@@ -70,7 +70,7 @@ SceneManager::SceneManager(AudioSystem & audio_system, dh::RenderContext const &
 	, m_render_context{ctx}
 {
 	update_audio(initial_trans.next_scene_id);
-	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context);
+	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context, m_audio_system);
 	if (m_cur_scene)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
 }
@@ -141,7 +141,7 @@ bool SceneManager::ApplyPendingTransition()
 	m_render_context.WaitForLastFrame(); // GPU drains before old scene dies
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
 
-	m_cur_scene = m_scene_registry.Create(transition, m_render_context);
+	m_cur_scene = m_scene_registry.Create(transition, m_render_context, m_audio_system);
 	if (!m_cur_scene)
 		return false;
 

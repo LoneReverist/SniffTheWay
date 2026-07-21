@@ -26,7 +26,9 @@ import Texture2dPipeline;
 import Camera;
 import DecorationAtlas;
 import FontAtlas;
+#ifdef _DEBUG
 import FPSLabel;
+#endif
 import GameViewport;
 import Input;
 import IScene;
@@ -109,7 +111,9 @@ private:
 
 	FontAtlas m_font_atlas;
 	AssetId m_decoration_tex_id;
+#ifdef _DEBUG
 	FPSLabel m_fps_label;
+#endif
 	UIShadowedLabel m_controls_label;
 	UIShadowedLabel m_page_number_label;
 	std::vector<UIShadowedLabel> m_story_labels;
@@ -151,7 +155,9 @@ StoryScene::StoryScene(
 		dh::PixelFormat::RGB_UNORM, true /*flip_vertically*/, false /*use_mip_map*/);
 	m_font_atlas.Init(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
+#ifdef _DEBUG
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+#endif
 
 	m_controls_label.Init(
 		m_asset_manager,
@@ -203,7 +209,9 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 	if (m_page_transition_state != PageTransitionState::None)
 	{
 		update_page_transition(dt);
+#ifdef _DEBUG
 		m_fps_label.Update(dt);
+#endif
 		return std::nullopt;
 	}
 
@@ -280,7 +288,9 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 #endif
 	}
 
+#ifdef _DEBUG
 	m_fps_label.Update(dt);
+#endif
 
 	return std::nullopt;
 }
@@ -297,7 +307,9 @@ void StoryScene::SetTransitionOpacity(float opacity)
 
 void StoryScene::Render() const
 {
+#ifdef _DEBUG
 	m_fps_label.RenderOffscreenTexture();
+#endif
 	m_controls_label.RenderOffscreenTexture();
 	m_page_number_label.RenderOffscreenTexture();
 	for (UIShadowedLabel const & story_label : m_story_labels)

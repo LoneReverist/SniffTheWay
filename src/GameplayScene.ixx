@@ -25,7 +25,9 @@ import Camera;
 import ColorPipeline;
 import Dog;
 import FontAtlas;
+#ifdef _DEBUG
 import FPSLabel;
+#endif
 import GameViewport;
 #ifdef _DEBUG
 import GameplaySceneEditor;
@@ -105,7 +107,9 @@ private:
 
 	FontAtlas m_font_atlas;
 	PipelineId<TextPipeline> m_text_pipeline_id;
+#ifdef _DEBUG
 	FPSLabel m_fps_label;
+#endif
 	UILabel m_controls_label;
 	std::vector<UILabel> m_story_labels;
 	UIDarkBackdrop m_story_shadow;
@@ -170,7 +174,9 @@ GameplayScene::GameplayScene(
 	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/, 0.6f /*alpha_top*/, 1.0f /*alpha_bottom*/);
 	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", RenderLayer::UIShadow, m_story_shadow.GetMeshId(), color_pipeline_id));
 
+#ifdef _DEBUG
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+#endif
 
 	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", m_font_atlas,
 		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
@@ -241,7 +247,10 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		ChangeSceneState(SceneState::Gameplay);
 
 	m_camera3d.Update(dt, input);
+
+#ifdef _DEBUG
 	m_fps_label.Update(dt);
+#endif
 
 #ifdef _DEBUG
 	if (m_scene_state == SceneState::Gameplay)
@@ -317,7 +326,9 @@ void GameplayScene::SetTransitionOpacity(float opacity)
 
 void GameplayScene::Render() const
 {
+#ifdef _DEBUG
 	m_fps_label.RenderOffscreenTexture();
+#endif
 	m_renderer.Render();
 }
 

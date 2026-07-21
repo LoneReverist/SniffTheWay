@@ -147,6 +147,7 @@ int main(int argc, char * argv[])
 	dh::Window window(dh::WindowSize{ 2560, 1440 }, FullTitle, on_error);
 	if (!window.IsValid())
 		return -1;
+	window.ToggleFullscreen(); // start fullscreen
 
 	// these are synchronized across update/render thread and main event loop thread
 	Input input;

@@ -1,5 +1,5 @@
 {
-  "id": "forest_path2",
+  "id": "1_forest_path2",
   "background": "1_forest_path2.png",
   "initial_state": "gameplay",
   "camera": {
@@ -121,7 +121,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "forest_path",
+      "target_scene_id": "1_forest_path",
       "arrival_points": {
         "dog": [
           0.048748861998319626,
@@ -152,7 +152,7 @@
       ]
     },
     {
-      "target_scene_id": "right_turn",
+      "target_scene_id": "1_right_turn",
       "arrival_points": {
         "dog": [
           2.0331907272338867,

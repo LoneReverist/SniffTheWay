@@ -1,5 +1,5 @@
 {
-  "id": "before_creek",
+  "id": "1_before_creek",
   "background": "1_before_creek.png",
   "initial_state": "gameplay",
   "camera": {
@@ -113,7 +113,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "thicker_forest_transition",
+      "target_scene_id": "1_thicker_forest_transition",
       "arrival_points": {
         "dog": [
           0.38467445969581604,

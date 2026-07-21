@@ -1,5 +1,5 @@
 {
-  "id": "deep_forest",
+  "id": "2_deep_forest",
   "background": "2_deep_forest.png",
   "initial_state": "gameplay",
   "camera": {
@@ -80,7 +80,7 @@
   "scent_trails": [],
   "scene_links": [
     {
-      "target_scene_id": "golden_hour",
+      "target_scene_id": "2_golden_hour",
       "arrival_points": {
         "dog": [
           0.4194379448890686,
@@ -111,7 +111,7 @@
       ]
     },
     {
-      "target_scene_id": "dark_forest",
+      "target_scene_id": "2_dark_forest",
       "arrival_points": {
         "dog": [
           -0.471824049949646,

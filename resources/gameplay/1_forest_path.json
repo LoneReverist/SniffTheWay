@@ -1,5 +1,5 @@
 {
-  "id": "forest_path",
+  "id": "1_forest_path",
   "background": "1_forest_path.png",
   "initial_state": "story",
   "camera": {
@@ -123,7 +123,7 @@
       "trigger": []
     },
     {
-      "target_scene_id": "forest_path2",
+      "target_scene_id": "1_forest_path2",
       "arrival_points": {
         "dog": [
           -0.58610999584198,

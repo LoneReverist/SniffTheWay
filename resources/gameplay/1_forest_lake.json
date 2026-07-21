@@ -1,5 +1,5 @@
 {
-  "id": "forest_lake",
+  "id": "1_forest_lake",
   "background": "1_forest_lake.png",
   "initial_state": "gameplay",
   "camera": {
@@ -117,7 +117,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "right_turn",
+      "target_scene_id": "1_right_turn",
       "arrival_points": {
         "dog": [
           -2.425981044769287,
@@ -148,7 +148,7 @@
       ]
     },
     {
-      "target_scene_id": "playground",
+      "target_scene_id": "1_playground",
       "arrival_points": {
         "dog": [
           3.326240301132202,

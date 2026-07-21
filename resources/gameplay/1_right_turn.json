@@ -1,5 +1,5 @@
 {
-  "id": "right_turn",
+  "id": "1_right_turn",
   "background": "1_right_turn.png",
   "initial_state": "gameplay",
   "camera": {
@@ -125,7 +125,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "forest_path2",
+      "target_scene_id": "1_forest_path2",
       "arrival_points": {
         "dog": [
           0.3563266396522522,
@@ -156,7 +156,7 @@
       ]
     },
     {
-      "target_scene_id": "forest_lake",
+      "target_scene_id": "1_forest_lake",
       "arrival_points": {
         "dog": [
           7.456882476806641,

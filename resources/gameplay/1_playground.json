@@ -1,5 +1,5 @@
 {
-  "id": "playground",
+  "id": "1_playground",
   "background": "1_playground.png",
   "initial_state": "gameplay",
   "camera": {
@@ -185,7 +185,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "forest_lake",
+      "target_scene_id": "1_forest_lake",
       "arrival_points": {
         "dog": [
           -3.381439685821533,
@@ -216,7 +216,7 @@
       ]
     },
     {
-      "target_scene_id": "forest_horizontal",
+      "target_scene_id": "1_forest_horizontal",
       "arrival_points": {
         "dog": [
           3.6358344554901123,

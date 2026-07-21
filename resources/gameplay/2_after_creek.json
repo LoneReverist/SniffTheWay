@@ -1,5 +1,5 @@
 {
-  "id": "after_creek",
+  "id": "2_after_creek",
   "background": "2_after_creek.png",
   "initial_state": "gameplay",
   "camera": {
@@ -115,7 +115,7 @@
       "trigger": []
     },
     {
-      "target_scene_id": "golden_intersection",
+      "target_scene_id": "2_golden_intersection",
       "arrival_points": {
         "dog": [
           0.10294327884912491,

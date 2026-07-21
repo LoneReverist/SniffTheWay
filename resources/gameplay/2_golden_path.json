@@ -1,5 +1,5 @@
 {
-  "id": "golden_path",
+  "id": "2_golden_path",
   "background": "2_golden_path.png",
   "initial_state": "gameplay",
   "camera": {
@@ -92,7 +92,7 @@
   "scent_trails": [],
   "scene_links": [
     {
-      "target_scene_id": "golden_intersection",
+      "target_scene_id": "2_golden_intersection",
       "arrival_points": {
         "dog": [
           -1.5923395156860352,
@@ -123,7 +123,7 @@
       ]
     },
     {
-      "target_scene_id": "golden_hour",
+      "target_scene_id": "2_golden_hour",
       "arrival_points": {
         "dog": [
           5.836485862731934,

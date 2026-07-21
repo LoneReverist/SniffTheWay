@@ -1,5 +1,5 @@
 {
-  "id": "dark_forest",
+  "id": "2_dark_forest",
   "background": "2_dark_forest.png",
   "initial_state": "story",
   "camera": {
@@ -96,7 +96,7 @@
   "scent_trails": [],
   "scene_links": [
     {
-      "target_scene_id": "deep_forest",
+      "target_scene_id": "2_deep_forest",
       "arrival_points": {
         "dog": [
           0.1712311953306198,
@@ -127,7 +127,7 @@
       ]
     },
     {
-      "target_scene_id": "dark_forest2",
+      "target_scene_id": "2_dark_forest2",
       "arrival_points": {
         "dog": [
           0.25697681307792664,

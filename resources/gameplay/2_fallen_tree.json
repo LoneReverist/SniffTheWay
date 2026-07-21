@@ -1,5 +1,5 @@
 {
-  "id": "fallen_tree",
+  "id": "2_fallen_tree",
   "background": "2_fallen_tree.png",
   "initial_state": "gameplay",
   "camera": {
@@ -101,7 +101,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "golden_intersection",
+      "target_scene_id": "2_golden_intersection",
       "arrival_points": {
         "dog": [
           0.7051512002944946,

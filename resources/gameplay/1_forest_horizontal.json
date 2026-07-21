@@ -1,5 +1,5 @@
 {
-  "id": "forest_horizontal",
+  "id": "1_forest_horizontal",
   "background": "1_forest_horizontal.png",
   "initial_state": "gameplay",
   "camera": {
@@ -113,7 +113,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "playground",
+      "target_scene_id": "1_playground",
       "arrival_points": {
         "dog": [
           -3.18404483795166,
@@ -144,7 +144,7 @@
       ]
     },
     {
-      "target_scene_id": "thicker_forest_transition",
+      "target_scene_id": "1_thicker_forest_transition",
       "arrival_points": {
         "dog": [
           3.3499720096588135,

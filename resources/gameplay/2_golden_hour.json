@@ -1,5 +1,5 @@
 {
-  "id": "golden_hour",
+  "id": "2_golden_hour",
   "background": "2_golden_hour.png",
   "initial_state": "gameplay",
   "camera": {
@@ -72,7 +72,7 @@
   "scent_trails": [],
   "scene_links": [
     {
-      "target_scene_id": "golden_path",
+      "target_scene_id": "2_golden_path",
       "arrival_points": {
         "dog": [
           -5.162295818328857,
@@ -103,7 +103,7 @@
       ]
     },
     {
-      "target_scene_id": "deep_forest",
+      "target_scene_id": "2_deep_forest",
       "arrival_points": {
         "dog": [
           -0.6281040906906128,

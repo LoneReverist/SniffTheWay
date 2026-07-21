@@ -1,5 +1,5 @@
 {
-  "id": "thicker_forest_transition",
+  "id": "1_thicker_forest_transition",
   "background": "1_thicker_forest_transition.png",
   "initial_state": "gameplay",
   "camera": {
@@ -125,7 +125,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "forest_horizontal",
+      "target_scene_id": "1_forest_horizontal",
       "arrival_points": {
         "dog": [
           -4.814299583435059,
@@ -156,7 +156,7 @@
       ]
     },
     {
-      "target_scene_id": "before_creek",
+      "target_scene_id": "1_before_creek",
       "arrival_points": {
         "dog": [
           -0.3992390036582947,

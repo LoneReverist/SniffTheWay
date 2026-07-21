@@ -145,39 +145,39 @@ export namespace SniffTheWay
 		case SceneId::Picnic:
 			return "picnic";
 		case SceneId::ForestPath:
-			return "forest_path";
+			return "1_forest_path";
 		case SceneId::ForestPath2:
-			return "forest_path2";
+			return "1_forest_path2";
 		case SceneId::RightTurn:
-			return "right_turn";
+			return "1_right_turn";
 		case SceneId::ForestLake:
-			return "forest_lake";
+			return "1_forest_lake";
 		case SceneId::Playground:
-			return "playground";
+			return "1_playground";
 		case SceneId::ForestHorizontal:
-			return "forest_horizontal";
+			return "1_forest_horizontal";
 		case SceneId::ThickerForestTransition:
-			return "thicker_forest_transition";
+			return "1_thicker_forest_transition";
 		case SceneId::BeforeCreek:
-			return "before_creek";
+			return "1_before_creek";
 		case SceneId::Creek:
 			return "creek";
 		case SceneId::AfterCreek:
-			return "after_creek";
+			return "2_after_creek";
 		case SceneId::GoldenIntersection:
-			return "golden_intersection";
+			return "2_golden_intersection";
 		case SceneId::FallenTree:
-			return "fallen_tree";
+			return "2_fallen_tree";
 		case SceneId::GoldenPath:
-			return "golden_path";
+			return "2_golden_path";
 		case SceneId::GoldenHour:
-			return "golden_hour";
+			return "2_golden_hour";
 		case SceneId::DeepForest:
-			return "deep_forest";
+			return "2_deep_forest";
 		case SceneId::DarkForest:
-			return "dark_forest";
+			return "2_dark_forest";
 		case SceneId::DarkForest2:
-			return "dark_forest2";
+			return "2_dark_forest2";
 		case SceneId::Night:
 			return "night";
 		case SceneId::MorningForest:
@@ -209,39 +209,39 @@ export namespace SniffTheWay
 			return SceneId::Credits;
 		if (scene_id == "picnic")
 			return SceneId::Picnic;
-		if (scene_id == "forest_path")
+		if (scene_id == "1_forest_path")
 			return SceneId::ForestPath;
-		if (scene_id == "forest_path2")
+		if (scene_id == "1_forest_path2")
 			return SceneId::ForestPath2;
-		if (scene_id == "right_turn")
+		if (scene_id == "1_right_turn")
 			return SceneId::RightTurn;
-		if (scene_id == "forest_lake")
+		if (scene_id == "1_forest_lake")
 			return SceneId::ForestLake;
-		if (scene_id == "playground")
+		if (scene_id == "1_playground")
 			return SceneId::Playground;
-		if (scene_id == "forest_horizontal")
+		if (scene_id == "1_forest_horizontal")
 			return SceneId::ForestHorizontal;
-		if (scene_id == "thicker_forest_transition")
+		if (scene_id == "1_thicker_forest_transition")
 			return SceneId::ThickerForestTransition;
-		if (scene_id == "before_creek")
+		if (scene_id == "1_before_creek")
 			return SceneId::BeforeCreek;
 		if (scene_id == "creek")
 			return SceneId::Creek;
-		if (scene_id == "after_creek")
+		if (scene_id == "2_after_creek")
 			return SceneId::AfterCreek;
-		if (scene_id == "golden_intersection")
+		if (scene_id == "2_golden_intersection")
 			return SceneId::GoldenIntersection;
-		if (scene_id == "fallen_tree")
+		if (scene_id == "2_fallen_tree")
 			return SceneId::FallenTree;
-		if (scene_id == "golden_path")
+		if (scene_id == "2_golden_path")
 			return SceneId::GoldenPath;
-		if (scene_id == "golden_hour")
+		if (scene_id == "2_golden_hour")
 			return SceneId::GoldenHour;
-		if (scene_id == "deep_forest")
+		if (scene_id == "2_deep_forest")
 			return SceneId::DeepForest;
-		if (scene_id == "dark_forest")
+		if (scene_id == "2_dark_forest")
 			return SceneId::DarkForest;
-		if (scene_id == "dark_forest2")
+		if (scene_id == "2_dark_forest2")
 			return SceneId::DarkForest2;
 		if (scene_id == "night")
 			return SceneId::Night;

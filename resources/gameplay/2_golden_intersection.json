@@ -1,5 +1,5 @@
 {
-  "id": "golden_intersection",
+  "id": "2_golden_intersection",
   "background": "2_golden_intersection.png",
   "initial_state": "gameplay",
   "camera": {
@@ -113,7 +113,7 @@
   ],
   "scene_links": [
     {
-      "target_scene_id": "after_creek",
+      "target_scene_id": "2_after_creek",
       "arrival_points": {
         "dog": [
           -3.168541669845581,
@@ -144,7 +144,7 @@
       ]
     },
     {
-      "target_scene_id": "golden_path",
+      "target_scene_id": "2_golden_path",
       "arrival_points": {
         "dog": [
           5.3345842361450195,
@@ -175,7 +175,7 @@
       ]
     },
     {
-      "target_scene_id": "fallen_tree",
+      "target_scene_id": "2_fallen_tree",
       "arrival_points": {
         "dog": [
           0.4881955087184906,

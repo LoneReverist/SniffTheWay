@@ -47,6 +47,7 @@ private:
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
 	GameViewport m_viewport;
+	AudioSystem * m_audio_system = nullptr;
 	FontAtlas m_font_atlas;
 	Background m_background;
 	UIImage m_dog_image;
@@ -64,6 +65,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 {
+	m_audio_system = &audio_system;
 	m_camera2d.Init(0.0f /*left*/, UIWidth /*right*/, 0.0f /*top*/, UIHeight /*bottom*/);
 	const AssetId font_texture_id = m_asset_manager.AddTexture(
 		m_asset_manager.GetFontsPath() / "Alice.png",
@@ -234,11 +236,20 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	m_settings_button.Update(input, pointer_position);
 	m_credits_button.Update(input, pointer_position);
 	if ((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown()) || m_start_button.WasActivated())
+	{
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 		return SceneTransition{ SceneId::Picnic, SceneId::Title };
+	}
 	if (m_credits_button.WasActivated())
+	{
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 		return SceneTransition{ SceneId::Credits, SceneId::Title };
+	}
 	if (m_settings_button.WasActivated())
+	{
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 		m_settings_overlay.SetVisible(true);
+	}
 
 	return std::nullopt;
 }

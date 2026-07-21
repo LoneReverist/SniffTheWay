@@ -11,6 +11,12 @@ module;
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio.h>
 
+// The Windows multimedia headers define PlaySound as a PlaySoundA/PlaySoundW macro.
+// Keep the AudioSystem API platform-neutral and strongly typed instead.
+#ifdef PlaySound
+#undef PlaySound
+#endif
+
 module AudioSystem;
 
 import PlatformUtils;
@@ -59,6 +65,17 @@ namespace
 		return {};
 	}
 
+	TrackConfig SoundTrack(SoundCue cue)
+	{
+		switch (cue)
+		{
+		case SoundCue::ShortChime:
+			return { GetResourcesPath() / "sfx" / "short_chime.wav", 1.0f };
+		}
+
+		return {};
+	}
+
 	std::vector<TrackConfig> AmbienceTracks(AmbienceCue cue)
 	{
 		switch (cue)
@@ -94,27 +111,34 @@ public:
 	~Impl();
 
 	bool IsAvailable() const { return m_engine_initialized; }
+
 	bool PlayMusic(MusicCue cue);
 	void StopMusic();
 	bool PlayAmbience(AmbienceCue cue);
 	void StopAmbience();
+	bool PlaySound(SoundCue cue);
+
 	void SetTransitionVolume(float volume_factor);
+
 	void SetMasterVolume(float volume);
 	void SetMusicVolume(float volume);
 	void SetSoundEffectsVolume(float volume);
-	bool PlayVolumeChangeChime();
+
 	float GetMasterVolume() const { return m_master_volume; }
 	float GetMusicVolume() const { return m_music_category_volume; }
 	float GetSoundEffectsVolume() const { return m_sound_effects_volume; }
 
 private:
-	void ApplyVolumes();
+	void apply_volumes();
 	ma_engine m_engine{};
 	ma_sound m_music{};
-	ma_sound m_volume_change_chime{};
+	ma_sound m_sound_effect{};
 	bool m_engine_initialized = false;
 	bool m_music_initialized = false;
-	bool m_volume_change_chime_initialized = false;
+	bool m_sound_effect_initialized = false;
+	bool m_has_current_sound_cue = false;
+	SoundCue m_current_sound_cue = SoundCue::ShortChime;
+	float m_sound_effect_volume = 1.0f;
 	bool m_has_current_cue = false;
 	MusicCue m_current_cue = MusicCue::Title;
 	float m_music_volume = 1.0f;
@@ -143,10 +167,10 @@ AudioSystem::Impl::Impl()
 
 AudioSystem::Impl::~Impl()
 {
-	if (m_volume_change_chime_initialized)
+	if (m_sound_effect_initialized)
 	{
-		ma_sound_stop(&m_volume_change_chime);
-		ma_sound_uninit(&m_volume_change_chime);
+		ma_sound_stop(&m_sound_effect);
+		ma_sound_uninit(&m_sound_effect);
 	}
 	StopAmbience();
 	StopMusic();
@@ -199,7 +223,7 @@ bool AudioSystem::Impl::PlayMusic(MusicCue cue)
 	m_current_cue = cue;
 	ma_sound_set_looping(&m_music, MA_TRUE);
 	m_music_volume = music_track.volume;
-	ApplyVolumes();
+	apply_volumes();
 
 	result = ma_sound_start(&m_music);
 	if (result != MA_SUCCESS)
@@ -275,7 +299,7 @@ bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
 		++m_ambience_initialized_count;
 		ma_sound_set_looping(&m_ambience[i], MA_TRUE);
 		m_ambience_volumes[i] = ambience_tracks[i].volume;
-		ApplyVolumes();
+		apply_volumes();
 	}
 
 	const ma_uint64 start_time = ma_engine_get_time_in_pcm_frames(&m_engine)
@@ -315,76 +339,88 @@ void AudioSystem::Impl::StopAmbience()
 void AudioSystem::Impl::SetTransitionVolume(float volume_factor)
 {
 	m_transition_volume = std::clamp(volume_factor, 0.0f, 1.0f);
-	ApplyVolumes();
+	apply_volumes();
 }
 
 void AudioSystem::Impl::SetMasterVolume(float volume)
 {
 	m_master_volume = std::clamp(volume, 0.0f, 1.0f);
-	ApplyVolumes();
+	apply_volumes();
 }
 
 void AudioSystem::Impl::SetMusicVolume(float volume)
 {
 	m_music_category_volume = std::clamp(volume, 0.0f, 1.0f);
-	ApplyVolumes();
+	apply_volumes();
 }
 
 void AudioSystem::Impl::SetSoundEffectsVolume(float volume)
 {
 	m_sound_effects_volume = std::clamp(volume, 0.0f, 1.0f);
-	ApplyVolumes();
+	apply_volumes();
 }
 
-bool AudioSystem::Impl::PlayVolumeChangeChime()
+bool AudioSystem::Impl::PlaySound(SoundCue cue)
 {
 	if (!m_engine_initialized)
 		return false;
 
-	if (!m_volume_change_chime_initialized)
+	if (m_sound_effect_initialized && (!m_has_current_sound_cue || m_current_sound_cue != cue))
 	{
-		const std::filesystem::path chime_path = GetResourcesPath() / "sfx" / "short_chime.wav";
+		ma_sound_stop(&m_sound_effect);
+		ma_sound_uninit(&m_sound_effect);
+		m_sound_effect = {};
+		m_sound_effect_initialized = false;
+		m_has_current_sound_cue = false;
+	}
+
+	if (!m_sound_effect_initialized)
+	{
+		const TrackConfig sound_track = SoundTrack(cue);
 		ma_result init_result;
 #if defined(_WIN32)
 		init_result = ma_sound_init_from_file_w(
 			&m_engine,
-			chime_path.c_str(),
+			sound_track.path.c_str(),
 			MA_SOUND_FLAG_NO_SPATIALIZATION,
 			nullptr,
 			nullptr,
-			&m_volume_change_chime);
+			&m_sound_effect);
 #else
 		init_result = ma_sound_init_from_file(
 			&m_engine,
-			chime_path.string().c_str(),
+			sound_track.path.string().c_str(),
 			MA_SOUND_FLAG_NO_SPATIALIZATION,
 			nullptr,
 			nullptr,
-			&m_volume_change_chime);
+			&m_sound_effect);
 #endif
 		if (init_result != MA_SUCCESS)
 		{
-			LOG(WARNING) << "AudioSystem: Failed to load sound effect '" << chime_path.string()
+			LOG(WARNING) << "AudioSystem: Failed to load sound effect '" << sound_track.path.string()
 				<< "': " << ma_result_description(init_result);
 			return false;
 		}
-		m_volume_change_chime_initialized = true;
+		m_sound_effect_initialized = true;
+		m_has_current_sound_cue = true;
+		m_current_sound_cue = cue;
+		m_sound_effect_volume = sound_track.volume;
 	}
 
-	ma_sound_stop(&m_volume_change_chime);
-	ma_sound_seek_to_pcm_frame(&m_volume_change_chime, 0);
-	ApplyVolumes();
-	const ma_result result = ma_sound_start(&m_volume_change_chime);
+	ma_sound_stop(&m_sound_effect);
+	ma_sound_seek_to_pcm_frame(&m_sound_effect, 0);
+	apply_volumes();
+	const ma_result result = ma_sound_start(&m_sound_effect);
 	if (result != MA_SUCCESS)
 	{
-		LOG(WARNING) << "AudioSystem: Failed to play volume change sound: "
+		LOG(WARNING) << "AudioSystem: Failed to play sound effect: "
 			<< ma_result_description(result);
 		return false;
 	}
 	return true;
 }
 
-void AudioSystem::Impl::ApplyVolumes()
+void AudioSystem::Impl::apply_volumes()
 {
 	if (m_music_initialized)
 		ma_sound_set_volume(&m_music,
@@ -394,8 +430,9 @@ void AudioSystem::Impl::ApplyVolumes()
 		ma_sound_set_volume(&m_ambience[i],
 			m_ambience_volumes[i] * m_music_category_volume * m_master_volume * m_transition_volume);
 
-	if (m_volume_change_chime_initialized)
-		ma_sound_set_volume(&m_volume_change_chime, m_sound_effects_volume * m_master_volume);
+	if (m_sound_effect_initialized)
+		ma_sound_set_volume(&m_sound_effect,
+			m_sound_effect_volume * m_sound_effects_volume * m_master_volume);
 }
 
 AudioSystem::AudioSystem()
@@ -429,6 +466,11 @@ void AudioSystem::StopAmbience()
 	m_impl->StopAmbience();
 }
 
+bool AudioSystem::PlaySound(SoundCue cue)
+{
+	return m_impl->PlaySound(cue);
+}
+
 void AudioSystem::SetTransitionVolume(float volume_factor)
 {
 	m_impl->SetTransitionVolume(volume_factor);
@@ -447,11 +489,6 @@ void AudioSystem::SetMusicVolume(float volume)
 void AudioSystem::SetSoundEffectsVolume(float volume)
 {
 	m_impl->SetSoundEffectsVolume(volume);
-}
-
-bool AudioSystem::PlayVolumeChangeChime()
-{
-	return m_impl->PlayVolumeChangeChime();
 }
 
 float AudioSystem::GetMasterVolume() const

@@ -24,6 +24,11 @@ export enum class AmbienceCue
 	LateForest,
 };
 
+export enum class SoundCue
+{
+	ShortChime,
+};
+
 export class AudioSystem
 {
 public:
@@ -36,15 +41,19 @@ public:
 	AudioSystem & operator=(AudioSystem &&) = delete;
 
 	bool IsAvailable() const;
+	
 	bool PlayMusic(MusicCue cue);
 	void StopMusic();
 	bool PlayAmbience(AmbienceCue cue);
 	void StopAmbience();
+	bool PlaySound(SoundCue cue);
+
 	void SetTransitionVolume(float volume_factor);
+
 	void SetMasterVolume(float volume);
 	void SetMusicVolume(float volume);
 	void SetSoundEffectsVolume(float volume);
-	bool PlayVolumeChangeChime();
+
 	float GetMasterVolume() const;
 	float GetMusicVolume() const;
 	float GetSoundEffectsVolume() const;

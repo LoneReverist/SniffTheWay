@@ -12,6 +12,7 @@ export module PauseOverlay;
 
 import AssetManager;
 import AssetPool;
+import AudioSystem;
 import Camera;
 import ColorPipeline;
 import FontAtlas;
@@ -41,7 +42,8 @@ public:
 		AssetManager & asset_manager,
 		SceneRenderer & renderer,
 		Camera2d const & camera2d,
-		FontAtlas const & font_atlas);
+		FontAtlas const & font_atlas,
+		AudioSystem & audio_system);
 
 	PauseAction Update(Input const & input, GameViewport const & viewport);
 	void SetVisible(bool visible);
@@ -63,6 +65,7 @@ private:
 
 private:
 	SceneRenderer * m_renderer = nullptr;
+	AudioSystem * m_audio_system = nullptr;
 	UIDarkBackdrop m_backdrop;
 	UILabel m_title_label;
 	UILabel m_resume_label;
@@ -86,9 +89,11 @@ void PauseOverlay::Init(
 	AssetManager & asset_manager,
 	SceneRenderer & renderer,
 	Camera2d const & camera2d,
-	FontAtlas const & font_atlas)
+	FontAtlas const & font_atlas,
+	AudioSystem & audio_system)
 {
 	m_renderer = &renderer;
+	m_audio_system = &audio_system;
 
 	const auto color_pipeline_id = asset_manager.AddPipeline<ColorPipeline>(camera2d);
 	const auto text_pipeline_id = asset_manager.AddPipeline<TextPipeline>(camera2d, asset_manager);
@@ -199,6 +204,8 @@ PauseAction PauseOverlay::Update(Input const & input, GameViewport const & viewp
 	}
 
 	update_button_colors();
+	if (action != PauseAction::None && m_audio_system)
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 	return action;
 }
 

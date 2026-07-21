@@ -177,7 +177,7 @@ GameplayScene::GameplayScene(
 	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), m_text_pipeline_id, m_controls_label.GetPipelineData()));
 
 	create_story_labels(m_text_pipeline_id);
-	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 

@@ -185,7 +185,10 @@ bool SettingsOverlay::Update(Input const & input, GameViewport const & viewport)
 		{
 			m_selected_row = released_over;
 			if (released_over == Row::Back)
+			{
+				m_audio_system->PlaySound(SoundCue::ShortChime);
 				return true;
+			}
 			adjust_selected(pointer_position && pointer_position->x < UIWidth * 0.5f ? -0.05f : 0.05f);
 		}
 		m_armed_row.reset();
@@ -193,7 +196,10 @@ bool SettingsOverlay::Update(Input const & input, GameViewport const & viewport)
 
 	if (((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown())
 		|| input.KeyJustPressed(Input::Key::Space)) && m_selected_row == Row::Back)
+	{
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 		return true;
+	}
 
 	update_labels();
 	return false;
@@ -252,21 +258,21 @@ void SettingsOverlay::adjust_selected(float amount)
 	{
 		const float old_volume = m_audio_system->GetMasterVolume();
 		m_audio_system->SetMasterVolume(old_volume + amount);
-		m_audio_system->PlayVolumeChangeChime();
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 		break;
 	}
 	case Row::Music:
 	{
 		const float old_volume = m_audio_system->GetMusicVolume();
 		m_audio_system->SetMusicVolume(old_volume + amount);
-		m_audio_system->PlayVolumeChangeChime();
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 		break;
 	}
 	case Row::SoundEffects:
 	{
 		const float old_volume = m_audio_system->GetSoundEffectsVolume();
 		m_audio_system->SetSoundEffectsVolume(old_volume + amount);
-		m_audio_system->PlayVolumeChangeChime();
+		m_audio_system->PlaySound(SoundCue::ShortChime);
 		break;
 	}
 	case Row::Back:

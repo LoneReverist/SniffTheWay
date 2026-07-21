@@ -181,7 +181,7 @@ StoryScene::StoryScene(
 	ensure_story_ui_capacity();
 
 	apply_current_page();
-	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_page_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 	m_page_fade_overlay.SetOpacity(0.0f);

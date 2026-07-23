@@ -176,7 +176,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "Follow the scent.",
+        "text": "I can follow the scent.",
         "hold_duration": 4.0,
         "fade_in_duration": 0.25,
         "fade_out_duration": 0.75

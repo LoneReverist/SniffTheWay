@@ -74,6 +74,7 @@ private:
 		SceneBounds,
 		SceneLink,
 		ScentTrail,
+		MessageTrigger,
 	};
 
 	struct PolygonEditTarget
@@ -81,6 +82,7 @@ private:
 		PolygonEditTargetKind kind = PolygonEditTargetKind::SceneBounds;
 		std::size_t link_index = 0;
 		std::size_t scent_trail_index = 0;
+		std::size_t message_trigger_index = 0;
 	};
 
 	struct PolygonOverlay
@@ -139,16 +141,20 @@ private:
 		std::size_t index);
 	void rebuild_scene_link_overlays(AssetManager & asset_manager, SceneRenderer & renderer);
 	void rebuild_scene_link_overlay(AssetManager & asset_manager, SceneRenderer & renderer, std::size_t index);
+	void rebuild_message_trigger_overlays(AssetManager & asset_manager, SceneRenderer & renderer);
+	void rebuild_message_trigger_overlay(AssetManager & asset_manager, SceneRenderer & renderer, std::size_t index);
 	void rebuild_arrival_markers(AssetManager & asset_manager, SceneRenderer & renderer);
 	void show_bounds(SceneRenderer & renderer, bool show);
 	void show_scent_trails(SceneRenderer & renderer, bool show);
 	void show_scene_link_triggers(SceneRenderer & renderer, bool show);
+	void show_message_triggers(SceneRenderer & renderer, bool show);
 	void show_arrival_markers(SceneRenderer & renderer, bool show);
 	void rebuild_selected_vertex_marker(AssetManager & asset_manager, SceneRenderer & renderer);
 	void show_selected_vertex_marker(SceneRenderer & renderer, bool show);
 	void show_polygon_editing_label(SceneRenderer & renderer, bool show);
 	void begin_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer, PolygonEditTarget target);
 	void begin_scent_trail_editing(AssetManager & asset_manager, SceneRenderer & renderer);
+	void begin_message_trigger_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	void cancel_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer);
 	bool apply_polygon_draft(AssetManager & asset_manager, SceneRenderer & renderer);
 	void add_draft_vertex(AssetManager & asset_manager, SceneRenderer & renderer, glm::vec2 vertex);
@@ -177,6 +183,9 @@ private:
 	void delete_selected_scent_trail(AssetManager & asset_manager, SceneRenderer & renderer);
 	bool has_selected_scent_trail() const;
 	PolygonEditTarget selected_scent_trail_target() const;
+	void select_next_message_trigger(AssetManager & asset_manager, SceneRenderer & renderer);
+	bool has_selected_message_trigger() const;
+	PolygonEditTarget selected_message_trigger_target() const;
 	std::vector<glm::vec2> get_target_vertices(PolygonEditTarget target) const;
 	void set_target_vertices(PolygonEditTarget target, std::vector<glm::vec2> vertices);
 	glm::vec2 get_arrival_position(ArrivalEditTarget target) const;
@@ -207,6 +216,10 @@ private:
 	{
 		return is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail;
 	}
+	bool is_editing_message_triggers() const
+	{
+		return is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::MessageTrigger;
+	}
 	bool is_editing_arrival() const { return m_edit_mode == EditMode::Arrival && m_arrival_edit_target.has_value(); }
 	bool is_editing_camera() const { return m_edit_mode == EditMode::Camera; }
 
@@ -225,6 +238,7 @@ private:
 	std::optional<ArrivalEditTarget> m_arrival_edit_target;
 	std::optional<std::size_t> m_selected_scene_link_index;
 	std::optional<std::size_t> m_selected_scent_trail_index;
+	std::optional<std::size_t> m_selected_message_trigger_index;
 	std::optional<std::size_t> m_selected_vertex_index;
 	std::optional<std::size_t> m_dragged_vertex_index;
 	glm::vec2 m_dragged_vertex_offset{ 0.0f };
@@ -232,6 +246,7 @@ private:
 	PolygonOverlay m_bounds_overlay;
 	std::vector<PolygonOverlay> m_scent_trail_overlays;
 	std::vector<PolygonOverlay> m_scene_link_overlays;
+	std::vector<PolygonOverlay> m_message_trigger_overlays;
 	MeshId<Vertex2d> m_selected_vertex_marker_mesh_id;
 	AssetId m_selected_vertex_marker_ro_id;
 	MeshId<Vertex2d> m_arrival_markers_mesh_id;
@@ -256,11 +271,17 @@ namespace
 	constexpr glm::vec4 ScentTrailPointColor{ 1.0f, 0.95f, 0.45f, 1.0f };
 	constexpr glm::vec4 EditingScentTrailEdgeColor{ 1.0f, 0.55f, 0.08f, 0.95f };
 	constexpr glm::vec4 EditingScentTrailPointColor{ 1.0f, 0.92f, 0.2f, 1.0f };
+	constexpr glm::vec4 MessageTriggerEdgeColor{ 0.75f, 0.35f, 1.0f, 0.75f };
+	constexpr glm::vec4 MessageTriggerPointColor{ 0.9f, 0.55f, 1.0f, 0.95f };
+	constexpr glm::vec4 SelectedMessageTriggerEdgeColor{ 1.0f, 0.35f, 0.85f, 0.95f };
+	constexpr glm::vec4 SelectedMessageTriggerPointColor{ 1.0f, 0.55f, 0.9f, 1.0f };
 	constexpr glm::vec4 SelectedVertexColor{ 0.2f, 1.0f, 0.45f, 1.0f };
 	constexpr glm::vec4 DraftEdgeColor{ 1.0f, 0.55f, 0.08f, 0.95f };
 	constexpr glm::vec4 DraftPointColor{ 1.0f, 0.15f, 0.1f, 1.0f };
 	constexpr float ScentTrailEdgeThickness = 8.0f;
 	constexpr float ScentTrailPointThickness = 12.0f;
+	constexpr float MessageTriggerEdgeThickness = 8.0f;
+	constexpr float MessageTriggerPointThickness = 10.0f;
 	constexpr float SelectedVertexMarkerSize = 0.18f;
 	constexpr float SelectedVertexMarkerThickness = 14.0f;
 	constexpr float PolygonAppendDistance = 0.75f;
@@ -319,6 +340,10 @@ void GameplaySceneEditor::Init(
 	if (!m_scene_data->scent_trails.empty())
 		m_selected_scent_trail_index = 0;
 	rebuild_scent_trail_overlays(asset_manager, renderer);
+
+	if (!m_scene_data->message_triggers.empty())
+		m_selected_message_trigger_index = 0;
+	rebuild_message_trigger_overlays(asset_manager, renderer);
 
 	m_selected_vertex_marker_mesh_id = create_line_mesh(asset_manager, create_selected_vertex_marker_lines());
 	m_selected_vertex_marker_ro_id = renderer.CreateRenderObject("selected polygon vertex",
@@ -421,6 +446,18 @@ void GameplaySceneEditor::Update(
 				return;
 		}
 
+		if (is_editing_message_triggers())
+		{
+			if (input.KeyJustPressed(Input::Key::Tab))
+			{
+				select_next_message_trigger(asset_manager, renderer);
+				return;
+			}
+
+			if (!has_selected_message_trigger())
+				return;
+		}
+
 		if (m_polygon_edit_target)
 		{
 			if (input.MouseButtonJustReleased(Input::MouseButton::Left))
@@ -514,8 +551,14 @@ void GameplaySceneEditor::Update(
 		if (input.KeyJustPressed(Input::Key::Enter))
 		{
 			bool const was_editing_scent_trails = is_editing_scent_trails();
-			if (apply_polygon_draft(asset_manager, renderer) && was_editing_scent_trails)
-				begin_scent_trail_editing(asset_manager, renderer);
+			bool const was_editing_message_triggers = is_editing_message_triggers();
+			if (apply_polygon_draft(asset_manager, renderer))
+			{
+				if (was_editing_scent_trails)
+					begin_scent_trail_editing(asset_manager, renderer);
+				else if (was_editing_message_triggers)
+					begin_message_trigger_editing(asset_manager, renderer);
+			}
 			return;
 		}
 
@@ -532,6 +575,12 @@ void GameplaySceneEditor::Update(
 	if (input.KeyJustPressed('T'))
 	{
 		begin_scent_trail_editing(asset_manager, renderer);
+		return;
+	}
+
+	if (input.KeyJustPressed('M'))
+	{
+		begin_message_trigger_editing(asset_manager, renderer);
 		return;
 	}
 
@@ -613,6 +662,7 @@ void GameplaySceneEditor::OnSceneStateChanged(SceneState new_state, AssetManager
 	m_grid.OnSceneStateChanged(new_state, renderer);
 	show_bounds(renderer, new_state == SceneState::Editing);
 	show_scent_trails(renderer, new_state == SceneState::Editing);
+	show_message_triggers(renderer, new_state == SceneState::Editing);
 	show_selected_vertex_marker(renderer, new_state == SceneState::Editing);
 	show_scene_link_triggers(renderer, new_state == SceneState::Editing);
 	show_arrival_markers(renderer, new_state == SceneState::Editing);
@@ -637,9 +687,17 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 		m_selected_scent_trail_index.reset();
 	else if (!m_selected_scent_trail_index || *m_selected_scent_trail_index >= m_scene_data->scent_trails.size())
 		m_selected_scent_trail_index = 0;
+	if (m_scene_data->message_triggers.empty())
+		m_selected_message_trigger_index.reset();
+	else if (!m_selected_message_trigger_index
+		|| *m_selected_message_trigger_index >= m_scene_data->message_triggers.size())
+	{
+		m_selected_message_trigger_index = 0;
+	}
 
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	rebuild_scent_trail_overlays(asset_manager, renderer);
+	rebuild_message_trigger_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	rebuild_scene_link_overlays(asset_manager, renderer);
 	rebuild_arrival_markers(asset_manager, renderer);
@@ -856,6 +914,82 @@ void GameplaySceneEditor::rebuild_scene_link_overlay(AssetManager & asset_manage
 		LinkTriggerPointThickness);
 }
 
+void GameplaySceneEditor::rebuild_message_trigger_overlays(AssetManager & asset_manager, SceneRenderer & renderer)
+{
+	if (!m_scene_data)
+		return;
+
+	for (std::size_t i = m_scene_data->message_triggers.size(); i < m_message_trigger_overlays.size(); ++i)
+		show_polygon_overlay(renderer, m_message_trigger_overlays[i], false);
+
+	while (m_message_trigger_overlays.size() < m_scene_data->message_triggers.size())
+	{
+		std::size_t const index = m_message_trigger_overlays.size();
+		GameplayMessageTriggerData const & message_trigger = m_scene_data->message_triggers[index];
+		m_message_trigger_overlays.push_back(create_polygon_overlay(
+			asset_manager,
+			renderer,
+			"message trigger " + std::to_string(index + 1),
+			message_trigger.trigger.GetVertices(),
+			message_trigger.trigger.IsValid(),
+			MessageTriggerEdgeColor,
+			MessageTriggerPointColor,
+			MessageTriggerEdgeThickness,
+			MessageTriggerPointThickness,
+			false));
+	}
+
+	for (std::size_t i = 0; i < m_scene_data->message_triggers.size(); ++i)
+	{
+		rebuild_message_trigger_overlay(asset_manager, renderer, i);
+		show_polygon_overlay(renderer, m_message_trigger_overlays[i], true);
+	}
+}
+
+void GameplaySceneEditor::rebuild_message_trigger_overlay(
+	AssetManager & asset_manager,
+	SceneRenderer & renderer,
+	std::size_t index)
+{
+	if (!m_scene_data
+		|| index >= m_scene_data->message_triggers.size()
+		|| index >= m_message_trigger_overlays.size())
+	{
+		return;
+	}
+
+	bool const is_selected = m_selected_message_trigger_index
+		&& *m_selected_message_trigger_index == index;
+	bool const is_editing_this = is_editing_polygon()
+		&& m_polygon_edit_target->kind == PolygonEditTargetKind::MessageTrigger
+		&& m_polygon_edit_target->message_trigger_index == index;
+	glm::vec4 edge_color = is_editing_this
+		? DraftEdgeColor
+		: is_selected ? SelectedMessageTriggerEdgeColor : MessageTriggerEdgeColor;
+	glm::vec4 point_color = is_editing_this
+		? DraftPointColor
+		: is_selected ? SelectedMessageTriggerPointColor : MessageTriggerPointColor;
+
+	GameplayMessageTriggerData const & message_trigger = m_scene_data->message_triggers[index];
+	std::vector<glm::vec2> const & vertices = is_editing_this
+		? m_draft_vertices
+		: message_trigger.trigger.GetVertices();
+	bool const close_edges = is_editing_this
+		? m_draft_vertices.size() >= 3
+		: message_trigger.trigger.IsValid();
+
+	rebuild_polygon_overlay(
+		asset_manager,
+		renderer,
+		m_message_trigger_overlays[index],
+		vertices,
+		close_edges,
+		edge_color,
+		point_color,
+		MessageTriggerEdgeThickness,
+		MessageTriggerPointThickness);
+}
+
 void GameplaySceneEditor::rebuild_arrival_markers(AssetManager & asset_manager, SceneRenderer & renderer)
 {
 	MeshId<Vertex2d> old_arrival_markers_mesh_id = m_arrival_markers_mesh_id;
@@ -913,6 +1047,15 @@ void GameplaySceneEditor::show_scene_link_triggers(SceneRenderer & renderer, boo
 	}
 }
 
+void GameplaySceneEditor::show_message_triggers(SceneRenderer & renderer, bool show)
+{
+	for (std::size_t i = 0; i < m_message_trigger_overlays.size(); ++i)
+	{
+		bool const has_trigger = m_scene_data && i < m_scene_data->message_triggers.size();
+		show_polygon_overlay(renderer, m_message_trigger_overlays[i], show && has_trigger);
+	}
+}
+
 void GameplaySceneEditor::show_arrival_markers(SceneRenderer & renderer, bool show)
 {
 	renderer.Show(m_arrival_markers_ro_id, show);
@@ -929,6 +1072,11 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 		return;
 	if (target.kind == PolygonEditTargetKind::ScentTrail
 		&& (!m_scene_data || target.scent_trail_index >= m_scene_data->scent_trails.size()))
+	{
+		return;
+	}
+	if (target.kind == PolygonEditTargetKind::MessageTrigger
+		&& (!m_scene_data || target.message_trigger_index >= m_scene_data->message_triggers.size()))
 	{
 		return;
 	}
@@ -953,6 +1101,10 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	{
 		m_selected_scent_trail_index = target.scent_trail_index;
 	}
+	else if (target.kind == PolygonEditTargetKind::MessageTrigger)
+	{
+		m_selected_message_trigger_index = target.message_trigger_index;
+	}
 	m_selected_vertex_index = m_draft_vertices.empty()
 		? std::nullopt
 		: std::optional<std::size_t>{ m_draft_vertices.size() - 1 };
@@ -961,6 +1113,8 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 		rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
 	else if (target.kind == PolygonEditTargetKind::ScentTrail)
 		rebuild_scent_trail_overlay(asset_manager, renderer, target.scent_trail_index);
+	else if (target.kind == PolygonEditTargetKind::MessageTrigger)
+		rebuild_message_trigger_overlay(asset_manager, renderer, target.message_trigger_index);
 	else
 		rebuild_scene_link_overlay(asset_manager, renderer, target.link_index);
 
@@ -968,6 +1122,7 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	show_bounds(renderer, true);
 	show_scent_trails(renderer, true);
+	show_message_triggers(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1012,6 +1167,47 @@ void GameplaySceneEditor::begin_scent_trail_editing(AssetManager & asset_manager
 	show_polygon_editing_label(renderer, true);
 }
 
+void GameplaySceneEditor::begin_message_trigger_editing(
+	AssetManager & asset_manager,
+	SceneRenderer & renderer)
+{
+	if (!m_scene_data)
+		return;
+
+	if (!m_scene_data->message_triggers.empty())
+	{
+		if (!has_selected_message_trigger())
+			m_selected_message_trigger_index = 0;
+		begin_polygon_editing(asset_manager, renderer, selected_message_trigger_target());
+		return;
+	}
+
+	if (is_editing_arrival())
+		cancel_arrival_editing(asset_manager, renderer);
+	if (is_editing_polygon())
+		cancel_polygon_editing(asset_manager, renderer);
+	if (is_editing_camera())
+		end_camera_editing();
+
+	m_edit_mode = EditMode::Polygon;
+	m_polygon_edit_target = PolygonEditTarget{ .kind = PolygonEditTargetKind::MessageTrigger };
+	m_selected_message_trigger_index.reset();
+	m_selected_vertex_index.reset();
+	m_dragged_vertex_index.reset();
+	m_draft_vertices.clear();
+
+	rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_selected_vertex_marker(asset_manager, renderer);
+	show_bounds(renderer, true);
+	show_scent_trails(renderer, true);
+	show_message_triggers(renderer, true);
+	show_selected_vertex_marker(renderer, false);
+	show_scene_link_triggers(renderer, true);
+	show_arrival_markers(renderer, true);
+	update_polygon_editing_label();
+	show_polygon_editing_label(renderer, true);
+}
+
 void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer)
 {
 	std::optional<PolygonEditTarget> old_target = m_polygon_edit_target;
@@ -1025,12 +1221,15 @@ void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, S
 		rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	if (m_scene_data)
 		rebuild_scent_trail_overlays(asset_manager, renderer);
+	if (m_scene_data)
+		rebuild_message_trigger_overlays(asset_manager, renderer);
 	if (old_target && old_target->kind == PolygonEditTargetKind::SceneLink)
 		rebuild_scene_link_overlay(asset_manager, renderer, old_target->link_index);
 
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	show_bounds(renderer, true);
 	show_scent_trails(renderer, true);
+	show_message_triggers(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1060,10 +1259,12 @@ bool GameplaySceneEditor::apply_polygon_draft(AssetManager & asset_manager, Scen
 
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	rebuild_scent_trail_overlays(asset_manager, renderer);
+	rebuild_message_trigger_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	rebuild_scene_link_overlays(asset_manager, renderer);
 	show_bounds(renderer, true);
 	show_scent_trails(renderer, true);
+	show_message_triggers(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1256,6 +1457,8 @@ void GameplaySceneEditor::rebuild_edit_target_overlay(AssetManager & asset_manag
 		rebuild_bounds_overlay(asset_manager, renderer, m_draft_vertices, m_draft_vertices.size() >= 3);
 	else if (m_polygon_edit_target->kind == PolygonEditTargetKind::ScentTrail)
 		rebuild_scent_trail_overlay(asset_manager, renderer, m_polygon_edit_target->scent_trail_index);
+	else if (m_polygon_edit_target->kind == PolygonEditTargetKind::MessageTrigger)
+		rebuild_message_trigger_overlay(asset_manager, renderer, m_polygon_edit_target->message_trigger_index);
 	else
 		rebuild_scene_link_overlay(asset_manager, renderer, m_polygon_edit_target->link_index);
 }
@@ -1583,6 +1786,57 @@ GameplaySceneEditor::PolygonEditTarget GameplaySceneEditor::selected_scent_trail
 	};
 }
 
+void GameplaySceneEditor::select_next_message_trigger(
+	AssetManager & asset_manager,
+	SceneRenderer & renderer)
+{
+	if (!m_scene_data || m_scene_data->message_triggers.empty())
+	{
+		m_selected_message_trigger_index.reset();
+		return;
+	}
+
+	if (has_selected_message_trigger())
+	{
+		if (!m_draft_vertices.empty() && m_draft_vertices.size() < 3)
+			return;
+		if (m_draft_vertices.size() >= 3)
+			set_target_vertices(*m_polygon_edit_target, m_draft_vertices);
+	}
+
+	if (!m_selected_message_trigger_index)
+		m_selected_message_trigger_index = 0;
+	else
+		m_selected_message_trigger_index =
+			(*m_selected_message_trigger_index + 1) % m_scene_data->message_triggers.size();
+
+	m_polygon_edit_target = selected_message_trigger_target();
+	m_draft_vertices = get_target_vertices(*m_polygon_edit_target);
+	m_selected_vertex_index = m_draft_vertices.empty()
+		? std::nullopt
+		: std::optional<std::size_t>{ m_draft_vertices.size() - 1 };
+	m_dragged_vertex_index.reset();
+	rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_selected_vertex_marker(asset_manager, renderer);
+	show_selected_vertex_marker(renderer, true);
+	update_polygon_editing_label();
+}
+
+bool GameplaySceneEditor::has_selected_message_trigger() const
+{
+	return m_scene_data
+		&& m_selected_message_trigger_index
+		&& *m_selected_message_trigger_index < m_scene_data->message_triggers.size();
+}
+
+GameplaySceneEditor::PolygonEditTarget GameplaySceneEditor::selected_message_trigger_target() const
+{
+	return PolygonEditTarget{
+		.kind = PolygonEditTargetKind::MessageTrigger,
+		.message_trigger_index = m_selected_message_trigger_index.value_or(0)
+	};
+}
+
 std::vector<glm::vec2> GameplaySceneEditor::get_target_vertices(PolygonEditTarget target) const
 {
 	if (!m_scene_data)
@@ -1594,6 +1848,12 @@ std::vector<glm::vec2> GameplaySceneEditor::get_target_vertices(PolygonEditTarge
 	{
 		if (target.scent_trail_index < m_scene_data->scent_trails.size())
 			return m_scene_data->scent_trails[target.scent_trail_index].points;
+		return {};
+	}
+	if (target.kind == PolygonEditTargetKind::MessageTrigger)
+	{
+		if (target.message_trigger_index < m_scene_data->message_triggers.size())
+			return m_scene_data->message_triggers[target.message_trigger_index].trigger.GetVertices();
 		return {};
 	}
 	if (target.link_index < m_scene_data->scene_links.size())
@@ -1612,6 +1872,11 @@ void GameplaySceneEditor::set_target_vertices(PolygonEditTarget target, std::vec
 	{
 		if (target.scent_trail_index < m_scene_data->scent_trails.size())
 			m_scene_data->scent_trails[target.scent_trail_index].points = std::move(vertices);
+	}
+	else if (target.kind == PolygonEditTargetKind::MessageTrigger)
+	{
+		if (target.message_trigger_index < m_scene_data->message_triggers.size())
+			m_scene_data->message_triggers[target.message_trigger_index].trigger.SetVertices(std::move(vertices));
 	}
 	else if (target.link_index < m_scene_data->scene_links.size())
 		m_scene_data->scene_links[target.link_index].trigger.SetVertices(std::move(vertices));
@@ -1694,10 +1959,19 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			selected_scene_link_text = "#" + std::to_string(*m_selected_scene_link_index + 1)
 				+ ": " + std::string{ ToString(scene_link.target_scene_id) };
 		}
+		std::string selected_message_trigger_text = "none";
+		if (has_selected_message_trigger())
+		{
+			GameplayMessageTriggerData const & message_trigger =
+				m_scene_data->message_triggers[*m_selected_message_trigger_index];
+			selected_message_trigger_text = "#" + std::to_string(*m_selected_message_trigger_index + 1)
+				+ ": " + message_trigger.id;
+		}
 
 		return "Editing: " + m_scene_filepath.stem().string() + "\n"
 			"[B] Edit bounds\n"
 			"[T] Edit scent trails\n"
+			"[M] Edit message triggers (" + selected_message_trigger_text + ")\n"
 			"[C] Adjust camera\n"
 			"[Tab] Select link (" + selected_scene_link_text + ")\n"
 			"[L] Edit selected link trigger\n"
@@ -1758,6 +2032,38 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			"[Shift] Coarse, [Ctrl] Fine\n"
 			"[Delete] Delete point\n"
 			"[Enter] Apply trail\n"
+			"[Escape] Cancel and exit";
+	}
+
+	if (m_polygon_edit_target->kind == PolygonEditTargetKind::MessageTrigger)
+	{
+		if (!has_selected_message_trigger())
+		{
+			return "Editing message triggers\n"
+				"No message triggers\n"
+				"[Escape] Exit message trigger mode";
+		}
+
+		GameplayMessageTriggerData const & message_trigger =
+			m_scene_data->message_triggers[m_polygon_edit_target->message_trigger_index];
+		std::string selected_vertex_text = "none";
+		if (m_selected_vertex_index && *m_selected_vertex_index < m_draft_vertices.size())
+			selected_vertex_text = std::to_string(*m_selected_vertex_index + 1)
+				+ "/" + std::to_string(m_draft_vertices.size());
+
+		return "Editing message trigger #" + std::to_string(m_polygon_edit_target->message_trigger_index + 1)
+			+ "/" + std::to_string(m_scene_data->message_triggers.size())
+			+ ": " + message_trigger.id + "\n"
+			"Text: " + message_trigger.message.text + "\n"
+			"Selected vertex: " + selected_vertex_text + "\n"
+			"[Tab] Next message trigger\n"
+			"[Left Drag] Move vertex\n"
+			"[N] Insert vertex after selected\n"
+			"[[ or ]] Select vertex\n"
+			"[WASD]/[Arrows] Nudge vertex\n"
+			"[Shift] Coarse, [Ctrl] Fine\n"
+			"[Delete] Delete vertex\n"
+			"[Enter] Apply trigger\n"
 			"[Escape] Cancel and exit";
 	}
 

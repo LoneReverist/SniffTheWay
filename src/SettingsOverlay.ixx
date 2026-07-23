@@ -42,6 +42,8 @@ public:
 	bool IsVisible() const { return m_visible; }
 
 private:
+	static constexpr float VolumeStep = 0.1f;
+
 	enum class Row
 	{
 		None,
@@ -173,9 +175,9 @@ bool SettingsOverlay::Update(Input const & input, GameViewport const & viewport)
 	}
 
 	if (input.KeyJustPressed(Input::Key::Left) || input.KeyJustPressed('A'))
-		adjust_selected(-0.05f);
+		adjust_selected(-VolumeStep);
 	if (input.KeyJustPressed(Input::Key::Right) || input.KeyJustPressed('D'))
-		adjust_selected(0.05f);
+		adjust_selected(VolumeStep);
 
 	if (input.MouseButtonJustPressed(Input::MouseButton::Left))
 		m_armed_row = hovered_row(pointer_position);
@@ -277,8 +279,8 @@ std::optional<float> SettingsOverlay::clicked_adjustment(Row row, glm::vec2 poin
 			&& pointer_position.y >= bounds.min.y && pointer_position.y <= bounds.max.y;
 	};
 
-	if (contains(decrease_index)) return -0.05f;
-	if (contains(increase_index)) return 0.05f;
+	if (contains(decrease_index)) return -VolumeStep;
+	if (contains(increase_index)) return VolumeStep;
 	return std::nullopt;
 }
 

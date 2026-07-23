@@ -11,10 +11,8 @@
 import Dreamhearth;
 import DreamhearthWindow;
 
-import AudioSystem;
+import Game;
 import Input;
-import IScene;
-import SceneManager;
 import SniffTheWayConstants;
 
 namespace dh = Dreamhearth;
@@ -80,12 +78,10 @@ void run_update_render_loop(
 		window.WakeEventLoop();
 		return;
 	}
-	dh::RenderContext render_context = std::move(render_context_result).value();
-
-	AudioSystem audio_system;
-	SceneManager scene_manager{audio_system, render_context, SceneTransition{ SceneId::Title }};
-	dh::RenderExtent render_extent = render_context.GetSwapChainExtent();
-	scene_manager.OnWindowResized(render_extent.width, render_extent.height);
+	
+	Game game{ std::move(render_context_result).value() };
+	dh::RenderExtent render_extent = game.GetRenderContext().GetSwapChainExtent();
+	game.OnWindowResized(render_extent.width, render_extent.height);
 
 	auto last_update_time = std::chrono::steady_clock::now();
 	bool swap_chain_needs_recreation = false;
@@ -96,17 +92,17 @@ void run_update_render_loop(
 		if (swap_chain_needs_recreation || window_size != last_window_size)
 		{
 			last_window_size = window_size;
-			auto recreate_result = render_context.RecreateSwapChain(window_size.width, window_size.height);
+			auto recreate_result = game.GetRenderContext().RecreateSwapChain(window_size.width, window_size.height);
 			if (!recreate_result)
 			{
 				on_error(recreate_result.error().GetMessage());
 				break;
 			}
 
-			render_extent = render_context.GetSwapChainExtent();
+			render_extent = game.GetRenderContext().GetSwapChainExtent();
 			swap_chain_needs_recreation = render_extent.width <= 0 || render_extent.height <= 0;
 			if (!swap_chain_needs_recreation)
-				scene_manager.OnWindowResized(render_extent.width, render_extent.height);
+				game.OnWindowResized(render_extent.width, render_extent.height);
 		}
 
 		// If the window is minimized, the swap chain extent is invalid. Wait until the window is restored before continuing.
@@ -123,9 +119,11 @@ void run_update_render_loop(
 		last_update_time = cur_time;
 
 		input.NewFrame();
-		scene_manager.Update(dt, input);
+		game.Update(dt, input);
 
-		dh::DrawFrameResult draw_result = window.DrawFrame(render_context, [&scene_manager]() { scene_manager.Render(); });
+		dh::DrawFrameResult draw_result = window.DrawFrame(
+			game.GetRenderContext(),
+			[&game]() { game.Render(); });
 
 		if (draw_result == dh::DrawFrameResult::SurfaceLost)
 			break; // The Cosmic compositor has issues
@@ -133,11 +131,11 @@ void run_update_render_loop(
 		if (draw_result == dh::DrawFrameResult::SwapChainOutOfDate)
 			swap_chain_needs_recreation = true;
 
-		if (!scene_manager.ApplyPendingTransition())
+		if (!game.ApplyPendingTransition())
 			break;
 	}
 
-	render_context.WaitForLastFrame();
+	game.GetRenderContext().WaitForLastFrame();
 	window.SetShouldClose(true); // signal main thread to exit
 	window.WakeEventLoop();
 }

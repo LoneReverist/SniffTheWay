@@ -35,6 +35,7 @@ public:
     bool ApplyPendingTransition();
 
     bool HasPendingTransition() const;
+    SceneTransition const * GetPendingTransition() const;
 
 private:
 	enum class TransitionState
@@ -46,7 +47,6 @@ private:
 	};
 
 	void set_transition_opacity(float opacity);
-	void update_audio(SniffTheWay::SceneId scene_id);
 	static bool is_story_gameplay_transition(SceneTransition const & transition);
 
 	static constexpr float DefaultTransitionDuration = 0.5f;
@@ -69,7 +69,6 @@ SceneManager::SceneManager(AudioSystem & audio_system, dh::RenderContext const &
 	: m_audio_system{ audio_system }
 	, m_render_context{ctx}
 {
-	update_audio(initial_trans.next_scene_id);
 	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context, m_audio_system);
 	if (m_cur_scene)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
@@ -136,7 +135,6 @@ bool SceneManager::ApplyPendingTransition()
 		return true;
 
 	SceneTransition const transition = *m_pending_scene_transition;
-	update_audio(transition.next_scene_id);
 	m_audio_system.SetTransitionVolume(1.0f);
 	m_render_context.WaitForLastFrame(); // GPU drains before old scene dies
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
@@ -171,72 +169,14 @@ bool SceneManager::HasPendingTransition() const
 		&& m_pending_scene_transition.has_value();
 }
 
+SceneTransition const * SceneManager::GetPendingTransition() const
+{
+	return HasPendingTransition() ? &*m_pending_scene_transition : nullptr;
+}
+
 void SceneManager::set_transition_opacity(float opacity)
 {
 	m_transition_opacity = std::clamp(opacity, 0.0f, 1.0f);
 	if (m_cur_scene)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
-}
-
-void SceneManager::update_audio(SceneId scene_id)
-{
-	switch (scene_id)
-	{
-	case SceneId::Title:
-		m_audio_system.PlayMusic(MusicCue::Title);
-		m_audio_system.StopAmbience();
-		break;
-	case SceneId::Picnic:
-		m_audio_system.PlayMusic(MusicCue::Picnic);
-		m_audio_system.StopAmbience();
-		break;
-	case SceneId::ForestPath:
-	case SceneId::ForestPath2:
-	case SceneId::RightTurn:
-	case SceneId::ForestLake:
-	case SceneId::Playground:
-	case SceneId::ForestHorizontal:
-	case SceneId::ThickerForestTransition:
-	case SceneId::BeforeCreek:
-		m_audio_system.PlayMusic(MusicCue::EarlyForest);
-		m_audio_system.PlayAmbience(AmbienceCue::EarlyForest);
-		break;
-	case SceneId::Creek:
-		m_audio_system.PlayMusic(MusicCue::Creek);
-		m_audio_system.PlayAmbience(AmbienceCue::Creek);
-		break;
-	case SceneId::AfterCreek:
-	case SceneId::GoldenIntersection:
-	case SceneId::FallenTree:
-	case SceneId::GoldenPath:
-	case SceneId::GoldenHour:
-	case SceneId::DeepForest:
-	case SceneId::DarkForest:
-	case SceneId::DarkForest2:
-		m_audio_system.PlayMusic(MusicCue::MiddleForest);
-		m_audio_system.PlayAmbience(AmbienceCue::MiddleForest);
-		break;
-	case SceneId::Night:
-		m_audio_system.PlayMusic(MusicCue::Night);
-		m_audio_system.StopAmbience();
-		break;
-	case SceneId::MorningForest:
-	case SceneId::MorningForest2:
-	case SceneId::DirtPath:
-	case SceneId::DirtIntersection:
-	case SceneId::BenchPath:
-	case SceneId::HousePath:
-		m_audio_system.PlayMusic(MusicCue::LateForest);
-		m_audio_system.PlayAmbience(AmbienceCue::LateForest);
-		break;
-	case SceneId::Home:
-	case SceneId::Credits:
-		m_audio_system.PlayMusic(MusicCue::Home);
-		m_audio_system.StopAmbience();
-		break;
-	default:
-		m_audio_system.StopMusic();
-		m_audio_system.StopAmbience();
-		break;
-	}
 }

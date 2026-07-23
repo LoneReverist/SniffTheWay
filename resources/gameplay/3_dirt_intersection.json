@@ -1,7 +1,6 @@
 {
   "id": "3_dirt_intersection",
   "background": "3_dirt_intersection.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -183,5 +182,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

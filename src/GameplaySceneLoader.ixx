@@ -15,10 +15,9 @@ module;
 export module GameplaySceneLoader;
 
 import GameplaySceneData;
+import GameplayMessageData;
 import Polygon2d;
 import SniffTheWayConstants;
-import StoryData;
-import UILabel;
 
 using json = nlohmann::ordered_json;
 
@@ -38,34 +37,6 @@ glm::vec3 parse_gameplay_vec3(json const & j, glm::vec3 fallback)
 	return glm::vec3{ j[0].get<float>(), j[1].get<float>(), j[2].get<float>() };
 }
 
-glm::vec4 parse_gameplay_vec4(json const & j, glm::vec4 fallback)
-{
-	if (!j.is_array() || j.size() != 4)
-		return fallback;
-
-	return glm::vec4{ j[0].get<float>(), j[1].get<float>(), j[2].get<float>(), j[3].get<float>() };
-}
-
-UILabel::Align parse_gameplay_align(std::string const & align)
-{
-	if (align == "left")
-		return UILabel::Align::Left;
-	if (align == "right")
-		return UILabel::Align::Right;
-
-	return UILabel::Align::Center;
-}
-
-SniffTheWay::SceneState parse_gameplay_scene_state(std::string const & state)
-{
-	if (state == "story")
-		return SniffTheWay::SceneState::Story;
-	if (state == "paused")
-		return SniffTheWay::SceneState::Paused;
-
-	return SniffTheWay::SceneState::Gameplay;
-}
-
 Polygon2d parse_gameplay_polygon(json const & j)
 {
 	std::vector<glm::vec2> vertices;
@@ -79,20 +50,33 @@ Polygon2d parse_gameplay_polygon(json const & j)
 	return Polygon2d{ std::move(vertices) };
 }
 
-StoryText parse_gameplay_story_text(json const & j)
+GameplayMessage parse_gameplay_message(json const & j)
 {
-	StoryText story_text;
-	story_text.text = j.value("text", "");
-	story_text.font_size = j.value("font_size", story_text.font_size);
-	if (j.contains("pos"))
-		story_text.pos = parse_gameplay_vec2(j["pos"], story_text.pos);
-	story_text.align = parse_gameplay_align(j.value("align", "center"));
-	story_text.show_time = j.value("show_time", story_text.show_time);
-	story_text.fade_duration = j.value("fade_duration", story_text.fade_duration);
-	if (j.contains("color"))
-		story_text.color = parse_gameplay_vec4(j["color"], story_text.color);
+	GameplayMessage message;
+	message.text = j.value("text", "");
+	message.hold_duration = j.value("hold_duration", message.hold_duration);
+	message.fade_in_duration = j.value("fade_in_duration", message.fade_in_duration);
+	message.fade_out_duration = j.value("fade_out_duration", message.fade_out_duration);
+	return message;
+}
 
-	return story_text;
+GameplayMessageRepeat parse_gameplay_message_repeat(std::string const & repeat)
+{
+	if (repeat != "none")
+		LOG(WARNING) << "GameplaySceneLoader: Unknown message repeat policy '" << repeat << "'. Using none.";
+
+	return GameplayMessageRepeat::None;
+}
+
+GameplayMessageTriggerData parse_gameplay_message_trigger(json const & j)
+{
+	GameplayMessageTriggerData message_trigger;
+	message_trigger.id = j.value("id", "");
+	if (j.contains("trigger"))
+		message_trigger.trigger = parse_gameplay_polygon(j["trigger"]);
+	message_trigger.repeat = parse_gameplay_message_repeat(j.value("repeat", "none"));
+	message_trigger.message = parse_gameplay_message(j.value("message", json::object()));
+	return message_trigger;
 }
 
 ScentTrailData parse_scent_trail(json const & j)
@@ -162,11 +146,6 @@ json serialize_gameplay_vec3(glm::vec3 value)
 	return json::array({ value.x, value.y, value.z });
 }
 
-json serialize_gameplay_vec4(glm::vec4 value)
-{
-	return json::array({ value.x, value.y, value.z, value.w });
-}
-
 json serialize_gameplay_polygon(Polygon2d const & polygon)
 {
 	json vertices = json::array();
@@ -176,48 +155,34 @@ json serialize_gameplay_polygon(Polygon2d const & polygon)
 	return vertices;
 }
 
-std::string serialize_gameplay_scene_state(SniffTheWay::SceneState state)
+std::string serialize_gameplay_message_repeat(GameplayMessageRepeat repeat)
 {
-	switch (state)
+	switch (repeat)
 	{
-	case SniffTheWay::SceneState::Story:
-		return "story";
-	case SniffTheWay::SceneState::Paused:
-		return "paused";
-	case SniffTheWay::SceneState::Editing:
-		return "gameplay";
-	case SniffTheWay::SceneState::Gameplay:
-		return "gameplay";
+	case GameplayMessageRepeat::None:
+		return "none";
 	}
 
-	return "gameplay";
+	return "none";
 }
 
-std::string serialize_gameplay_align(UILabel::Align align)
-{
-	switch (align)
-	{
-	case UILabel::Align::Left:
-		return "left";
-	case UILabel::Align::Right:
-		return "right";
-	case UILabel::Align::Center:
-		return "center";
-	}
-
-	return "center";
-}
-
-json serialize_gameplay_story_text(StoryText const & story_text)
+json serialize_gameplay_message(GameplayMessage const & message)
 {
 	return json{
-		{ "text", story_text.text },
-		{ "font_size", story_text.font_size },
-		{ "pos", serialize_gameplay_vec2(story_text.pos) },
-		{ "align", serialize_gameplay_align(story_text.align) },
-		{ "show_time", story_text.show_time },
-		{ "fade_duration", story_text.fade_duration },
-		{ "color", serialize_gameplay_vec4(story_text.color) }
+		{ "text", message.text },
+		{ "hold_duration", message.hold_duration },
+		{ "fade_in_duration", message.fade_in_duration },
+		{ "fade_out_duration", message.fade_out_duration }
+	};
+}
+
+json serialize_gameplay_message_trigger(GameplayMessageTriggerData const & message_trigger)
+{
+	return json{
+		{ "id", message_trigger.id },
+		{ "trigger", serialize_gameplay_polygon(message_trigger.trigger) },
+		{ "repeat", serialize_gameplay_message_repeat(message_trigger.repeat) },
+		{ "message", serialize_gameplay_message(message_trigger.message) }
 	};
 }
 
@@ -260,7 +225,6 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 		root["id"] = existing_root["id"];
 
 	root["background"] = scene_data.bg_image_filename;
-	root["initial_state"] = serialize_gameplay_scene_state(scene_data.initial_state);
 	root["camera"] = serialize_gameplay_camera(scene_data.camera);
 	root["bounds"] = serialize_gameplay_polygon(scene_data.bounds);
 	json scent_trails = json::array();
@@ -273,10 +237,10 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 		scene_links.push_back(serialize_gameplay_scene_link(scene_link));
 	root["scene_links"] = std::move(scene_links);
 
-	json story_texts = json::array();
-	for (StoryText const & story_text : scene_data.story_texts)
-		story_texts.push_back(serialize_gameplay_story_text(story_text));
-	root["story_texts"] = std::move(story_texts);
+	json message_triggers = json::array();
+	for (GameplayMessageTriggerData const & message_trigger : scene_data.message_triggers)
+		message_triggers.push_back(serialize_gameplay_message_trigger(message_trigger));
+	root["message_triggers"] = std::move(message_triggers);
 
 	for (auto const & [key, value] : existing_root.items())
 	{
@@ -288,6 +252,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 			key != "default_spawn" &&
 			key != "scent_trails" &&
 			key != "story_texts" &&
+			key != "message_triggers" &&
 			key != "scene_links")
 		{
 			root[key] = value;
@@ -316,7 +281,6 @@ export namespace GameplaySceneLoader
 			file >> root;
 
 			scene_data.bg_image_filename = root.value("background", "");
-			scene_data.initial_state = parse_gameplay_scene_state(root.value("initial_state", "gameplay"));
 			if (root.contains("camera"))
 				scene_data.camera = parse_gameplay_camera(root["camera"], scene_data.camera);
 
@@ -326,8 +290,8 @@ export namespace GameplaySceneLoader
 			for (json const & scent_trail_json : root.value("scent_trails", json::array()))
 				scene_data.scent_trails.push_back(parse_scent_trail(scent_trail_json));
 
-			for (json const & text_json : root.value("story_texts", json::array()))
-				scene_data.story_texts.push_back(parse_gameplay_story_text(text_json));
+			for (json const & message_trigger_json : root.value("message_triggers", json::array()))
+				scene_data.message_triggers.push_back(parse_gameplay_message_trigger(message_trigger_json));
 
 			for (json const & scene_link_json : root.value("scene_links", json::array()))
 				scene_data.scene_links.push_back(parse_gameplay_scene_link(scene_link_json));

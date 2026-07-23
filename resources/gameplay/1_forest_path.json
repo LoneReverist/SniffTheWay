@@ -1,7 +1,6 @@
 {
   "id": "1_forest_path",
   "background": "1_forest_path.png",
-  "initial_state": "story",
   "camera": {
     "position": [
       0.0,
@@ -154,91 +153,78 @@
       ]
     }
   ],
-  "story_texts": [
+  "message_triggers": [
     {
-      "text": "Follow the scent.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
+      "id": "entry_hint",
+      "trigger": [
+        [
+          -1.15,
+          -3.5
+        ],
+        [
+          0.0,
+          -3.5
+        ],
+        [
+          0.0,
+          -2.4
+        ],
+        [
+          -1.15,
+          -2.4
+        ]
       ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
+      "repeat": "none",
+      "message": {
+        "text": "Follow the scent.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
     },
     {
-      "text": "Sniff...",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
+      "id": "sniff",
+      "trigger": [],
+      "repeat": "none",
+      "message": {
+        "text": "Sniff...",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
     },
     {
-      "text": "Something feels familiar.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
+      "id": "something_familiar",
+      "trigger": [],
+      "repeat": "none",
+      "message": {
+        "text": "Something feels familiar.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
     },
     {
-      "text": "Not this way.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
+      "id": "not_this_way",
+      "trigger": [],
+      "repeat": "none",
+      "message": {
+        "text": "Not this way.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
     },
     {
-      "text": "So many smells...<pause>But none feel like home.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
+      "id": "many_smells",
+      "trigger": [],
+      "repeat": "none",
+      "message": {
+        "text": "So many smells...<pause>But none feel like home.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
     }
   ]
 }

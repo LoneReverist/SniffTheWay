@@ -1,7 +1,6 @@
 {
   "id": "2_dark_forest",
   "background": "2_dark_forest.png",
-  "initial_state": "story",
   "camera": {
     "position": [
       0.0,
@@ -158,74 +157,5 @@
       ]
     }
   ],
-  "story_texts": [
-    {
-      "text": "Keep moving forward.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
-    },
-    {
-      "text": "The woods feel quieter now.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
-    },
-    {
-      "text": "Stay close.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
-    },
-    {
-      "text": "Stronger…",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
-      ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
-    }
-  ]
+  "message_triggers": []
 }

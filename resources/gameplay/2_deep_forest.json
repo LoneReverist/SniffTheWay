@@ -1,7 +1,6 @@
 {
   "id": "2_deep_forest",
   "background": "2_deep_forest.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -142,5 +141,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

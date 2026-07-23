@@ -1,7 +1,6 @@
 {
   "id": "2_golden_intersection",
   "background": "2_golden_intersection.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -206,5 +205,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

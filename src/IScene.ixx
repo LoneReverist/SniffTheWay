@@ -10,10 +10,18 @@ import GameViewport;
 import Input;
 import SniffTheWayConstants;
 
+export enum class PlaythroughAction
+{
+	None,
+	StartNew,
+	End,
+};
+
 export struct SceneTransition
 {
 	SniffTheWay::SceneId next_scene_id;
 	std::optional<SniffTheWay::SceneId> previous_scene_id = std::nullopt;
+	PlaythroughAction playthrough_action = PlaythroughAction::None;
 };
 
 export class IScene

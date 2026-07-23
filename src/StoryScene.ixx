@@ -246,7 +246,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 			m_settings_overlay.SetVisible(true);
 			break;
 		case PauseAction::ReturnToTitle:
-			return SceneTransition{ SceneId::Title, m_scene_id };
+			return SceneTransition{ SceneId::Title, m_scene_id, PlaythroughAction::End };
 		case PauseAction::Exit:
 			return SceneTransition{ SceneId::Exit };
 		case PauseAction::None:
@@ -278,7 +278,11 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 			}
 			else if (!page_forward())
 			{
-				return SceneTransition{ m_scene_data.next_scene_id, m_scene_id };
+				const PlaythroughAction playthrough_action =
+					m_scene_data.next_scene_id == SceneId::Credits
+					? PlaythroughAction::End
+					: PlaythroughAction::None;
+				return SceneTransition{ m_scene_data.next_scene_id, m_scene_id, playthrough_action };
 			}
 		}
 

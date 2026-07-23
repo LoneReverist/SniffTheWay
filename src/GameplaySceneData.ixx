@@ -9,9 +9,9 @@ module;
 
 export module GameplaySceneData;
 
+import GameplayMessageData;
 import Polygon2d;
 import SniffTheWayConstants;
-import StoryData;
 
 export struct GameplaySceneLink
 {
@@ -33,13 +33,25 @@ export struct GameplayCameraData
 	float fov_degrees = 45.0f;
 };
 
+export enum class GameplayMessageRepeat
+{
+	None,
+};
+
+export struct GameplayMessageTriggerData
+{
+	std::string id;
+	Polygon2d trigger;
+	GameplayMessageRepeat repeat = GameplayMessageRepeat::None;
+	GameplayMessage message;
+};
+
 export struct GameplaySceneData
 {
 	std::string bg_image_filename;
-	SniffTheWay::SceneState initial_state = SniffTheWay::SceneState::Gameplay;
 	GameplayCameraData camera;
 	Polygon2d bounds;
 	std::vector<ScentTrailData> scent_trails;
-	std::vector<StoryText> story_texts;
+	std::vector<GameplayMessageTriggerData> message_triggers;
 	std::vector<GameplaySceneLink> scene_links;
 };

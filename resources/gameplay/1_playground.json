@@ -1,7 +1,6 @@
 {
   "id": "1_playground",
   "background": "1_playground.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -247,5 +246,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

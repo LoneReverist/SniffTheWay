@@ -1,7 +1,6 @@
 {
   "id": "3_morning_forest",
   "background": "3_morning_forest.png",
-  "initial_state": "story",
   "camera": {
     "position": [
       0.0,
@@ -129,23 +128,34 @@
       ]
     }
   ],
-  "story_texts": [
+  "message_triggers": [
     {
-      "text": "Follow the scent of home.",
-      "font_size": 36.0,
-      "pos": [
-        960.0,
-        918.0
+      "id": "entry_hint",
+      "trigger": [
+        [
+          -0.8,
+          -4.3
+        ],
+        [
+          0.4,
+          -4.3
+        ],
+        [
+          0.4,
+          -3.2
+        ],
+        [
+          -0.8,
+          -3.2
+        ]
       ],
-      "align": "center",
-      "show_time": 0.0,
-      "fade_duration": 0.5,
-      "color": [
-        0.9300000071525574,
-        0.8899999856948853,
-        0.699999988079071,
-        1.0
-      ]
+      "repeat": "none",
+      "message": {
+        "text": "Follow the scent of home.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
     }
   ]
 }

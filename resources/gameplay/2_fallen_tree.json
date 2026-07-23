@@ -1,7 +1,6 @@
 {
   "id": "2_fallen_tree",
   "background": "2_fallen_tree.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -132,5 +131,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

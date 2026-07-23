@@ -1,7 +1,6 @@
 {
   "id": "2_after_creek",
   "background": "2_after_creek.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -146,5 +145,67 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": [
+    {
+      "id": "entry_hint",
+      "trigger": [
+        [
+          0.4,
+          9.4
+        ],
+        [
+          1.6,
+          9.4
+        ],
+        [
+          1.6,
+          10.6
+        ],
+        [
+          0.4,
+          10.6
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "Keep moving forward.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    },
+    {
+      "id": "woods_quieter",
+      "trigger": [],
+      "repeat": "none",
+      "message": {
+        "text": "The woods feel quieter now.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    },
+    {
+      "id": "stay_close",
+      "trigger": [],
+      "repeat": "none",
+      "message": {
+        "text": "Stay close.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    },
+    {
+      "id": "stronger",
+      "trigger": [],
+      "repeat": "none",
+      "message": {
+        "text": "Stronger…",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

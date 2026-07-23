@@ -2,6 +2,7 @@
 
 module;
 
+#include <optional>
 #include <utility>
 
 export module Game;
@@ -11,6 +12,7 @@ import Dreamhearth;
 import AudioSystem;
 import Input;
 import IScene;
+import Playthrough;
 import SceneManager;
 import SniffTheWayConstants;
 
@@ -45,12 +47,14 @@ private:
 	// and Game's stable address are part of the ownership contract.
 	dh::RenderContext m_render_context;
 	AudioSystem m_audio_system;
+	std::optional<Playthrough> m_playthrough;
 	SceneManager m_scene_manager;
 };
 
 Game::Game(dh::RenderContext render_context)
 	: m_render_context{ std::move(render_context) }
 	, m_audio_system{}
+	, m_playthrough{}
 	, m_scene_manager{ m_audio_system, m_render_context, SceneTransition{ SceneId::Title } }
 {
 	update_audio(SceneId::Title);
@@ -73,10 +77,31 @@ void Game::Render() const
 
 bool Game::ApplyPendingTransition()
 {
+	bool end_playthrough = false;
 	if (SceneTransition const * transition = m_scene_manager.GetPendingTransition())
-		update_audio(transition->next_scene_id);
+	{
+		switch (transition->playthrough_action)
+		{
+		case PlaythroughAction::StartNew:
+			m_playthrough.emplace();
+			break;
+		case PlaythroughAction::End:
+			end_playthrough = true;
+			break;
+		case PlaythroughAction::None:
+			break;
+		}
 
-	return m_scene_manager.ApplyPendingTransition();
+		update_audio(transition->next_scene_id);
+	}
+
+	const bool should_continue = m_scene_manager.ApplyPendingTransition(
+		m_playthrough ? &*m_playthrough : nullptr);
+		
+	if (end_playthrough)
+		m_playthrough.reset();
+
+	return should_continue;
 }
 
 void Game::update_audio(SceneId scene_id)

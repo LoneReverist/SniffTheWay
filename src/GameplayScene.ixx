@@ -22,7 +22,6 @@ import Baby;
 import Background;
 import Texture2dPipeline;
 import Camera;
-import ColorPipeline;
 import Dog;
 import FontAtlas;
 #ifdef _DEBUG
@@ -34,9 +33,11 @@ import GameplaySceneEditor;
 #endif
 import GameplaySceneData;
 import GameplaySceneLoader;
+import GameplayMessageOverlay;
 import Input;
 import IScene;
 import PauseOverlay;
+import Playthrough;
 import SceneRenderer;
 import SceneFadeOverlay;
 import SettingsOverlay;
@@ -44,10 +45,7 @@ import ScentTrail;
 import ScentTrailPipeline;
 import SniffTheWayConstants;
 import SpritePipeline;
-import StoryData;
 import TextPipeline;
-import UIDarkBackdrop;
-import UILabel;
 import Vertex;
 
 namespace dh = Dreamhearth;
@@ -59,6 +57,7 @@ public:
 	explicit GameplayScene(
 		dh::RenderContext const & render_context,
 		AudioSystem & audio_system,
+		Playthrough & playthrough,
 		SceneId scene_id,
 		SceneTransition const & transition);
 
@@ -78,15 +77,16 @@ private:
 	void apply_camera_data();
 	void store_camera_data();
 	void refresh_character_camera_facing();
-	void apply_story_labels();
 	std::pair<glm::vec2, glm::vec2> get_default_spawn_positions() const;
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
-	void create_story_labels(PipelineId<TextPipeline> text_pipeline_id);
+	void reset_message_triggers();
+	void update_message_triggers(glm::vec2 dog_pos);
 	void recreate_scent_trails(glm::vec2 dog_pos);
 	void pause();
 	void resume();
 
 private:
+	Playthrough & m_playthrough;
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
@@ -110,9 +110,8 @@ private:
 #ifdef _DEBUG
 	FPSLabel m_fps_label;
 #endif
-	UILabel m_controls_label;
-	std::vector<UILabel> m_story_labels;
-	UIDarkBackdrop m_story_shadow;
+	GameplayMessageOverlay m_gameplay_message_overlay;
+	std::vector<bool> m_message_trigger_was_inside;
 	PauseOverlay m_pause_overlay;
 	SettingsOverlay m_settings_overlay;
 	SceneFadeOverlay m_scene_fade_overlay;
@@ -125,9 +124,11 @@ private:
 GameplayScene::GameplayScene(
 	dh::RenderContext const & render_context,
 	AudioSystem & audio_system,
+	Playthrough & playthrough,
 	SceneId scene_id,
 	SceneTransition const & transition)
-	: m_asset_manager{ render_context }
+	: m_playthrough{ playthrough }
+	, m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
@@ -150,7 +151,6 @@ GameplayScene::GameplayScene(
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	m_scent_trail_pipeline_id = m_asset_manager.AddPipeline<ScentTrailPipeline>(m_camera3d);
-	const auto color_pipeline_id = m_asset_manager.AddPipeline<ColorPipeline>(m_camera2d);
 	m_text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
 	m_bg_tex_id = m_asset_manager.AddTexture(m_asset_manager.GetTexturesPath() / "gameplay_backgrounds" / m_scene_data.bg_image_filename,
@@ -171,25 +171,17 @@ GameplayScene::GameplayScene(
 	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos);
 	m_renderer.CreateRenderObject("baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 
-	m_story_shadow.Init(m_asset_manager, 0 /*left*/, UIWidth /*right*/, UIHeight * 0.75f /*top*/, UIHeight /*bottom*/, 0.6f /*alpha_top*/, 1.0f /*alpha_bottom*/);
-	m_story_shadow.SetROId(m_renderer.CreateRenderObject("story shadow", RenderLayer::UIShadow, m_story_shadow.GetMeshId(), color_pipeline_id));
-
 #ifdef _DEBUG
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
 #endif
 
-	m_controls_label.Init(m_asset_manager, "(Press [Space] to continue)", m_font_atlas,
-		LabelFontSize, glm::vec2{ 960, 1026 } /*origin*/, UILabel::Align::Center, StoryTextColor);
-	m_controls_label.SetROId(m_renderer.CreateRenderObject("controls label", RenderLayer::UIForeground, m_controls_label.GetMeshId(), m_text_pipeline_id, m_controls_label.GetPipelineData()));
-
-	create_story_labels(m_text_pipeline_id);
+	m_gameplay_message_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	reset_message_triggers();
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 
-	const bool arrived_from_gameplay_scene = transition.previous_scene_id.has_value()
-		&& IsGameplayScene(transition.previous_scene_id.value());
-	ChangeSceneState(arrived_from_gameplay_scene ? SceneState::Gameplay : m_scene_data.initial_state);
+	ChangeSceneState(SceneState::Gameplay);
 }
 
 void GameplayScene::OnViewportChanged(GameViewport const & viewport)
@@ -234,7 +226,7 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 			m_settings_overlay.SetVisible(true);
 			break;
 		case PauseAction::ReturnToTitle:
-			return SceneTransition{ SceneId::Title, m_scene_id };
+			return SceneTransition{ SceneId::Title, m_scene_id, PlaythroughAction::End };
 		case PauseAction::Exit:
 			return SceneTransition{ SceneId::Exit };
 		case PauseAction::None:
@@ -242,9 +234,6 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		}
 		return std::nullopt;
 	}
-
-	if (m_scene_state == SceneState::Story && input.KeyJustPressed(Input::Key::Space))
-		ChangeSceneState(SceneState::Gameplay);
 
 	m_camera3d.Update(dt, input);
 
@@ -304,6 +293,9 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	if (m_scene_state == SceneState::Gameplay)
 	{
+		m_gameplay_message_overlay.Update(dt);
+		update_message_triggers(dog_pos);
+
 		for (GameplaySceneLink const & scene_link : m_scene_data.scene_links)
 		{
 			if (scene_link.trigger.Contains(dog_pos))
@@ -329,6 +321,7 @@ void GameplayScene::Render() const
 #ifdef _DEBUG
 	m_fps_label.RenderOffscreenTexture();
 #endif
+	m_gameplay_message_overlay.RenderOffscreenTexture();
 	m_renderer.Render();
 }
 
@@ -338,15 +331,6 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 
 	m_dog.OnSceneStateChanged(m_scene_state);
 	m_baby.OnSceneStateChanged(m_scene_state);
-
-	const SceneState visible_scene_state = m_scene_state == SceneState::Paused
-		? m_state_before_pause
-		: m_scene_state;
-	const bool show_story_ui = visible_scene_state == SceneState::Story;
-	m_renderer.Show(m_controls_label.GetROId(), show_story_ui);
-	m_renderer.Show(m_story_shadow.GetROId(), show_story_ui);
-	for (UILabel const & story_label : m_story_labels)
-		m_renderer.Show(story_label.GetROId(), show_story_ui);
 
 #ifdef _DEBUG
 	m_editor.OnSceneStateChanged(m_scene_state, m_asset_manager, m_renderer);
@@ -388,7 +372,8 @@ void GameplayScene::reload_scene_data()
 	m_scene_data = std::move(reloaded_scene_data);
 	apply_camera_data();
 	reload_background_texture();
-	apply_story_labels();
+	m_gameplay_message_overlay.Hide();
+	reset_message_triggers();
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_default_spawn_positions();
 	m_dog.Reload(m_camera3d.GetDir(), dog_spawn_pos);
 	m_baby.Reload(m_camera3d.GetDir(), baby_spawn_pos);
@@ -443,31 +428,6 @@ void GameplayScene::reload_background_texture()
 		m_asset_manager.RemoveTexture(old_bg_tex_id);
 }
 
-void GameplayScene::apply_story_labels()
-{
-	if (m_story_labels.empty())
-	{
-		if (!m_scene_data.story_texts.empty())
-			create_story_labels(m_text_pipeline_id);
-		return;
-	}
-
-	if (m_scene_data.story_texts.empty())
-	{
-		m_renderer.Show(m_story_labels[0].GetROId(), false);
-		return;
-	}
-
-	StoryText const & story_text = m_scene_data.story_texts[0];
-	UILabel & story_label = m_story_labels[0];
-	story_label.SetText(story_text.text);
-	story_label.SetFontSize(story_text.font_size);
-	story_label.SetOrigin(story_text.pos);
-	story_label.SetAlign(story_text.align);
-	story_label.SetTextColor(story_text.color);
-	m_renderer.Show(story_label.GetROId(), m_scene_state == SceneState::Story);
-}
-
 std::pair<glm::vec2, glm::vec2> GameplayScene::get_spawn_positions(SceneTransition const & transition) const
 {
 	if (transition.previous_scene_id.has_value())
@@ -493,29 +453,32 @@ std::pair<glm::vec2, glm::vec2> GameplayScene::get_default_spawn_positions() con
 	return { glm::vec2{ 0.0f }, glm::vec2{ 0.0f } };
 }
 
-void GameplayScene::create_story_labels(PipelineId<TextPipeline> text_pipeline_id)
+void GameplayScene::reset_message_triggers()
 {
-	if (m_scene_data.story_texts.empty())
-		return;
-		
-	m_story_labels.resize(1);
-	StoryText const & story_text = m_scene_data.story_texts[0];
-	UILabel & story_label = m_story_labels[0];
-	story_label.Init(m_asset_manager, story_text.text, m_font_atlas,
-		story_text.font_size, story_text.pos, story_text.align, story_text.color);
-	story_label.SetROId(m_renderer.CreateRenderObject("story label " + std::to_string(1),
-		RenderLayer::UIForeground, story_label.GetMeshId(), text_pipeline_id, story_label.GetPipelineData()));
+	m_message_trigger_was_inside.assign(m_scene_data.message_triggers.size(), false);
+}
 
-//	m_story_labels.resize(m_scene_data.story_texts.size());
-//	for (std::size_t i = 0; i < m_scene_data.story_texts.size(); ++i)
-//	{
-//		StoryText const & story_text = m_scene_data.story_texts[i];
-//		UILabel & story_label = m_story_labels[i];
-//		story_label.Init(m_asset_manager, story_text.text, m_font_atlas,
-//			story_text.font_size, story_text.pos, story_text.align, story_text.color);
-//		story_label.SetROId(m_renderer.CreateRenderObject("story label " + std::to_string(i + 1),
-//			RenderLayer::UIForeground, story_label.GetMeshId(), text_pipeline_id, story_label.GetPipelineData()));
-//	}
+void GameplayScene::update_message_triggers(glm::vec2 dog_pos)
+{
+	for (std::size_t i = 0; i < m_scene_data.message_triggers.size(); ++i)
+	{
+		GameplayMessageTriggerData const & message_trigger = m_scene_data.message_triggers[i];
+		const bool is_inside = message_trigger.trigger.IsValid()
+			&& message_trigger.trigger.Contains(dog_pos);
+		const bool entered = is_inside && !m_message_trigger_was_inside[i];
+		m_message_trigger_was_inside[i] = is_inside;
+
+		if (!entered || message_trigger.id.empty())
+			continue;
+
+		switch (message_trigger.repeat)
+		{
+		case GameplayMessageRepeat::None:
+			if (m_playthrough.TryTrigger(m_scene_id, message_trigger.id))
+				m_gameplay_message_overlay.Show(message_trigger.message);
+			break;
+		}
+	}
 }
 
 void GameplayScene::recreate_scent_trails(glm::vec2 dog_pos)

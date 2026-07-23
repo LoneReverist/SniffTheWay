@@ -1,7 +1,6 @@
 {
   "id": "3_bench_path",
   "background": "3_bench_path.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -171,5 +170,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

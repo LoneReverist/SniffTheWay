@@ -1,7 +1,6 @@
 {
   "id": "1_thicker_forest_transition",
   "background": "1_thicker_forest_transition.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.022499985992908478,
@@ -187,5 +186,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

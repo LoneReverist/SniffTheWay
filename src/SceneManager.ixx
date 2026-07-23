@@ -14,6 +14,7 @@ import AudioSystem;
 import GameViewport;
 import Input;
 import IScene;
+import Playthrough;
 import SceneRegistry;
 import SniffTheWayConstants;
 
@@ -32,7 +33,7 @@ public:
 
     // Destroys the old scene (and its GPU resources) safely, then builds the next.
     // Returns false when the app should exit.
-    bool ApplyPendingTransition();
+    bool ApplyPendingTransition(Playthrough * playthrough);
 
     bool HasPendingTransition() const;
     SceneTransition const * GetPendingTransition() const;
@@ -69,7 +70,7 @@ SceneManager::SceneManager(AudioSystem & audio_system, dh::RenderContext const &
 	: m_audio_system{ audio_system }
 	, m_render_context{ctx}
 {
-	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context, m_audio_system);
+	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context, m_audio_system, nullptr);
 	if (m_cur_scene)
 		m_cur_scene->SetTransitionOpacity(m_transition_opacity);
 }
@@ -129,7 +130,7 @@ void SceneManager::Render() const
 	}
 }
 
-bool SceneManager::ApplyPendingTransition()
+bool SceneManager::ApplyPendingTransition(Playthrough * playthrough)
 {
 	if (!HasPendingTransition())
 		return true;
@@ -139,7 +140,7 @@ bool SceneManager::ApplyPendingTransition()
 	m_render_context.WaitForLastFrame(); // GPU drains before old scene dies
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
 
-	m_cur_scene = m_scene_registry.Create(transition, m_render_context, m_audio_system);
+	m_cur_scene = m_scene_registry.Create(transition, m_render_context, m_audio_system, playthrough);
 	if (!m_cur_scene)
 		return false;
 

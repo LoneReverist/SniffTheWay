@@ -238,7 +238,7 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	if ((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown()) || m_start_button.WasActivated())
 	{
 		m_audio_system->PlaySound(SoundCue::ShortChime);
-		return SceneTransition{ SceneId::Picnic, SceneId::Title };
+		return SceneTransition{ SceneId::Picnic, SceneId::Title, PlaythroughAction::StartNew };
 	}
 	if (m_credits_button.WasActivated())
 	{

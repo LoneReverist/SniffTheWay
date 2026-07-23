@@ -1,7 +1,6 @@
 {
   "id": "1_forest_horizontal",
   "background": "1_forest_horizontal.png",
-  "initial_state": "gameplay",
   "camera": {
     "position": [
       0.0,
@@ -175,5 +174,5 @@
       ]
     }
   ],
-  "story_texts": []
+  "message_triggers": []
 }

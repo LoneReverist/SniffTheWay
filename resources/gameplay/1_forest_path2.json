@@ -182,5 +182,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "trail_is_faint",
+      "trigger": [
+        [
+          -1.0065107345581055,
+          1.2216596603393555
+        ],
+        [
+          1.7862001657485962,
+          0.8551154136657715
+        ],
+        [
+          2.216736316680908,
+          2.8058032989501953
+        ],
+        [
+          -1.0512419939041138,
+          2.9207682609558105
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "Their trail is faint... but it's here.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

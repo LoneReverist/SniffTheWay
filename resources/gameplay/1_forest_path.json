@@ -181,50 +181,6 @@
         "fade_in_duration": 0.25,
         "fade_out_duration": 0.75
       }
-    },
-    {
-      "id": "sniff",
-      "trigger": [],
-      "repeat": "none",
-      "message": {
-        "text": "Sniff...",
-        "hold_duration": 4.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
-      }
-    },
-    {
-      "id": "something_familiar",
-      "trigger": [],
-      "repeat": "none",
-      "message": {
-        "text": "Something feels familiar.",
-        "hold_duration": 4.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
-      }
-    },
-    {
-      "id": "not_this_way",
-      "trigger": [],
-      "repeat": "none",
-      "message": {
-        "text": "Not this way.",
-        "hold_duration": 4.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
-      }
-    },
-    {
-      "id": "many_smells",
-      "trigger": [],
-      "repeat": "none",
-      "message": {
-        "text": "So many smells...<pause>But none feel like home.",
-        "hold_duration": 4.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
-      }
     }
   ]
 }

@@ -131,5 +131,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "fallen_tree_blocked",
+      "trigger": [
+        [
+          -1.6525250673294067,
+          -2.1464669704437256
+        ],
+        [
+          0.9213487505912781,
+          -2.2328031063079834
+        ],
+        [
+          1.3394321203231812,
+          1.3311868906021118
+        ],
+        [
+          -2.413461685180664,
+          1.9062052965164185
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "This tree is too big for us to pass.\nWe'll have to find another way.",
+        "hold_duration": 5.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

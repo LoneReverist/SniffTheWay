@@ -174,5 +174,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "water_ahead",
+      "trigger": [
+        [
+          -1.8799993991851807,
+          8.200003623962402
+        ],
+        [
+          2.359999895095825,
+          8.320003509521484
+        ],
+        [
+          2.909999370574951,
+          14.699999809265137
+        ],
+        [
+          -1.2000000476837158,
+          14.34000015258789
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "Water ahead.",
+        "hold_duration": 3.5,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

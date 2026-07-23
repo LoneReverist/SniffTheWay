@@ -149,5 +149,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "one_step_at_a_time",
+      "trigger": [
+        [
+          2.0932791233062744,
+          -0.7576264142990112
+        ],
+        [
+          3.0,
+          0.20000000298023224
+        ],
+        [
+          6.331653118133545,
+          9.691880226135254
+        ],
+        [
+          4.229020118713379,
+          7.751775741577148
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "One step at a time.",
+        "hold_duration": 3.5,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

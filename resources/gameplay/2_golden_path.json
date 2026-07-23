@@ -153,5 +153,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "deeper_route",
+      "trigger": [
+        [
+          0.01562247984111309,
+          -3.3777976036071777
+        ],
+        [
+          0.5673338174819946,
+          -3.3887290954589844
+        ],
+        [
+          1.7514019012451172,
+          4.349186897277832
+        ],
+        [
+          0.08516755700111389,
+          2.2273571491241455
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "Deeper into the woods... it's our only way.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

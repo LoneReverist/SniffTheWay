@@ -173,39 +173,6 @@
         "fade_in_duration": 0.25,
         "fade_out_duration": 0.75
       }
-    },
-    {
-      "id": "woods_quieter",
-      "trigger": [],
-      "repeat": "none",
-      "message": {
-        "text": "The woods feel quieter now.",
-        "hold_duration": 4.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
-      }
-    },
-    {
-      "id": "stay_close",
-      "trigger": [],
-      "repeat": "none",
-      "message": {
-        "text": "Stay close.",
-        "hold_duration": 4.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
-      }
-    },
-    {
-      "id": "stronger",
-      "trigger": [],
-      "repeat": "none",
-      "message": {
-        "text": "Stronger…",
-        "hold_duration": 4.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
-      }
     }
   ]
 }

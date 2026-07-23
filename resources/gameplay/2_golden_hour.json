@@ -133,5 +133,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "light_fading",
+      "trigger": [
+        [
+          -5.54679012298584,
+          4.24937105178833
+        ],
+        [
+          -4.0850443840026855,
+          3.822561740875244
+        ],
+        [
+          -2.1322073936462402,
+          -1.7412488460540771
+        ],
+        [
+          -2.9505996704101563,
+          -1.4484347105026245
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "The light is fading.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

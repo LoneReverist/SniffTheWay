@@ -157,5 +157,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "stay_close",
+      "trigger": [
+        [
+          -1.307065486907959,
+          1.1222422122955322
+        ],
+        [
+          1.2957098484039307,
+          1.2874786853790283
+        ],
+        [
+          1.7476378679275513,
+          2.966325044631958
+        ],
+        [
+          -1.4733377695083618,
+          3.3446877002716064
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "Stay close. I won't lose you.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

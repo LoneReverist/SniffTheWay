@@ -246,5 +246,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "many_smells",
+      "trigger": [
+        [
+          -1.0001146793365479,
+          -4.268886089324951
+        ],
+        [
+          0.7077909111976624,
+          -4.336723327636719
+        ],
+        [
+          2.1171834468841553,
+          1.4262049198150635
+        ],
+        [
+          -1.2399120330810547,
+          1.1486234664916992
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "So many smells...\nBut none feel like home.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

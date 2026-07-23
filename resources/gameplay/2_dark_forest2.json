@@ -137,5 +137,34 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "need_to_rest",
+      "trigger": [
+        [
+          -0.5147745013237,
+          -2.352020263671875
+        ],
+        [
+          1.3287705183029175,
+          -2.401294708251953
+        ],
+        [
+          1.6405009031295776,
+          -0.668891191482544
+        ],
+        [
+          -0.6276422142982483,
+          -0.8497488498687744
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "He's tired. We need to rest.",
+        "hold_duration": 4.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
+    }
+  ]
 }

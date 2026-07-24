@@ -77,6 +77,7 @@ private:
 	void apply_camera_data();
 	void store_camera_data();
 	void refresh_character_camera_facing();
+	void order_characters_for_rendering();
 	std::pair<glm::vec2, glm::vec2> get_default_spawn_positions() const;
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
 	void reset_message_triggers();
@@ -104,6 +105,8 @@ private:
 	std::vector<AssetId> m_scent_trail_ro_ids;
 	Dog m_dog;
 	Baby m_baby;
+	AssetId m_dog_ro_id;
+	AssetId m_baby_ro_id;
 
 	FontAtlas m_font_atlas;
 	PipelineId<TextPipeline> m_text_pipeline_id;
@@ -166,10 +169,13 @@ GameplayScene::GameplayScene(
 #endif
 
 	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_spawn_pos);
-	m_renderer.CreateRenderObject("dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
+	m_dog_ro_id = m_renderer.CreateRenderObject(
+		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
 	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos);
-	m_renderer.CreateRenderObject("baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
+	m_baby_ro_id = m_renderer.CreateRenderObject(
+		"baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
+	order_characters_for_rendering();
 
 #ifdef _DEBUG
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
@@ -286,6 +292,7 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
+	order_characters_for_rendering();
 
 	const glm::vec2 dog_pos = m_dog.GetPosition();
 	for (std::size_t i = 0; i < m_scene_data.scent_trails.size() && i < m_scent_trails.size(); ++i)
@@ -407,6 +414,21 @@ void GameplayScene::refresh_character_camera_facing()
 {
 	m_dog.Reload(m_camera3d.GetDir(), m_dog.GetPosition());
 	m_baby.Reload(m_camera3d.GetDir(), m_baby.GetPosition());
+}
+
+void GameplayScene::order_characters_for_rendering()
+{
+	// Draw the farther transparent sprite first so the nearer sprite's soft edges blend over it.
+	glm::vec3 const camera_pos = m_camera3d.GetPosition();
+	glm::vec3 const camera_dir = m_camera3d.GetDir();
+	float const dog_depth = glm::dot(glm::vec3{ m_dog.GetPosition(), 0.0f } - camera_pos, camera_dir);
+	float const baby_depth = glm::dot(glm::vec3{ m_baby.GetPosition(), 0.0f } - camera_pos, camera_dir);
+
+	constexpr float DepthEpsilon = 1e-4f;
+	if (dog_depth > baby_depth + DepthEpsilon)
+		m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, m_dog_ro_id, m_baby_ro_id);
+	else if (baby_depth > dog_depth + DepthEpsilon)
+		m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, m_baby_ro_id, m_dog_ro_id);
 }
 
 void GameplayScene::reload_background_texture()

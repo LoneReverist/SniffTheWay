@@ -2,6 +2,7 @@
 
 module;
 
+#include <algorithm>
 #include <optional>
 #include <span>
 #include <string>
@@ -40,6 +41,7 @@ public:
 		PipelineIdT pipeline_id,
 		ObjectDataT const & object_data = std::nullopt);
 	void RemoveRenderObject(AssetId ro_id);
+	void SetRenderObjectBefore(RenderLayer layer, AssetId ro_id, AssetId before_ro_id);
 
 	RenderObject * GetRenderObject(AssetId ro_id) { return m_render_object_pool.Get(ro_id); }
 
@@ -113,6 +115,20 @@ void SceneRenderer::RemoveRenderObject(AssetId ro_id)
 	for (std::vector<AssetId> & layer_ro_ids : m_render_layers)
 		std::erase(layer_ro_ids, ro_id);
 	m_render_object_pool.Remove(ro_id);
+}
+
+void SceneRenderer::SetRenderObjectBefore(RenderLayer layer, AssetId ro_id, AssetId before_ro_id)
+{
+	if (ro_id == before_ro_id)
+		return;
+
+	std::vector<AssetId> & layer_ro_ids = m_render_layers[static_cast<std::size_t>(layer)];
+	auto const ro_iter = std::ranges::find(layer_ro_ids, ro_id);
+	auto const before_ro_iter = std::ranges::find(layer_ro_ids, before_ro_id);
+	if (ro_iter == layer_ro_ids.end() || before_ro_iter == layer_ro_ids.end() || ro_iter < before_ro_iter)
+		return;
+
+	std::rotate(before_ro_iter, ro_iter, std::next(ro_iter));
 }
 
 void SceneRenderer::Show(AssetId ro_id, bool show)

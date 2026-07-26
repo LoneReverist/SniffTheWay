@@ -1,6 +1,7 @@
 {
   "id": "3_dirt_path",
   "background": "3_dirt_path.png",
+  "tint": [1.0, 0.98, 0.92, 1.0],
   "camera": {
     "position": [
       0.0,

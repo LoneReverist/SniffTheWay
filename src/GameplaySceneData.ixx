@@ -49,6 +49,7 @@ export struct GameplayMessageTriggerData
 export struct GameplaySceneData
 {
 	std::string bg_image_filename;
+	glm::vec4 tint{ 1.0f };
 	GameplayCameraData camera;
 	Polygon2d bounds;
 	std::vector<ScentTrailData> scent_trails;

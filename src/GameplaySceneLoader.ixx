@@ -2,6 +2,7 @@
 
 module;
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -35,6 +36,26 @@ glm::vec3 parse_gameplay_vec3(json const & j, glm::vec3 fallback)
 		return fallback;
 
 	return glm::vec3{ j[0].get<float>(), j[1].get<float>(), j[2].get<float>() };
+}
+
+glm::vec4 parse_gameplay_tint(json const & j, glm::vec4 fallback)
+{
+	if (!j.is_array() || j.size() != 4)
+		return fallback;
+
+	glm::vec4 tint;
+	for (std::size_t i = 0; i < 4; ++i)
+	{
+		if (!j[i].is_number())
+			return fallback;
+
+		float const component = j[i].get<float>();
+		if (!std::isfinite(component) || component < 0.0f || component > 1.0f)
+			return fallback;
+		tint[i] = component;
+	}
+
+	return tint;
 }
 
 Polygon2d parse_gameplay_polygon(json const & j)
@@ -146,6 +167,11 @@ json serialize_gameplay_vec3(glm::vec3 value)
 	return json::array({ value.x, value.y, value.z });
 }
 
+json serialize_gameplay_vec4(glm::vec4 value)
+{
+	return json::array({ value.x, value.y, value.z, value.w });
+}
+
 json serialize_gameplay_polygon(Polygon2d const & polygon)
 {
 	json vertices = json::array();
@@ -225,6 +251,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 		root["id"] = existing_root["id"];
 
 	root["background"] = scene_data.bg_image_filename;
+	root["tint"] = serialize_gameplay_vec4(scene_data.tint);
 	root["camera"] = serialize_gameplay_camera(scene_data.camera);
 	root["bounds"] = serialize_gameplay_polygon(scene_data.bounds);
 	json scent_trails = json::array();
@@ -246,6 +273,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 	{
 		if (key != "id" &&
 			key != "background" &&
+			key != "tint" &&
 			key != "initial_state" &&
 			key != "camera" &&
 			key != "bounds" &&
@@ -281,6 +309,8 @@ export namespace GameplaySceneLoader
 			file >> root;
 
 			scene_data.bg_image_filename = root.value("background", "");
+			if (root.contains("tint"))
+				scene_data.tint = parse_gameplay_tint(root["tint"], scene_data.tint);
 			if (root.contains("camera"))
 				scene_data.camera = parse_gameplay_camera(root["camera"], scene_data.camera);
 

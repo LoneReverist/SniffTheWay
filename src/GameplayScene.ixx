@@ -172,6 +172,7 @@ GameplayScene::GameplayScene(
 #endif
 
 	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_spawn_pos);
+	m_dog.SetTint(glm::vec3{ m_scene_data.tint });
 	if (m_dog.HasShadow())
 	{
 		m_dog_shadow_ro_id = m_renderer.CreateRenderObject(
@@ -185,6 +186,7 @@ GameplayScene::GameplayScene(
 		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
 	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos);
+	m_baby.SetTint(glm::vec3{ m_scene_data.tint });
 	m_baby_ro_id = m_renderer.CreateRenderObject(
 		"baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 	order_characters_for_rendering();
@@ -396,6 +398,8 @@ void GameplayScene::reload_scene_data()
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_default_spawn_positions();
 	m_dog.Reload(m_camera3d.GetDir(), dog_spawn_pos);
 	m_baby.Reload(m_camera3d.GetDir(), baby_spawn_pos);
+	m_dog.SetTint(glm::vec3{ m_scene_data.tint });
+	m_baby.SetTint(glm::vec3{ m_scene_data.tint });
 	recreate_scent_trails(dog_spawn_pos);
 
 #ifdef _DEBUG

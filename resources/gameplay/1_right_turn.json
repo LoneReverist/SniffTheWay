@@ -1,6 +1,7 @@
 {
   "id": "1_right_turn",
   "background": "1_right_turn.png",
+  "tint": [0.96, 1.0, 0.95, 1.0],
   "camera": {
     "position": [
       0.0,

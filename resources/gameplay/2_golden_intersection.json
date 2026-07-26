@@ -1,6 +1,7 @@
 {
   "id": "2_golden_intersection",
   "background": "2_golden_intersection.png",
+  "tint": [1.0, 0.87, 0.60, 1.0],
   "camera": {
     "position": [
       0.0,

@@ -1,6 +1,7 @@
 {
   "id": "1_forest_lake",
   "background": "1_forest_lake.png",
+  "tint": [0.96, 1.0, 0.96, 1.0],
   "camera": {
     "position": [
       0.0,

@@ -1,6 +1,7 @@
 {
   "id": "1_before_creek",
   "background": "1_before_creek.png",
+  "tint": [0.96, 1.0, 0.93, 1.0],
   "camera": {
     "position": [
       0.0,

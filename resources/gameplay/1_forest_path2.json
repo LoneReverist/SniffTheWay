@@ -1,6 +1,7 @@
 {
   "id": "1_forest_path2",
   "background": "1_forest_path2.png",
+  "tint": [0.98, 1.0, 0.95, 1.0],
   "camera": {
     "position": [
       0.0,

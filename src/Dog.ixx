@@ -44,6 +44,7 @@ public:
 	void Reload(glm::vec3 const & camera_dir, glm::vec2 pos);
 
 	void SetPosition(glm::vec2 pos);
+	void SetTint(glm::vec3 tint);
 	void SetOpacity(float opacity);
 
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
@@ -259,6 +260,11 @@ void Dog::SetOpacity(float opacity)
 {
 	m_pipeline_data.tint.a = opacity;
 	m_shadow_pipeline_data.tint.a = opacity;
+}
+
+void Dog::SetTint(glm::vec3 tint)
+{
+	m_pipeline_data.tint = glm::vec4{ tint, m_pipeline_data.tint.a };
 }
 
 void Dog::update_frame_uvs()

@@ -1,6 +1,7 @@
 {
   "id": "2_dark_forest",
   "background": "2_dark_forest.png",
+  "tint": [0.50, 0.60, 0.86, 1.0],
   "camera": {
     "position": [
       0.0,

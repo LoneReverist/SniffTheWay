@@ -1,6 +1,7 @@
 {
   "id": "1_playground",
   "background": "1_playground.png",
+  "tint": [1.0, 0.99, 0.95, 1.0],
   "camera": {
     "position": [
       0.0,

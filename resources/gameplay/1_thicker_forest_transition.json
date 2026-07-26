@@ -1,6 +1,7 @@
 {
   "id": "1_thicker_forest_transition",
   "background": "1_thicker_forest_transition.png",
+  "tint": [0.92, 0.98, 0.94, 1.0],
   "camera": {
     "position": [
       0.022499985992908478,

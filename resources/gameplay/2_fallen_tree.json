@@ -1,6 +1,7 @@
 {
   "id": "2_fallen_tree",
   "background": "2_fallen_tree.png",
+  "tint": [1.0, 0.84, 0.57, 1.0],
   "camera": {
     "position": [
       0.0,

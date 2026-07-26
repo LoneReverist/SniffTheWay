@@ -1,6 +1,7 @@
 {
   "id": "1_forest_horizontal",
   "background": "1_forest_horizontal.png",
+  "tint": [0.97, 1.0, 0.94, 1.0],
   "camera": {
     "position": [
       0.0,

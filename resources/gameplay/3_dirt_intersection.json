@@ -1,6 +1,7 @@
 {
   "id": "3_dirt_intersection",
   "background": "3_dirt_intersection.png",
+  "tint": [1.0, 0.98, 0.93, 1.0],
   "camera": {
     "position": [
       0.0,

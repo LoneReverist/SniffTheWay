@@ -1,6 +1,7 @@
 {
   "id": "2_golden_hour",
   "background": "2_golden_hour.png",
+  "tint": [1.0, 0.74, 0.48, 1.0],
   "camera": {
     "position": [
       0.0,

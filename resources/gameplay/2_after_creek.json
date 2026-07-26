@@ -1,6 +1,7 @@
 {
   "id": "2_after_creek",
   "background": "2_after_creek.png",
+  "tint": [0.98, 1.0, 0.90, 1.0],
   "camera": {
     "position": [
       0.0,

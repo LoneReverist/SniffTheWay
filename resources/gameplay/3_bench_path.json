@@ -1,6 +1,7 @@
 {
   "id": "3_bench_path",
   "background": "3_bench_path.png",
+  "tint": [0.99, 0.99, 0.95, 1.0],
   "camera": {
     "position": [
       0.0,

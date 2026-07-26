@@ -1,6 +1,7 @@
 {
   "id": "3_morning_forest2",
   "background": "3_morning_forest2.png",
+  "tint": [1.0, 0.99, 0.90, 1.0],
   "camera": {
     "position": [
       0.0,

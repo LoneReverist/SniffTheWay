@@ -1,6 +1,7 @@
 {
   "id": "3_house_path",
   "background": "3_house_path.png",
+  "tint": [1.0, 0.99, 0.95, 1.0],
   "camera": {
     "position": [
       0.0,

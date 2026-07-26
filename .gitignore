@@ -1,10 +1,12 @@
 .vs/
 x64/
-build/*
-build-debug/*
-build-release/*
-build-clangwin/*
-build-clangwin-release/*
-concept/*
+build/
+build-debug/
+build-release/
+build-clangwin/
+build-clangwin-release/
+concept/
+.codex-temp/
+.codex-tools/
 
 *.user

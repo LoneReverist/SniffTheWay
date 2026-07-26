@@ -116,8 +116,8 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		m_asset_manager,
 		dog_texture_id,
 		glm::vec2{ 900.0f, 655.0f } /*center*/,
-		glm::vec2{ 390.0f, 455.0f } /*size*/,
-		UIImage::UVBounds{ 0.5f, 0.75f, 0.0f, 0.5f } /*frame 2*/);
+		glm::vec2{ 455.0f, 455.0f } /*size*/,
+		UIImage::UVBounds{ 5.0f/8.0f, 6.0f/8.0f, 0.0f, 1.0f/6.0f } /*frame 6*/);
 	m_renderer.CreateRenderObject(
 		"title dog",
 		RenderLayer::Scene3d,

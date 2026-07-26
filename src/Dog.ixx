@@ -62,9 +62,9 @@ private:
 	bool m_facing_right = true;
 
 	float m_animation_timer = 0.0f;
-	float m_frame_duration = 0.1f; // 100ms per frame = 10 FPS
+	const float m_frame_duration = 1.0f / 20.0f;
 	
-	float m_move_speed = 3.0f; // units per second
+	const float m_move_speed = 3.0f; // units per second
 };
 
 namespace
@@ -102,11 +102,11 @@ void Dog::Init(
 
     m_sprite_sheet = SpriteSheet{
 		tex_id,
-		1200,   // Texture width: 4 frames * 300px
-		700,    // Texture height: 2 rows * 350px
-		300,    // Frame width
-		350,    // Frame height
-		7       // Frame count: 7 (4 in first row, 3 in second row)
+		5120,   // Texture width
+		3840,   // Texture height
+		640,    // Frame width
+		640,    // Frame height
+		44      // Active frame count; atlas cells 45-48 are intentionally transparent
     };
 
 	// this creates a quad on the xy axes, we have to rotate it up to face the camera with the model matrix

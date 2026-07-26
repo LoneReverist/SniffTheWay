@@ -37,11 +37,12 @@ export namespace SniffTheWay
 	enum class RenderLayer : std::uint8_t
 	{
 		Background = 0,
-		Scene3d = 1,
-		UIShadow = 2,
-		UIForeground = 3,
-		OverlayBackdrop = 4,
-		OverlayForeground = 5,
+		Scene3dGroundShadow = 1,
+		Scene3d = 2,
+		UIShadow = 3,
+		UIForeground = 4,
+		OverlayBackdrop = 5,
+		OverlayForeground = 6,
 		Count,
 	};
 

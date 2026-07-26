@@ -105,6 +105,7 @@ private:
 	std::vector<AssetId> m_scent_trail_ro_ids;
 	Dog m_dog;
 	Baby m_baby;
+	AssetId m_dog_shadow_ro_id;
 	AssetId m_dog_ro_id;
 	AssetId m_baby_ro_id;
 
@@ -153,6 +154,8 @@ GameplayScene::GameplayScene(
 
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
+	const auto ground_shadow_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(
+		m_camera3d, m_asset_manager, false /*enable_depth_write*/);
 	m_scent_trail_pipeline_id = m_asset_manager.AddPipeline<ScentTrailPipeline>(m_camera3d);
 	m_text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
 
@@ -169,6 +172,15 @@ GameplayScene::GameplayScene(
 #endif
 
 	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_spawn_pos);
+	if (m_dog.HasShadow())
+	{
+		m_dog_shadow_ro_id = m_renderer.CreateRenderObject(
+			"dog shadow",
+			RenderLayer::Scene3dGroundShadow,
+			m_dog.GetShadowMeshId(),
+			ground_shadow_pipeline_id,
+			m_dog.GetShadowPipelineData());
+	}
 	m_dog_ro_id = m_renderer.CreateRenderObject(
 		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 

@@ -38,7 +38,8 @@ public:
 		dh::RenderContext const & render_context,
 		std::filesystem::path const & shaders_path,
 		Camera3d const & camera3d,
-		AssetManager const & asset_manager);
+		AssetManager const & asset_manager,
+		bool enable_depth_write = true);
 
 private:
 	SpritePipeline() = delete;
@@ -48,7 +49,8 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 	dh::RenderContext const & render_context,
 	std::filesystem::path const & shaders_path,
 	Camera3d const & camera3d,
-	AssetManager const & asset_manager)
+	AssetManager const & asset_manager,
+	bool enable_depth_write /*= true*/)
 {
 	struct ObjectDataVS
 	{
@@ -72,6 +74,13 @@ std::expected<dh::Pipeline, dh::GraphicsError> SpritePipeline::CreatePipeline(
 	builder.SetObjectDataTypes<ObjectDataVS, ObjectDataFS>();
 	builder.SetVSUniformTypes<ViewProjUniform>();
 	builder.SetHasTexture(true);
+	builder.SetDepthTestOptions(dh::DepthTestOptions{
+		.enable_depth_test = true,
+		.enable_depth_write = enable_depth_write,
+		.depth_compare_op = enable_depth_write
+			? dh::DepthCompareOp::LESS
+			: dh::DepthCompareOp::LESS_OR_EQUAL
+		});
 	builder.SetBlendOptions(dh::BlendOptions{
 		.enable_blend = true,
 		.src_factor = dh::BlendFactor::SRC_ALPHA,

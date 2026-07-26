@@ -50,6 +50,7 @@ private:
 	AudioSystem * m_audio_system = nullptr;
 	FontAtlas m_font_atlas;
 	Background m_background;
+	UIImage m_dog_shadow_image;
 	UIImage m_dog_image;
 	UIImage m_baby_image;
 	UIImage m_title_image;
@@ -112,12 +113,33 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		dh::PixelFormat::RGBA_SRGB,
 		false /*flip_vertically*/,
 		false /*use_mip_map*/);
+	glm::vec2 const dog_center{ 900.0f, 655.0f };
+	glm::vec2 const dog_size{ 455.0f, 455.0f };
+	constexpr float DogShadowOffset = 0.175f;
+
+	const AssetId dog_shadow_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "dog_shadow.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+	m_dog_shadow_image.Init(
+		m_asset_manager,
+		dog_shadow_texture_id,
+		dog_center + glm::vec2{ 0.0f, dog_size.y * DogShadowOffset } /*center*/,
+		dog_size);
+	m_renderer.CreateRenderObject(
+		"title dog shadow",
+		RenderLayer::Scene3dGroundShadow,
+		m_dog_shadow_image.GetMeshId(),
+		texture_pipeline_id,
+		m_dog_shadow_image.GetPipelineData());
+
 	m_dog_image.Init(
 		m_asset_manager,
 		dog_texture_id,
-		glm::vec2{ 900.0f, 655.0f } /*center*/,
-		glm::vec2{ 455.0f, 455.0f } /*size*/,
-		UIImage::UVBounds{ 5.0f/8.0f, 6.0f/8.0f, 0.0f, 1.0f/6.0f } /*frame 6*/);
+		dog_center,
+		dog_size,
+		UIImage::UVBounds{ 5.0f/11.0f, 6.0f/11.0f, 0.0f, 1.0f/4.0f } /*frame 6*/);
 	m_renderer.CreateRenderObject(
 		"title dog",
 		RenderLayer::Scene3d,

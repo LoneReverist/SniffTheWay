@@ -3,9 +3,9 @@
 module;
 
 #include <utility>
+#include <vector>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 export module Dog;
 
@@ -49,15 +49,20 @@ public:
     MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
     SpriteSheet const & GetSpriteSheet() const { return m_sprite_sheet; }
     SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
+	bool HasShadow() const { return m_shadow_mesh_id.IsValid() && m_shadow_pipeline_data.tex_id.IsValid(); }
+	MeshId<TextureVertex2d> GetShadowMeshId() const { return m_shadow_mesh_id; }
+	SpritePipeline::ObjectData const & GetShadowPipelineData() const { return m_shadow_pipeline_data; }
 	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
     
 private:
 	void update_frame_uvs();
 
 	MeshId<TextureVertex2d> m_mesh_id;
+	MeshId<TextureVertex2d> m_shadow_mesh_id;
 
 	SpriteSheet m_sprite_sheet;
 	SpritePipeline::ObjectData m_pipeline_data;
+	SpritePipeline::ObjectData m_shadow_pipeline_data;
 	State m_state = State::Idle;
 	bool m_facing_right = true;
 
@@ -69,6 +74,8 @@ private:
 
 namespace
 {
+	glm::vec2 const DogShadowOffset{ 0.0f, -0.175f };
+
 	glm::mat4 create_camera_facing_model(glm::vec3 const & camera_dir)
 	{
 		if (glm::length(camera_dir) < 1e-6f)
@@ -90,6 +97,32 @@ namespace
 		model[2] = glm::vec4{ normal, 0.0f };
 		return model;
 	}
+
+	MeshId<TextureVertex2d> create_shadow_mesh(AssetManager & asset_manager)
+	{
+		std::vector<TextureVertex2d> const vertices{
+			{ { -0.5f,  1.0f }, { 0.0f, 0.0f } },
+			{ {  0.5f,  1.0f }, { 1.0f, 0.0f } },
+			{ { -0.5f,  0.0f }, { 0.0f, 1.0f } },
+			{ {  0.5f,  0.0f }, { 1.0f, 1.0f } }
+		};
+		std::vector<dh::Mesh::IndexT> const indices{
+			1, 0, 2,
+			1, 2, 3
+		};
+		return asset_manager.AddMesh(vertices, indices);
+	}
+
+	glm::mat4 create_shadow_model(glm::vec3 const & camera_dir, glm::vec2 pos)
+	{
+		glm::mat4 model = create_camera_facing_model(camera_dir);
+		glm::vec3 const shadow_pos =
+			glm::vec3{ pos, 0.0f }
+			+ glm::vec3{ model[0] } * DogShadowOffset.x
+			+ glm::vec3{ model[1] } * DogShadowOffset.y;
+		model[3] = glm::vec4{ shadow_pos, 1.0f };
+		return model;
+	}
 }
 
 void Dog::Init(
@@ -102,10 +135,10 @@ void Dog::Init(
 
     m_sprite_sheet = SpriteSheet{
 		tex_id,
-		5120,   // Texture width
-		3840,   // Texture height
-		640,    // Frame width
-		640,    // Frame height
+		5632,   // Texture width
+		2048,   // Texture height
+		512,    // Frame width
+		512,    // Frame height
 		44      // Active frame count; atlas cells 45-48 are intentionally transparent
     };
 
@@ -119,6 +152,19 @@ void Dog::Init(
 		.model = model,
 		.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs(),
 		.tex_id = tex_id,
+	};
+
+	AssetId shadow_tex_id = asset_manager.AddTexture(
+		asset_manager.GetTexturesPath() / "dog_shadow.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+	if (shadow_tex_id.IsValid())
+		m_shadow_mesh_id = create_shadow_mesh(asset_manager);
+	m_shadow_pipeline_data = SpritePipeline::ObjectData{
+		.model = create_shadow_model(camera_dir, initial_pos),
+		.frame_uvs = glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f },
+		.tex_id = shadow_tex_id,
 	};
 }
 
@@ -195,22 +241,33 @@ void Dog::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
 	update_frame_uvs();
 
 	m_pipeline_data.model = create_camera_facing_model(camera_dir);
+	m_shadow_pipeline_data.model = create_shadow_model(camera_dir, pos);
 	SetPosition(pos);
 }
 
 void Dog::SetPosition(glm::vec2 pos)
 {
 	m_pipeline_data.model[3] = glm::vec4(pos, 0.0f, 1.0f);
+	glm::vec3 const shadow_pos =
+		glm::vec3{ pos, 0.0f }
+		+ glm::vec3{ m_shadow_pipeline_data.model[0] } * DogShadowOffset.x
+		+ glm::vec3{ m_shadow_pipeline_data.model[1] } * DogShadowOffset.y;
+	m_shadow_pipeline_data.model[3] = glm::vec4{ shadow_pos, 1.0f };
 }
 
 void Dog::SetOpacity(float opacity)
 {
 	m_pipeline_data.tint.a = opacity;
+	m_shadow_pipeline_data.tint.a = opacity;
 }
 
 void Dog::update_frame_uvs()
 {
 	m_pipeline_data.frame_uvs = m_sprite_sheet.GetCurrentFrameUVs();
+	m_shadow_pipeline_data.frame_uvs = glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f };
 	if (!m_facing_right)
+	{
 		std::swap(m_pipeline_data.frame_uvs.x, m_pipeline_data.frame_uvs.y);
+		std::swap(m_shadow_pipeline_data.frame_uvs.x, m_shadow_pipeline_data.frame_uvs.y);
+	}
 }

@@ -53,6 +53,7 @@ public:
 	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
 	
 private:
+	void set_state(State state);
 	void update_frame_uvs();
 
 	MeshId<TextureVertex2d> m_mesh_id;
@@ -70,6 +71,9 @@ private:
 
 namespace
 {
+	constexpr float FollowStartDistance = 3.0f;
+	constexpr float FollowStopDistance = 1.5f;
+
 	glm::mat4 create_camera_facing_model(glm::vec3 const & camera_dir)
 	{
 		if (glm::length(camera_dir) < 1e-6f)
@@ -128,24 +132,36 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 	if (m_sprite_sheet.GetFrameCount() == 0)
 		return;
 
-	glm::vec2 move_dir(0.0f);
-	if (dog && scene_state == SceneState::Gameplay)
-		move_dir = dog->GetPosition() - GetPosition();
-
 	glm::vec2 velocity(0.0f);
-	if (glm::length(move_dir) > 1.5f)
+	if (dog && scene_state == SceneState::Gameplay)
 	{
-		velocity = glm::normalize(move_dir) * m_move_speed;
-		const glm::mat4 translation = glm::translate(glm::mat4(1.0f), glm::vec3(velocity, 0.0f) * dt);
-		m_pipeline_data.model = translation * m_pipeline_data.model;
+		glm::vec2 const move_dir = dog->GetPosition() - GetPosition();
+		float const distance = glm::length(move_dir);
 
-		if (m_state != State::Walking)
-			m_state = State::Walking;
+		if (m_state == State::Idle && distance >= FollowStartDistance)
+			set_state(State::Walking);
+		else if (m_state == State::Walking && distance <= FollowStopDistance)
+			set_state(State::Idle);
+
+		if (m_state == State::Walking && distance > FollowStopDistance)
+		{
+			velocity = glm::normalize(move_dir) * m_move_speed;
+			float movement_distance = m_move_speed * dt;
+			bool const reached_stop_distance = movement_distance >= distance - FollowStopDistance;
+			if (movement_distance > distance - FollowStopDistance)
+				movement_distance = distance - FollowStopDistance;
+
+			glm::vec2 const movement = glm::normalize(move_dir) * movement_distance;
+			const glm::mat4 translation = glm::translate(glm::mat4(1.0f), glm::vec3(movement, 0.0f));
+			m_pipeline_data.model = translation * m_pipeline_data.model;
+
+			if (reached_stop_distance)
+				set_state(State::Idle);
+		}
 	}
 	else
 	{
-		if (m_state != State::Idle)
-			m_state = State::Idle;
+		set_state(State::Idle);
 	}
 
 	if (velocity.x > 0.0f && !facing_right	  // moving right, but facing left
@@ -170,7 +186,7 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 void Baby::OnSceneStateChanged(SceneState new_state)
 {
 	if (new_state != SceneState::Gameplay)
-		m_state = State::Idle;
+		set_state(State::Idle);
 }
 
 void Baby::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
@@ -198,6 +214,20 @@ void Baby::SetOpacity(float opacity)
 void Baby::SetTint(glm::vec3 tint)
 {
 	m_pipeline_data.tint = glm::vec4{ tint, m_pipeline_data.tint.a };
+}
+
+void Baby::set_state(State state)
+{
+	if (m_state == state)
+		return;
+
+	m_state = state;
+	if (m_state == State::Idle)
+	{
+		m_animation_timer = 0.0f;
+		m_sprite_sheet.SetCurrentFrame(0);
+		update_frame_uvs();
+	}
 }
 
 void Baby::update_frame_uvs()

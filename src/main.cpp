@@ -169,7 +169,7 @@ std::optional<std::string> run_update_render_loop(
 
 std::optional<std::string> run_application()
 {
-	LOG(INFO) << "Initializing app...";
+	LOG(INFO) << "Initializing " << FullTitle << " version " << Version << "...";
 
 	dh::Window window(dh::WindowSize{ 1920, 1080 }, FullTitle, on_error);
 	if (!window.IsValid())

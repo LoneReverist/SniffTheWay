@@ -5,6 +5,8 @@ build-debug/
 build-release/
 build-clangwin/
 build-clangwin-release/
+build-package/
+dist/
 concept/
 .codex-temp/
 .codex-tools/

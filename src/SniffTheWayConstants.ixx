@@ -8,12 +8,17 @@ module;
 
 #include <glm/vec4.hpp>
 
+#ifndef SNIFF_THE_WAY_VERSION
+#error SNIFF_THE_WAY_VERSION must be provided by the build system.
+#endif
+
 export module SniffTheWayConstants;
 
 export namespace SniffTheWay
 {
 	constexpr char const * FullTitle = "Sniff the Way - A Tail to Guide You Home";
 	constexpr char const * ShortTitle = "Sniff the Way";
+	constexpr std::string_view Version = SNIFF_THE_WAY_VERSION;
 
 	// The game is composed in a fixed 16:9 design space, then fitted inside the framebuffer.
 	constexpr int DesignWidth = 1920;

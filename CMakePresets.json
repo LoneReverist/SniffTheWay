@@ -15,7 +15,26 @@
 			"cacheVariables": {
 				"CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
 				"VCPKG_TARGET_TRIPLET": "x64-windows-static",
-				"VCPKG_APPLOCAL_DEPS": "OFF"
+				"VCPKG_APPLOCAL_DEPS": "OFF",
+				"SNIFF_THE_WAY_RENDERER": "Vulkan"
+			}
+		},
+		{
+			"name": "package-windows-vulkan",
+			"description": "Isolated Vulkan build used for Windows release packages",
+			"inherits": "x64-windows-static",
+			"binaryDir": "${sourceDir}/build-package/vulkan",
+			"cacheVariables": {
+				"SNIFF_THE_WAY_RENDERER": "Vulkan"
+			}
+		},
+		{
+			"name": "package-windows-opengl",
+			"description": "Isolated OpenGL build used for Windows release packages",
+			"inherits": "x64-windows-static",
+			"binaryDir": "${sourceDir}/build-package/opengl",
+			"cacheVariables": {
+				"SNIFF_THE_WAY_RENDERER": "OpenGL"
 			}
 		},
 		{
@@ -80,6 +99,24 @@
 			"name": "x64-windows-static-debug",
 			"configurePreset": "x64-windows-static",
 			"configuration": "Debug",
+			"targets": [
+				"SniffTheWay"
+			]
+		},
+		{
+			"name": "package-windows-vulkan-release",
+			"configurePreset": "package-windows-vulkan",
+			"configuration": "Release",
+			"jobs": 1,
+			"targets": [
+				"SniffTheWay"
+			]
+		},
+		{
+			"name": "package-windows-opengl-release",
+			"configurePreset": "package-windows-opengl",
+			"configuration": "Release",
+			"jobs": 1,
 			"targets": [
 				"SniffTheWay"
 			]

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.29)
 
-project(SniffTheWay)
+project(SniffTheWay VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,10 +22,24 @@ set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
 find_package(glog CONFIG REQUIRED)
 find_path(MINIAUDIO_INCLUDE_DIR NAMES miniaudio.h REQUIRED)
 
-set(BUILD_VULKAN ON)
-set(BUILD_OPENGL OFF)
-set(BUILD_DEMOS OFF)
+set(SNIFF_THE_WAY_RENDERER "Vulkan" CACHE STRING "Rendering backend used by Sniff the Way")
+set_property(CACHE SNIFF_THE_WAY_RENDERER PROPERTY STRINGS Vulkan OpenGL)
+
+if(SNIFF_THE_WAY_RENDERER STREQUAL "Vulkan")
+    set(BUILD_VULKAN ON CACHE BOOL "Build Vulkan renderer" FORCE)
+    set(BUILD_OPENGL OFF CACHE BOOL "Build OpenGL renderer" FORCE)
+elseif(SNIFF_THE_WAY_RENDERER STREQUAL "OpenGL")
+    set(BUILD_VULKAN OFF CACHE BOOL "Build Vulkan renderer" FORCE)
+    set(BUILD_OPENGL ON CACHE BOOL "Build OpenGL renderer" FORCE)
+else()
+    message(FATAL_ERROR
+        "Invalid SNIFF_THE_WAY_RENDERER='${SNIFF_THE_WAY_RENDERER}'. Expected Vulkan or OpenGL.")
+endif()
+
+set(BUILD_DEMOS OFF CACHE BOOL "Build Dreamhearth demo executables" FORCE)
 add_subdirectory(DreamhearthEngine)
+
+file(WRITE "${CMAKE_BINARY_DIR}/SniffTheWayVersion.txt" "${PROJECT_VERSION}\n")
 
 add_executable(SniffTheWay)
 
@@ -102,6 +116,7 @@ endif()
 target_include_directories(SniffTheWay PRIVATE ${MINIAUDIO_INCLUDE_DIR})
 
 target_compile_definitions(SniffTheWay PRIVATE
+    SNIFF_THE_WAY_VERSION="${PROJECT_VERSION}"
     $<$<CONFIG:Debug>:SNIFF_THE_WAY_DEV_RESOURCES_PATH="${CMAKE_SOURCE_DIR}/resources">
     $<$<PLATFORM_ID:Windows>:GLOG_NO_ABBREVIATED_SEVERITIES>
 )

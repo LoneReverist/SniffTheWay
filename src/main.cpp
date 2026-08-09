@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
+#include <exception>
+#include <optional>
+#include <string>
 #include <thread>
 #include <utility>
 
@@ -13,6 +17,7 @@ import DreamhearthWindow;
 
 import Game;
 import Input;
+import PlatformUtils;
 import SniffTheWayConstants;
 
 namespace dh = Dreamhearth;
@@ -62,7 +67,7 @@ void on_graphics_diagnostic(dh::GraphicsDiagnostic const & diagnostic)
 	}
 }
 
-void run_update_render_loop(
+std::optional<std::string> run_update_render_loop_impl(
 	dh::Window const & window,
 	Input & input,
 	std::atomic<dh::WindowSize> const & window_size_pixels,
@@ -72,12 +77,7 @@ void run_update_render_loop(
 
 	auto render_context_result = window.CreateRenderContext(last_window_size, on_graphics_diagnostic);
 	if (!render_context_result)
-	{
-		on_error(render_context_result.error().GetMessage());
-		window.SetShouldClose(true);
-		window.WakeEventLoop();
-		return;
-	}
+		return render_context_result.error().GetMessage();
 	
 	Game game{ std::move(render_context_result).value() };
 	dh::RenderExtent render_extent = game.GetRenderContext().GetSwapChainExtent();
@@ -85,6 +85,7 @@ void run_update_render_loop(
 
 	auto last_update_time = std::chrono::steady_clock::now();
 	bool swap_chain_needs_recreation = false;
+	std::optional<std::string> fatal_error;
 
 	while (!s_token.stop_requested())
 	{
@@ -95,7 +96,7 @@ void run_update_render_loop(
 			auto recreate_result = game.GetRenderContext().RecreateSwapChain(window_size.width, window_size.height);
 			if (!recreate_result)
 			{
-				on_error(recreate_result.error().GetMessage());
+				fatal_error = recreate_result.error().GetMessage();
 				break;
 			}
 
@@ -136,19 +137,43 @@ void run_update_render_loop(
 	}
 
 	game.GetRenderContext().WaitForLastFrame();
-	window.SetShouldClose(true); // signal main thread to exit
-	window.WakeEventLoop();
+	return fatal_error;
 }
 
-int main(int argc, char * argv[])
+std::optional<std::string> run_update_render_loop(
+	dh::Window const & window,
+	Input & input,
+	std::atomic<dh::WindowSize> const & window_size_pixels,
+	std::stop_token const & s_token)
 {
-	LoggingLifetime logging{ argc > 0 && argv[0] ? argv[0] : FullTitle };
+	std::optional<std::string> fatal_error;
+	try
+	{
+		fatal_error = run_update_render_loop_impl(window, input, window_size_pixels, s_token);
+	}
+	catch (std::exception const & err)
+	{
+		fatal_error = "Unexpected error in the update/render loop: " + std::string{ err.what() };
+	}
+	catch (...)
+	{
+		fatal_error = "Unknown error in the update/render loop.";
+	}
 
+	if (fatal_error)
+		on_error(*fatal_error);
+	window.SetShouldClose(true); // signal main thread to exit
+	window.WakeEventLoop();
+	return fatal_error;
+}
+
+std::optional<std::string> run_application()
+{
 	LOG(INFO) << "Initializing app...";
 
 	dh::Window window(dh::WindowSize{ 1920, 1080 }, FullTitle, on_error);
 	if (!window.IsValid())
-		return -1;
+		return "Failed to initialize the application window. See the log for details.";
 	window.ToggleFullscreen(); // start fullscreen
 
 	// these are synchronized across update/render thread and main event loop thread
@@ -185,12 +210,32 @@ int main(int argc, char * argv[])
 
 	LOG(INFO) << "Running app...";
 
+	std::optional<std::string> fatal_error;
 	std::jthread update_render_loop(
-		[&window, &input, &window_size_pixels](std::stop_token s_token)
+		[&window, &input, &window_size_pixels, &fatal_error](std::stop_token s_token)
 		{
-			run_update_render_loop(window, input, window_size_pixels, s_token);
+			fatal_error = run_update_render_loop(window, input, window_size_pixels, s_token);
 		});
 
 	while (!window.ShouldClose())
 		window.WaitEvents(1.0 / 120.0); // wakes immediately for input and window events
+
+	update_render_loop.request_stop();
+	if (update_render_loop.joinable())
+		update_render_loop.join();
+
+	return fatal_error;
+}
+
+int main(int argc, char * argv[])
+{
+	LoggingLifetime logging{ argc > 0 && argv[0] ? argv[0] : FullTitle };
+
+	std::optional<std::string> fatal_error = run_application();
+	if (fatal_error)
+	{
+		PlatformUtils::ShowErrorDialog(FullTitle, *fatal_error);
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
 }

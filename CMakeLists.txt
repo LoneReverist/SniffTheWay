@@ -95,6 +95,10 @@ target_link_libraries(SniffTheWay PRIVATE
 	glog::glog
 )
 
+if(WIN32)
+	target_link_libraries(SniffTheWay PRIVATE user32)
+endif()
+
 target_include_directories(SniffTheWay PRIVATE ${MINIAUDIO_INCLUDE_DIR})
 
 target_compile_definitions(SniffTheWay PRIVATE

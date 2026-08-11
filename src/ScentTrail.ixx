@@ -3,7 +3,6 @@
 module;
 
 #include <algorithm>
-#include <cmath>
 #include <vector>
 
 #include <glm/geometric.hpp>
@@ -47,7 +46,10 @@ private:
 		float distance = 0.0f;
 	};
 
-	MeshId<ScentTrailVertex> create_mesh(AssetManager & asset_manager, ScentTrailData const & trail_data) const;
+	MeshId<ScentTrailVertex> create_mesh(
+		AssetManager & asset_manager,
+		ScentTrailData const & trail_data,
+		float & trail_length) const;
 	std::vector<Sample> sample_path(std::vector<glm::vec2> const & points) const;
 	static glm::vec2 catmull_rom(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, float t);
 
@@ -58,15 +60,18 @@ private:
 
 void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos)
 {
-	m_mesh_id = create_mesh(asset_manager, trail_data);
+	float trail_length = 0.0f;
+	m_mesh_id = create_mesh(asset_manager, trail_data, trail_length);
 	m_pipeline_data.color = glm::vec4{ 1.0f, 0.84f, 0.42f, 1.0f };
 	m_pipeline_data.dog_pos = dog_pos;
 	m_pipeline_data.visible_distance = ScentTrailVisibleDistance;
 	m_pipeline_data.base_opacity = 0.68f;
 	m_pipeline_data.elapsed_time = 0.0f;
-	m_pipeline_data.glow_speed = 0.34f;
+	m_pipeline_data.glow_speed = 8.0f;
 	m_pipeline_data.glow_width = 0.145f;
 	m_pipeline_data.glow_intensity = 1.85f;
+	m_pipeline_data.pulse_reveal_duration = 0.55f;
+	m_pipeline_data.trail_length = trail_length;
 }
 
 void ScentTrail::Destroy(AssetManager & asset_manager)
@@ -79,17 +84,22 @@ void ScentTrail::Destroy(AssetManager & asset_manager)
 void ScentTrail::Update(float dt, glm::vec2 dog_pos)
 {
 	m_pipeline_data.dog_pos = dog_pos;
-	m_pipeline_data.elapsed_time = std::fmod(m_pipeline_data.elapsed_time + std::max(dt, 0.0f), 1000.0f);
+	m_pipeline_data.elapsed_time += std::max(dt, 0.0f);
 }
 
-MeshId<ScentTrailVertex> ScentTrail::create_mesh(AssetManager & asset_manager, ScentTrailData const & trail_data) const
+MeshId<ScentTrailVertex> ScentTrail::create_mesh(
+	AssetManager & asset_manager,
+	ScentTrailData const & trail_data,
+	float & trail_length) const
 {
+	trail_length = 0.0f;
 	std::vector<Sample> samples = sample_path(trail_data.points);
 	if (samples.size() < 2)
 		return {};
 
 	constexpr float half_width = ScentTrailWidth * 0.5f;
 	const float total_distance = std::max(samples.back().distance, 0.001f);
+	trail_length = total_distance;
 	constexpr float ground_z = 0.012f;
 
 	std::vector<ScentTrailVertex> verts;

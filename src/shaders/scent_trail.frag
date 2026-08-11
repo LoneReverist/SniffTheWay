@@ -14,6 +14,8 @@ layout(push_constant) uniform ObjectData {
 	float glow_speed;
 	float glow_width;
 	float glow_intensity;
+	float pulse_reveal_duration;
+	float trail_length;
 } obj_data;
 
 #else // OpenGL
@@ -26,6 +28,8 @@ layout(std140, binding = 9) uniform ObjectDataFS {
 	float glow_speed;
 	float glow_width;
 	float glow_intensity;
+	float pulse_reveal_duration;
+	float trail_length;
 } obj_data;
 
 #endif
@@ -144,7 +148,9 @@ void main()
 	vec2 dog_pos = obj_data.dog_pos;
 	float visible_distance = max(obj_data.visible_distance, 0.001);
 	float base_opacity = obj_data.base_opacity;
-	float glow_width = max(obj_data.glow_width, 0.001);
+	float trail_length = max(obj_data.trail_length, 0.001);
+	float trail_distance = in_trail_t * trail_length;
+	float glow_width = max(obj_data.glow_width * trail_length, 0.001);
 
 	float edge_fade = 1.0 - smoothstep(0.35, 1.0, abs(in_side));
 	float soft_edge = 1.0 - smoothstep(0.72, 1.0, abs(in_side));
@@ -155,13 +161,21 @@ void main()
 	float center_spine = exp(-in_side * in_side * 18.0);
 	float center_haze = exp(-in_side * in_side * 4.5);
 
-	float pulse_margin = glow_width * 2.2;
-	float pulse_phase = fract(obj_data.elapsed_time * obj_data.glow_speed);
-	float glow_front = pulse_phase * (1.0 + pulse_margin * 2.0) - pulse_margin;
-	float front_delta = in_trail_t - glow_front;
+	float reveal_duration = max(obj_data.pulse_reveal_duration, 0.0);
+	float glow_speed = max(obj_data.glow_speed, 0.0);
+	float pulse_margin = max(
+		glow_width * 2.2,
+		glow_speed * reveal_duration * 2.0);
+	float pulse_cycle_distance = trail_length + pulse_margin * 2.0;
+	float glow_front = mod(obj_data.elapsed_time * glow_speed, pulse_cycle_distance) - pulse_margin;
+	float front_delta = trail_distance - glow_front;
 	float behind_front = max(-front_delta, 0.0);
 	float ahead_of_front = max(front_delta, 0.0);
 	float leading_edge = 1.0 - smoothstep(0.0, glow_width * 0.28, ahead_of_front);
+	float reveal_length = max(glow_speed * reveal_duration, 0.001);
+	float pulse_reveal = leading_edge
+		* (1.0 - smoothstep(reveal_length * 0.15, reveal_length, behind_front));
+	float visibility = max(dog_fade, pulse_reveal * 0.35);
 	float trailing_core = exp(-pow(behind_front / (glow_width * 0.78), 2.0));
 	float trailing_halo = exp(-pow(behind_front / (glow_width * 1.85), 2.0));
 	float directional_profile = leading_edge * trailing_core;
@@ -171,7 +185,7 @@ void main()
 	float pulse_halo = halo_profile * center_haze * obj_data.glow_intensity;
 	MoteField motes = mote_field(in_trail_t, in_side, obj_data.elapsed_time, directional_glow, center_glow);
 	float aura = edge_fade * (0.2 + center_haze * 0.65 + center_spine * 0.85 + pulse_halo * 0.1);
-	float alpha = dog_fade * (
+	float alpha = visibility * (
 		obj_data.color.a * base_opacity * aura * 0.55
 		+ center_spine * 0.35
 		+ pulse_halo * 0.05
@@ -197,6 +211,6 @@ void main()
 		+ halo_color * motes.haze * 1.35
 		+ mote_color * motes.halo * 3.05
 		+ core_color * motes.core * 8.5;
-	color *= dog_fade;
+	color *= visibility;
 	out_frag_color = vec4(color, alpha);
 }

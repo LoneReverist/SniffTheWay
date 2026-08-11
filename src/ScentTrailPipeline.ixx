@@ -31,9 +31,11 @@ public:
 		float visible_distance = 4.0f;
 		float base_opacity = 0.65f;
 		float elapsed_time = 0.0f;
-		float glow_speed = 0.35f;
+		float glow_speed = 8.0f;
 		float glow_width = 0.09f;
 		float glow_intensity = 1.15f;
+		float pulse_reveal_duration = 0.55f;
+		float trail_length = 1.0f;
 	};
 
 	static std::expected<dh::Pipeline, dh::GraphicsError> CreatePipeline(
@@ -57,9 +59,11 @@ std::expected<dh::Pipeline, dh::GraphicsError> ScentTrailPipeline::CreatePipelin
 		alignas(4) float visible_distance = 4.0f;
 		alignas(4) float base_opacity = 0.65f;
 		alignas(4) float elapsed_time = 0.0f;
-		alignas(4) float glow_speed = 0.35f;
+		alignas(4) float glow_speed = 8.0f;
 		alignas(4) float glow_width = 0.09f;
 		alignas(4) float glow_intensity = 1.15f;
+		alignas(4) float pulse_reveal_duration = 0.55f;
+		alignas(4) float trail_length = 1.0f;
 	};
 
 	dh::PipelineBuilder builder{ render_context };
@@ -110,7 +114,9 @@ std::expected<dh::Pipeline, dh::GraphicsError> ScentTrailPipeline::CreatePipelin
 					.elapsed_time = data->elapsed_time,
 					.glow_speed = data->glow_speed,
 					.glow_width = data->glow_width,
-					.glow_intensity = data->glow_intensity
+					.glow_intensity = data->glow_intensity,
+					.pulse_reveal_duration = data->pulse_reveal_duration,
+					.trail_length = data->trail_length
 				});
 		});
 

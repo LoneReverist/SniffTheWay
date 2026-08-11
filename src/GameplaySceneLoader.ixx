@@ -75,7 +75,11 @@ GameplayMessage parse_gameplay_message(json const & j)
 {
 	GameplayMessage message;
 	message.text = j.value("text", "");
-	message.hold_duration = j.value("hold_duration", message.hold_duration);
+	if (j.contains("position"))
+		message.position = parse_gameplay_vec2(j["position"], message.position);
+	message.font_size = j.value("font_size", message.font_size);
+	if (j.contains("hold_duration"))
+		message.hold_duration = j["hold_duration"].get<float>();
 	message.fade_in_duration = j.value("fade_in_duration", message.fade_in_duration);
 	message.fade_out_duration = j.value("fade_out_duration", message.fade_out_duration);
 	return message;
@@ -194,12 +198,16 @@ std::string serialize_gameplay_message_repeat(GameplayMessageRepeat repeat)
 
 json serialize_gameplay_message(GameplayMessage const & message)
 {
-	return json{
+	json result{
 		{ "text", message.text },
-		{ "hold_duration", message.hold_duration },
+		{ "position", serialize_gameplay_vec2(message.position) },
+		{ "font_size", message.font_size },
 		{ "fade_in_duration", message.fade_in_duration },
 		{ "fade_out_duration", message.fade_out_duration }
 	};
+	if (message.hold_duration.has_value())
+		result["hold_duration"] = *message.hold_duration;
+	return result;
 }
 
 json serialize_gameplay_message_trigger(GameplayMessageTriggerData const & message_trigger)

@@ -3,6 +3,7 @@
 module;
 
 #include <filesystem>
+#include <deque>
 #include <optional>
 #include <string>
 #include <utility>
@@ -81,6 +82,7 @@ private:
 	std::pair<glm::vec2, glm::vec2> get_default_spawn_positions() const;
 	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
 	void reset_message_triggers();
+	void ensure_message_overlays();
 	void update_message_triggers(glm::vec2 dog_pos);
 	void recreate_scent_trails(glm::vec2 dog_pos);
 	void pause();
@@ -114,7 +116,7 @@ private:
 #ifdef _DEBUG
 	FPSLabel m_fps_label;
 #endif
-	GameplayMessageOverlay m_gameplay_message_overlay;
+	std::deque<GameplayMessageOverlay> m_gameplay_message_overlays;
 	std::vector<bool> m_message_trigger_was_inside;
 	PauseOverlay m_pause_overlay;
 	SettingsOverlay m_settings_overlay;
@@ -195,7 +197,7 @@ GameplayScene::GameplayScene(
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
 #endif
 
-	m_gameplay_message_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
+	ensure_message_overlays();
 	reset_message_triggers();
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
@@ -314,7 +316,8 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	if (m_scene_state == SceneState::Gameplay)
 	{
-		m_gameplay_message_overlay.Update(dt);
+		for (GameplayMessageOverlay & message_overlay : m_gameplay_message_overlays)
+			message_overlay.Update(dt);
 		update_message_triggers(dog_pos);
 
 		for (GameplaySceneLink const & scene_link : m_scene_data.scene_links)
@@ -342,7 +345,8 @@ void GameplayScene::Render() const
 #ifdef _DEBUG
 	m_fps_label.RenderOffscreenTexture();
 #endif
-	m_gameplay_message_overlay.RenderOffscreenTexture();
+	for (GameplayMessageOverlay const & message_overlay : m_gameplay_message_overlays)
+		message_overlay.RenderOffscreenTexture();
 	m_renderer.Render();
 }
 
@@ -393,7 +397,9 @@ void GameplayScene::reload_scene_data()
 	m_scene_data = std::move(reloaded_scene_data);
 	apply_camera_data();
 	reload_background_texture();
-	m_gameplay_message_overlay.Hide();
+	for (GameplayMessageOverlay & message_overlay : m_gameplay_message_overlays)
+		message_overlay.Hide();
+	ensure_message_overlays();
 	reset_message_triggers();
 	const auto [dog_spawn_pos, baby_spawn_pos] = get_default_spawn_positions();
 	m_dog.Reload(m_camera3d.GetDir(), dog_spawn_pos);
@@ -496,6 +502,21 @@ void GameplayScene::reset_message_triggers()
 	m_message_trigger_was_inside.assign(m_scene_data.message_triggers.size(), false);
 }
 
+void GameplayScene::ensure_message_overlays()
+{
+	while (m_gameplay_message_overlays.size() < m_scene_data.message_triggers.size())
+	{
+		const std::size_t index = m_gameplay_message_overlays.size();
+		GameplayMessageOverlay & message_overlay = m_gameplay_message_overlays.emplace_back();
+		message_overlay.Init(
+			m_asset_manager,
+			m_renderer,
+			m_camera2d,
+			m_font_atlas,
+			"gameplay message " + std::to_string(index + 1));
+	}
+}
+
 void GameplayScene::update_message_triggers(glm::vec2 dog_pos)
 {
 	for (std::size_t i = 0; i < m_scene_data.message_triggers.size(); ++i)
@@ -513,7 +534,7 @@ void GameplayScene::update_message_triggers(glm::vec2 dog_pos)
 		{
 		case GameplayMessageRepeat::None:
 			if (m_playthrough.TryTrigger(m_scene_id, message_trigger.id))
-				m_gameplay_message_overlay.Show(message_trigger.message);
+				m_gameplay_message_overlays[i].Show(message_trigger.message);
 			break;
 		}
 	}

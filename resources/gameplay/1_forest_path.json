@@ -182,6 +182,38 @@
         "fade_in_duration": 0.25,
         "fade_out_duration": 0.75
       }
+    },
+    {
+      "id": "movement_controls_hint",
+      "trigger": [
+        [
+          -0.9979791045188904,
+          -3.735734701156616
+        ],
+        [
+          0.7599349617958069,
+          -3.7595677375793457
+        ],
+        [
+          1.2684892416000366,
+          -1.5231304168701172
+        ],
+        [
+          -1.495222806930542,
+          -1.679654598236084
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "Use [W][A][S][D] or Arrow Keys to move.",
+        "position": [
+          960.0,
+          993.6
+        ],
+        "font_size": 36.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75
+      }
     }
   ]
 }

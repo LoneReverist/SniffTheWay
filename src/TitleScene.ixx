@@ -91,7 +91,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		m_background.GetPipelineData());
 
 	const AssetId baby_texture_id = m_asset_manager.AddTexture(
-		m_asset_manager.GetTexturesPath() / "baby_crawl.png",
+		m_asset_manager.GetTexturesPath() / "baby_crawl_sprite_sheet.png",
 		dh::PixelFormat::RGBA_SRGB,
 		false /*flip_vertically*/,
 		false /*use_mip_map*/);
@@ -100,7 +100,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		baby_texture_id,
 		glm::vec2{ 1150.0f, 580.0f } /*center*/,
 		glm::vec2{ 270.0f, 270.0f } /*size*/,
-		UIImage::UVBounds{ 1.0f / 3.0f, 2.0f / 3.0f, 2.0f / 3.0f, 1.0f } /*frame 7*/);
+		UIImage::UVBounds{ 7.0f / 8.0f, 1.0f, 0.0f, 1.0f / 5.0f } /*frame 7*/);
 	m_renderer.CreateRenderObject(
 		"title baby",
 		RenderLayer::Scene3d,

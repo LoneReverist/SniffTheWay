@@ -35,10 +35,11 @@ private:
 public:
     Dog() = default;
 
-    void Init(
+	void Init(
 		AssetManager & asset_manager,
 		glm::vec3 const & camera_dir,
-		glm::vec2 const & initial_pos);
+		glm::vec2 const & initial_pos,
+		AssetId shadow_tex_id);
 	void Update(float dt, Input const & input, Polygon2d const & bounds, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
 	void Reload(glm::vec3 const & camera_dir, glm::vec2 pos);
@@ -129,7 +130,8 @@ namespace
 void Dog::Init(
 	AssetManager & asset_manager,
 	glm::vec3 const & camera_dir,
-	glm::vec2 const & initial_pos)
+	glm::vec2 const & initial_pos,
+	AssetId shadow_tex_id)
 {
 	AssetId tex_id = asset_manager.AddTexture(asset_manager.GetTexturesPath() / "dog_walk.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
@@ -155,11 +157,6 @@ void Dog::Init(
 		.tex_id = tex_id,
 	};
 
-	AssetId shadow_tex_id = asset_manager.AddTexture(
-		asset_manager.GetTexturesPath() / "dog_shadow.png",
-		dh::PixelFormat::RGBA_SRGB,
-		false /*flip_vertically*/,
-		false /*use_mip_map*/);
 	if (shadow_tex_id.IsValid())
 		m_shadow_mesh_id = create_shadow_mesh(asset_manager);
 	m_shadow_pipeline_data = SpritePipeline::ObjectData{

@@ -52,6 +52,7 @@ private:
 	Background m_background;
 	UIImage m_dog_shadow_image;
 	UIImage m_dog_image;
+	UIImage m_baby_shadow_image;
 	UIImage m_baby_image;
 	UIImage m_title_image;
 	UIButton m_start_button;
@@ -90,16 +91,37 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		texture_pipeline_id,
 		m_background.GetPipelineData());
 
+	const AssetId character_shadow_texture_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "dog_shadow.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
 	const AssetId baby_texture_id = m_asset_manager.AddTexture(
 		m_asset_manager.GetTexturesPath() / "baby_crawl_sprite_sheet.png",
 		dh::PixelFormat::RGBA_SRGB,
 		false /*flip_vertically*/,
 		false /*use_mip_map*/);
+	glm::vec2 const baby_center{ 1150.0f, 580.0f };
+	glm::vec2 const baby_size{ 270.0f, 270.0f };
+	constexpr float BabyShadowOffset = 0.075f;
+	glm::vec2 const baby_shadow_size = baby_size * glm::vec2{ 0.8f, 0.65f };
+	m_baby_shadow_image.Init(
+		m_asset_manager,
+		character_shadow_texture_id,
+		baby_center + glm::vec2{ 0.0f, (baby_size.y - baby_shadow_size.y) * 0.5f + baby_size.y * BabyShadowOffset } /*center*/,
+		baby_shadow_size);
+	m_renderer.CreateRenderObject(
+		"title baby shadow",
+		RenderLayer::Scene3dGroundShadow,
+		m_baby_shadow_image.GetMeshId(),
+		texture_pipeline_id,
+		m_baby_shadow_image.GetPipelineData());
+
 	m_baby_image.Init(
 		m_asset_manager,
 		baby_texture_id,
-		glm::vec2{ 1150.0f, 580.0f } /*center*/,
-		glm::vec2{ 270.0f, 270.0f } /*size*/,
+		baby_center,
+		baby_size,
 		UIImage::UVBounds{ 7.0f / 8.0f, 1.0f, 0.0f, 1.0f / 5.0f } /*frame 7*/);
 	m_renderer.CreateRenderObject(
 		"title baby",
@@ -117,14 +139,9 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 	glm::vec2 const dog_size{ 455.0f, 455.0f };
 	constexpr float DogShadowOffset = 0.175f;
 
-	const AssetId dog_shadow_texture_id = m_asset_manager.AddTexture(
-		m_asset_manager.GetTexturesPath() / "dog_shadow.png",
-		dh::PixelFormat::RGBA_SRGB,
-		false /*flip_vertically*/,
-		false /*use_mip_map*/);
 	m_dog_shadow_image.Init(
 		m_asset_manager,
-		dog_shadow_texture_id,
+		character_shadow_texture_id,
 		dog_center + glm::vec2{ 0.0f, dog_size.y * DogShadowOffset } /*center*/,
 		dog_size);
 	m_renderer.CreateRenderObject(

@@ -4,9 +4,9 @@ module;
 
 #include <cstdint>
 #include <utility>
+#include <vector>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 export module Baby;
 
@@ -39,7 +39,8 @@ public:
 	void Init(
 		AssetManager & asset_manager,
 		glm::vec3 const & camera_dir,
-		glm::vec2 const & initial_pos);
+		glm::vec2 const & initial_pos,
+		AssetId shadow_tex_id);
 	void Update(float dt, Dog const * dog, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
 	void Reload(glm::vec3 const & camera_dir, glm::vec2 pos);
@@ -51,6 +52,9 @@ public:
 	MeshId<TextureVertex2d> GetMeshId() const { return m_mesh_id; }
 	SpriteSheet const & GetSpriteSheet() const { return get_active_sprite_sheet(); }
 	SpritePipeline::ObjectData const & GetPipelineData() const { return m_pipeline_data; }
+	bool HasShadow() const { return m_shadow_mesh_id.IsValid() && m_shadow_pipeline_data.tex_id.IsValid(); }
+	MeshId<TextureVertex2d> GetShadowMeshId() const { return m_shadow_mesh_id; }
+	SpritePipeline::ObjectData const & GetShadowPipelineData() const { return m_shadow_pipeline_data; }
 	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
 	
 private:
@@ -62,15 +66,18 @@ private:
 
 	SpriteSheet & get_active_sprite_sheet();
 	SpriteSheet const & get_active_sprite_sheet() const;
+	glm::vec2 get_shadow_offset() const;
 	void set_crawl_direction(CrawlDirection direction);
 	void set_state(State state);
 	void update_frame_uvs();
 
 	MeshId<TextureVertex2d> m_mesh_id;
+	MeshId<TextureVertex2d> m_shadow_mesh_id;
 
 	SpriteSheet m_crawl_sprite_sheet;
 	SpriteSheet m_crawl_away_sprite_sheet;
 	SpritePipeline::ObjectData m_pipeline_data;
+	SpritePipeline::ObjectData m_shadow_pipeline_data;
 	State m_state = State::Idle;
 	CrawlDirection m_crawl_direction = CrawlDirection::TowardsCamera;
 	bool facing_right = true;
@@ -86,6 +93,9 @@ namespace
 	constexpr float FollowStartDistance = 3.0f;
 	constexpr float FollowStopDistance = 1.5f;
 	constexpr float DirectionEpsilon = 1e-4f;
+	glm::vec2 const BabyShadowTowardsCameraOffset{ 0.0f, -0.075f };
+	glm::vec2 const BabyShadowAwayFromCameraOffset{ 0.0f, -0.05f };
+	glm::vec2 const BabyShadowSize{ 0.8f, 0.65f };
 
 	glm::mat4 create_camera_facing_model(glm::vec3 const & camera_dir)
 	{
@@ -108,12 +118,43 @@ namespace
 		model[2] = glm::vec4{ normal, 0.0f };
 		return model;
 	}
+
+	MeshId<TextureVertex2d> create_shadow_mesh(AssetManager & asset_manager)
+	{
+		float const half_width = BabyShadowSize.x * 0.5f;
+		std::vector<TextureVertex2d> const vertices{
+			{ { -half_width, BabyShadowSize.y }, { 0.0f, 0.0f } },
+			{ {  half_width, BabyShadowSize.y }, { 1.0f, 0.0f } },
+			{ { -half_width, 0.0f },             { 0.0f, 1.0f } },
+			{ {  half_width, 0.0f },             { 1.0f, 1.0f } }
+		};
+		std::vector<dh::Mesh::IndexT> const indices{
+			1, 0, 2,
+			1, 2, 3
+		};
+		return asset_manager.AddMesh(vertices, indices);
+	}
+
+	glm::mat4 create_shadow_model(
+		glm::vec3 const & camera_dir,
+		glm::vec2 pos,
+		glm::vec2 const & shadow_offset)
+	{
+		glm::mat4 model = create_camera_facing_model(camera_dir);
+		glm::vec3 const shadow_pos =
+			glm::vec3{ pos, 0.0f }
+			+ glm::vec3{ model[0] } * shadow_offset.x
+			+ glm::vec3{ model[1] } * shadow_offset.y;
+		model[3] = glm::vec4{ shadow_pos, 1.0f };
+		return model;
+	}
 }
 
 void Baby::Init(
 	AssetManager & asset_manager,
 	glm::vec3 const & camera_dir,
-	glm::vec2 const & initial_pos)
+	glm::vec2 const & initial_pos,
+	AssetId shadow_tex_id)
 {
 	AssetId const crawl_tex_id = asset_manager.AddTexture(
 		asset_manager.GetTexturesPath() / "baby_crawl_sprite_sheet.png",
@@ -151,6 +192,15 @@ void Baby::Init(
 		.frame_uvs = m_crawl_sprite_sheet.GetCurrentFrameUVs(),
 		.tex_id = crawl_tex_id,
 	};
+
+	if (shadow_tex_id.IsValid())
+		m_shadow_mesh_id = create_shadow_mesh(asset_manager);
+	m_shadow_pipeline_data = SpritePipeline::ObjectData{
+		.model = create_shadow_model(camera_dir, initial_pos, BabyShadowTowardsCameraOffset),
+		.frame_uvs = glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f },
+		.tint = glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
+		.tex_id = shadow_tex_id,
+	};
 }
 
 void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
@@ -178,8 +228,7 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 				movement_distance = distance - FollowStopDistance;
 
 			glm::vec2 const movement = glm::normalize(move_dir) * movement_distance;
-			const glm::mat4 translation = glm::translate(glm::mat4(1.0f), glm::vec3(movement, 0.0f));
-			m_pipeline_data.model = translation * m_pipeline_data.model;
+			SetPosition(GetPosition() + movement);
 
 			if (reached_stop_distance)
 				set_state(State::Idle);
@@ -235,17 +284,28 @@ void Baby::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
 	update_frame_uvs();
 
 	m_pipeline_data.model = create_camera_facing_model(camera_dir);
+	m_shadow_pipeline_data.model = create_shadow_model(
+		camera_dir,
+		pos,
+		BabyShadowTowardsCameraOffset);
 	SetPosition(pos);
 }
 
 void Baby::SetPosition(glm::vec2 pos)
 {
 	m_pipeline_data.model[3] = glm::vec4(pos, 0.0f, 1.0f);
+	glm::vec2 const shadow_offset = get_shadow_offset();
+	glm::vec3 const shadow_pos =
+		glm::vec3{ pos, 0.0f }
+		+ glm::vec3{ m_shadow_pipeline_data.model[0] } * shadow_offset.x
+		+ glm::vec3{ m_shadow_pipeline_data.model[1] } * shadow_offset.y;
+	m_shadow_pipeline_data.model[3] = glm::vec4{ shadow_pos, 1.0f };
 }
 
 void Baby::SetOpacity(float opacity)
 {
 	m_pipeline_data.tint.a = opacity;
+	m_shadow_pipeline_data.tint.a = opacity;
 }
 
 void Baby::SetTint(glm::vec3 tint)
@@ -265,6 +325,13 @@ SpriteSheet const & Baby::get_active_sprite_sheet() const
 	return m_crawl_direction == CrawlDirection::AwayFromCamera
 		? m_crawl_away_sprite_sheet
 		: m_crawl_sprite_sheet;
+}
+
+glm::vec2 Baby::get_shadow_offset() const
+{
+	return m_crawl_direction == CrawlDirection::AwayFromCamera
+		? BabyShadowAwayFromCameraOffset
+		: BabyShadowTowardsCameraOffset;
 }
 
 void Baby::set_crawl_direction(CrawlDirection direction)
@@ -287,6 +354,7 @@ void Baby::set_crawl_direction(CrawlDirection direction)
 	}
 
 	m_pipeline_data.tex_id = destination_sheet.GetTextureId();
+	SetPosition(GetPosition()); // update shadow offset based on new crawl direction
 	update_frame_uvs();
 }
 
@@ -308,6 +376,13 @@ void Baby::set_state(State state)
 void Baby::update_frame_uvs()
 {
 	m_pipeline_data.frame_uvs = get_active_sprite_sheet().GetCurrentFrameUVs();
+	m_shadow_pipeline_data.frame_uvs = glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f };
 	if (!facing_right)
 		std::swap(m_pipeline_data.frame_uvs.x, m_pipeline_data.frame_uvs.y);
+
+	bool flip_shadow = !facing_right;
+	if (m_crawl_direction == CrawlDirection::AwayFromCamera)
+		flip_shadow = !flip_shadow;
+	if (flip_shadow)
+		std::swap(m_shadow_pipeline_data.frame_uvs.x, m_shadow_pipeline_data.frame_uvs.y);
 }

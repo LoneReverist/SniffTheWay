@@ -108,6 +108,7 @@ private:
 	Dog m_dog;
 	Baby m_baby;
 	AssetId m_dog_shadow_ro_id;
+	AssetId m_baby_shadow_ro_id;
 	AssetId m_dog_ro_id;
 	AssetId m_baby_ro_id;
 
@@ -173,7 +174,13 @@ GameplayScene::GameplayScene(
 	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_font_atlas, m_text_pipeline_id, m_scene_data, get_gameplay_filepath());
 #endif
 
-	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_spawn_pos);
+	AssetId const character_shadow_tex_id = m_asset_manager.AddTexture(
+		m_asset_manager.GetTexturesPath() / "dog_shadow.png",
+		dh::PixelFormat::RGBA_SRGB,
+		false /*flip_vertically*/,
+		false /*use_mip_map*/);
+
+	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_spawn_pos, character_shadow_tex_id);
 	m_dog.SetTint(glm::vec3{ m_scene_data.tint });
 	if (m_dog.HasShadow())
 	{
@@ -187,8 +194,17 @@ GameplayScene::GameplayScene(
 	m_dog_ro_id = m_renderer.CreateRenderObject(
 		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
-	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos);
+	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos, character_shadow_tex_id);
 	m_baby.SetTint(glm::vec3{ m_scene_data.tint });
+	if (m_baby.HasShadow())
+	{
+		m_baby_shadow_ro_id = m_renderer.CreateRenderObject(
+			"baby shadow",
+			RenderLayer::Scene3dGroundShadow,
+			m_baby.GetShadowMeshId(),
+			ground_shadow_pipeline_id,
+			m_baby.GetShadowPipelineData());
+	}
 	m_baby_ro_id = m_renderer.CreateRenderObject(
 		"baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
 	order_characters_for_rendering();

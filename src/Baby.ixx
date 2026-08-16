@@ -85,7 +85,7 @@ private:
 	float m_animation_timer = 0.0f;
 	float m_frame_duration = 0.05f; // 50ms per frame = 20 FPS
 	
-	float m_move_speed = 3.0f; // units per second
+	float m_move_speed = 2.0f; // units per second
 };
 
 namespace

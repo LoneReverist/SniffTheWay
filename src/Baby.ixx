@@ -241,10 +241,10 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 
 	if (m_state == State::Walking)
 	{
-		set_crawl_direction(
-			velocity.y > DirectionEpsilon
-				? CrawlDirection::AwayFromCamera
-				: CrawlDirection::TowardsCamera);
+		if (velocity.y > DirectionEpsilon)
+			set_crawl_direction(CrawlDirection::AwayFromCamera);
+		else if (velocity.y < -DirectionEpsilon)
+			set_crawl_direction(CrawlDirection::TowardsCamera);
 	}
 
 	if (velocity.x > 0.0f && !facing_right	  // moving right, but facing left

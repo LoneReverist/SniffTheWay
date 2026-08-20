@@ -122,7 +122,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		baby_texture_id,
 		baby_center,
 		baby_size,
-		UIImage::UVBounds{ 7.0f / 8.0f, 1.0f, 0.0f, 1.0f / 5.0f } /*frame 7*/);
+		UIImage::UVBounds{ 5.0f / 8.0f, 6.0f / 8.0f, 0.0f, 1.0f / 5.0f });
 	m_renderer.CreateRenderObject(
 		"title baby",
 		RenderLayer::Scene3d,
@@ -156,7 +156,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		dog_texture_id,
 		dog_center,
 		dog_size,
-		UIImage::UVBounds{ 5.0f/11.0f, 6.0f/11.0f, 0.0f, 1.0f/4.0f } /*frame 6*/);
+		UIImage::UVBounds{ 7.0f / 8.0f, 1.0f, 0.0f, 1.0f / 5.0f });
 	m_renderer.CreateRenderObject(
 		"title dog",
 		RenderLayer::Scene3d,

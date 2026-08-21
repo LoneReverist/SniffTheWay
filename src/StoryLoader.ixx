@@ -2,8 +2,10 @@
 
 module;
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <string>
 
 #include <glm/glm.hpp>
@@ -12,6 +14,7 @@ module;
 
 export module StoryLoader;
 
+import AudioSystem;
 import DecorationAtlas;
 import SniffTheWayConstants;
 import StoryData;
@@ -57,6 +60,17 @@ SniffTheWay::Decorations::DecorationId parse_decoration_id(std::string const & n
 	return SniffTheWay::Decorations::DecorationId::HorizontalDividerPawFlourish;
 }
 
+std::optional<SoundCue> parse_sound_cue(std::string const & name)
+{
+	if (name == "short_chime")
+		return SoundCue::ShortChime;
+	if (name == "gust_of_wind")
+		return SoundCue::GustOfWind;
+
+	LOG(WARNING) << "StoryLoader: Unknown sound cue '" << name << "'. Skipping sound.";
+	return std::nullopt;
+}
+
 StoryText parse_story_text(json const & j)
 {
 	StoryText story_text;
@@ -86,6 +100,18 @@ StoryDecoration parse_story_decoration(json const & j)
 		decoration.color = parse_vec4(j["color"], decoration.color);
 
 	return decoration;
+}
+
+std::optional<StorySound> parse_story_sound(json const & j)
+{
+	const std::optional<SoundCue> cue = parse_sound_cue(j.value("cue", ""));
+	if (!cue)
+		return std::nullopt;
+
+	return StorySound{
+		.cue = *cue,
+		.play_time = std::max(j.value("play_time", 0.0f), 0.0f),
+	};
 }
 
 export namespace StoryLoader
@@ -126,6 +152,12 @@ export namespace StoryLoader
 
 				for (json const & decoration_json : page_json.value("decorations", json::array()))
 					page.decorations.push_back(parse_story_decoration(decoration_json));
+
+				for (json const & sound_json : page_json.value("sounds", json::array()))
+				{
+					if (std::optional<StorySound> sound = parse_story_sound(sound_json))
+						page.sounds.push_back(*sound);
+				}
 
 				scene_data.pages.push_back(std::move(page));
 			}

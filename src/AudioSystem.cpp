@@ -71,6 +71,8 @@ namespace
 		{
 		case SoundCue::ShortChime:
 			return { GetResourcesPath() / "sfx" / "short_chime.wav", 1.0f };
+		case SoundCue::GustOfWind:
+			return { GetResourcesPath() / "sfx" / "gust_of_wind.wav", 1.0f };
 		}
 
 		return {};

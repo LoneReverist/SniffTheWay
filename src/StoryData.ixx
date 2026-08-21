@@ -9,6 +9,7 @@ module;
 
 export module StoryData;
 
+import AudioSystem;
 import DecorationAtlas;
 import SniffTheWayConstants;
 import UILabel;
@@ -34,11 +35,18 @@ export struct StoryDecoration
 	glm::vec4 color = SniffTheWay::StoryTextColor;
 };
 
+export struct StorySound
+{
+	SoundCue cue = SoundCue::ShortChime;
+	float play_time = 0.0f;
+};
+
 export struct StoryPage
 {
 	std::string bg_image_filename;
 	std::vector<StoryText> story_texts;
 	std::vector<StoryDecoration> decorations;
+	std::vector<StorySound> sounds;
 };
 
 export struct StorySceneData

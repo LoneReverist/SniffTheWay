@@ -85,6 +85,7 @@ private:
 	void apply_current_page();
 	void update_story_texts();
 	void update_decorations();
+	void update_story_sounds();
 	void update_controls_label();
 	float get_current_page_reveal_end_time() const;
 	void pause();
@@ -95,12 +96,14 @@ private:
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
 	GameViewport m_viewport;
+	AudioSystem * m_audio_system = nullptr;
 	SceneState m_scene_state = SceneState::Paused;
 	SceneState m_state_before_pause = SceneState::Story;
 	SceneId m_scene_id = SceneId::Exit;
 	StorySceneData m_scene_data;
 	std::uint8_t m_page_index = 0;
 	float m_page_time = 0.0f;
+	std::vector<bool> m_story_sounds_played;
 	std::uint8_t m_pending_page_index = 0;
 	PageTransitionState m_page_transition_state = PageTransitionState::None;
 	float m_page_transition_opacity = 0.0f;
@@ -131,6 +134,7 @@ StoryScene::StoryScene(
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
+	, m_audio_system{ &audio_system }
 	, m_scene_id{ scene_id }
 {
 	m_scene_data = StoryLoader::LoadSceneData(get_story_filepath());
@@ -258,6 +262,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 	if (m_scene_state == SceneState::Story)
 	{
 		m_page_time += dt;
+		update_story_sounds();
 		update_story_texts();
 		update_decorations();
 		update_controls_label();
@@ -272,6 +277,7 @@ std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 			if (m_page_time < reveal_end_time)
 			{
 				m_page_time = reveal_end_time;
+				update_story_sounds();
 				update_story_texts();
 				update_decorations();
 				update_controls_label();
@@ -497,6 +503,7 @@ void StoryScene::apply_current_page()
 	m_background.SetTextureId(m_bg_tex_ids[m_page_index]);
 
 	StoryPage const & page = m_scene_data.pages[m_page_index];
+	m_story_sounds_played.assign(page.sounds.size(), false);
 	for (std::size_t i = 0; i < m_story_labels.size(); ++i)
 	{
 		UIShadowedLabel & story_label = m_story_labels[i];
@@ -563,6 +570,19 @@ void StoryScene::update_decorations()
 			? (m_page_time >= decoration.show_time ? 1.0f : 0.0f)
 			: std::clamp((m_page_time - decoration.show_time) / fade_duration, 0.0f, 1.0f);
 		m_decorations[i].SetOpacity(opacity);
+	}
+}
+
+void StoryScene::update_story_sounds()
+{
+	StoryPage const & page = m_scene_data.pages[m_page_index];
+	for (std::size_t i = 0; i < page.sounds.size(); ++i)
+	{
+		if (m_story_sounds_played[i] || m_page_time < page.sounds[i].play_time)
+			continue;
+
+		m_audio_system->PlaySound(page.sounds[i].cue);
+		m_story_sounds_played[i] = true;
 	}
 }
 

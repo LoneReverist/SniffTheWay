@@ -27,6 +27,7 @@ export enum class AmbienceCue
 export enum class SoundCue
 {
 	ShortChime,
+	GustOfWind,
 };
 
 export class AudioSystem

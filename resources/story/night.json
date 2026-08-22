@@ -3,6 +3,7 @@
   "pages": [
     {
       "background": "3_1_dusk.png",
+      "ambience": { "cue": "night" },
       "texts": [
         {
           "text": "The sun slipped behind the hills.",
@@ -22,6 +23,7 @@
     },
     {
       "background": "3_2_exhausted.png",
+      "ambience": { "cue": "night" },
       "texts": [
         {
           "text": "The little one rubbed his tired eyes.",
@@ -48,6 +50,7 @@
     },
     {
       "background": "3_3_night.png",
+      "ambience": { "cue": "night" },
       "texts": [
         {
           "text": "They curled up beneath the trees.",
@@ -95,6 +98,7 @@
     },
     {
       "background": "3_4_morning.png",
+      "ambience": null,
       "texts": [
         {
           "text": "Morning warmed the leaves.",

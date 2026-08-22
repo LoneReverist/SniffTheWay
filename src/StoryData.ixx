@@ -3,6 +3,7 @@
 module;
 
 #include <string>
+#include <optional>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -41,12 +42,18 @@ export struct StorySound
 	float play_time = 0.0f;
 };
 
+export struct StoryAmbience
+{
+	std::optional<AmbienceCue> cue;
+};
+
 export struct StoryPage
 {
 	std::string bg_image_filename;
 	std::vector<StoryText> story_texts;
 	std::vector<StoryDecoration> decorations;
 	std::vector<StorySound> sounds;
+	std::optional<StoryAmbience> ambience;
 };
 
 export struct StorySceneData

@@ -71,6 +71,23 @@ std::optional<SoundCue> parse_sound_cue(std::string const & name)
 	return std::nullopt;
 }
 
+std::optional<AmbienceCue> parse_ambience_cue(std::string const & name)
+{
+	if (name == "early_forest")
+		return AmbienceCue::EarlyForest;
+	if (name == "creek")
+		return AmbienceCue::Creek;
+	if (name == "middle_forest")
+		return AmbienceCue::MiddleForest;
+	if (name == "night")
+		return AmbienceCue::Night;
+	if (name == "late_forest")
+		return AmbienceCue::LateForest;
+
+	LOG(WARNING) << "StoryLoader: Unknown ambience cue '" << name << "'. Skipping ambience change.";
+	return std::nullopt;
+}
+
 StoryText parse_story_text(json const & j)
 {
 	StoryText story_text;
@@ -146,6 +163,23 @@ export namespace StoryLoader
 			{
 				StoryPage page;
 				page.bg_image_filename = page_json.value("background", "");
+				if (page_json.contains("ambience"))
+				{
+					json const & ambience_json = page_json["ambience"];
+					if (ambience_json.is_null())
+					{
+						page.ambience = StoryAmbience{};
+					}
+					else if (ambience_json.is_object())
+					{
+						if (std::optional<AmbienceCue> cue = parse_ambience_cue(ambience_json.value("cue", "")))
+							page.ambience = StoryAmbience{ .cue = *cue };
+					}
+					else
+					{
+						LOG(WARNING) << "StoryLoader: Invalid ambience value. Skipping ambience change.";
+					}
+				}
 
 				for (json const & text_json : page_json.value("texts", json::array()))
 					page.story_texts.push_back(parse_story_text(text_json));

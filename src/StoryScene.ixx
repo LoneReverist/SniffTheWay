@@ -503,6 +503,14 @@ void StoryScene::apply_current_page()
 	m_background.SetTextureId(m_bg_tex_ids[m_page_index]);
 
 	StoryPage const & page = m_scene_data.pages[m_page_index];
+	if (page.ambience)
+	{
+		if (page.ambience->cue)
+			m_audio_system->PlayAmbience(*page.ambience->cue);
+		else
+			m_audio_system->StopAmbience();
+	}
+
 	m_story_sounds_played.assign(page.sounds.size(), false);
 	for (std::size_t i = 0; i < m_story_labels.size(); ++i)
 	{

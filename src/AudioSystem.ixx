@@ -21,6 +21,7 @@ export enum class AmbienceCue
 	EarlyForest,
 	Creek,
 	MiddleForest,
+	Night,
 	LateForest,
 };
 

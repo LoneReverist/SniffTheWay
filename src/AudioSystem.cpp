@@ -95,6 +95,10 @@ namespace
 			return {
 				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
 			};
+		case AmbienceCue::Night:
+			return {
+				TrackConfig{ GetResourcesPath() / "music" / "crickets_intermittent.wav", 0.225f },
+			};
 		case AmbienceCue::LateForest:
 			return {
 				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_birds_chirping_softly_#1.wav", 0.22f },

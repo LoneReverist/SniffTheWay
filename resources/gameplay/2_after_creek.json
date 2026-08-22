@@ -1,7 +1,12 @@
 {
   "id": "2_after_creek",
   "background": "2_after_creek.png",
-  "tint": [0.98, 1.0, 0.90, 1.0],
+  "tint": [
+    0.9800000190734863,
+    1.0,
+    0.8999999761581421,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -103,28 +108,44 @@
     {
       "target_scene_id": "creek",
       "arrival_points": {
-        "dog": [
-          1.0033886432647705,
-          9.978235244750977
-        ],
-        "baby": [
-          1.8556462526321411,
-          11.093225479125977
-        ]
+        "dog": {
+          "position": [
+            0.8552021384239197,
+            9.561275482177734
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            1.8726643323898315,
+            10.268264770507813
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": []
     },
     {
       "target_scene_id": "2_golden_intersection",
       "arrival_points": {
-        "dog": [
-          0.10294327884912491,
-          -3.1892385482788086
-        ],
-        "baby": [
-          -0.5560023188591003,
-          -3.5526227951049805
-        ]
+        "dog": {
+          "position": [
+            0.12378036975860596,
+            -3.208505868911743
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -0.7990924715995789,
+            -3.600491762161255
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -170,9 +191,14 @@
       "repeat": "none",
       "message": {
         "text": "Let's keep moving.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

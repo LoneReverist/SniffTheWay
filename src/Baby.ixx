@@ -14,6 +14,7 @@ import Dreamhearth;
 
 import AssetManager;
 import AssetPool;
+import CharacterFacing;
 import Dog;
 import Input;
 import SniffTheWayConstants;
@@ -43,9 +44,15 @@ public:
 		AssetId shadow_tex_id);
 	void Update(float dt, Dog const * dog, SceneState scene_state);
 	void OnSceneStateChanged(SceneState new_state);
-	void Reload(glm::vec3 const & camera_dir, glm::vec2 pos);
+	void Reload(
+		glm::vec3 const & camera_dir,
+		glm::vec2 pos,
+		CharacterCameraFacing camera_facing,
+		CharacterHorizontalFacing horizontal_facing);
 
 	void SetPosition(glm::vec2 pos);
+	void SetFacing(CharacterCameraFacing camera_facing, CharacterHorizontalFacing horizontal_facing);
+	void SetCameraDirection(glm::vec3 const & camera_dir);
 	void SetTint(glm::vec3 tint);
 	void SetOpacity(float opacity);
 
@@ -58,16 +65,10 @@ public:
 	glm::vec2 GetPosition() const { return glm::vec2(m_pipeline_data.model[3]); }
 	
 private:
-	enum class CrawlDirection
-	{
-		TowardsCamera,
-		AwayFromCamera
-	};
-
 	SpriteSheet & get_active_sprite_sheet();
 	SpriteSheet const & get_active_sprite_sheet() const;
 	glm::vec2 get_shadow_offset() const;
-	void set_crawl_direction(CrawlDirection direction);
+	void set_crawl_direction(CharacterCameraFacing direction);
 	void set_state(State state);
 	void update_frame_uvs();
 
@@ -79,8 +80,8 @@ private:
 	SpritePipeline::ObjectData m_pipeline_data;
 	SpritePipeline::ObjectData m_shadow_pipeline_data;
 	State m_state = State::Idle;
-	CrawlDirection m_crawl_direction = CrawlDirection::TowardsCamera;
-	bool facing_right = true;
+	CharacterCameraFacing m_crawl_direction = CharacterCameraFacing::TowardsCamera;
+	CharacterHorizontalFacing m_horizontal_facing = CharacterHorizontalFacing::Right;
 
 	float m_animation_timer = 0.0f;
 	float m_frame_duration = 0.05f; // 50ms per frame = 20 FPS
@@ -179,7 +180,7 @@ void Baby::Init(
 		512,  // Frame height
 		40    // Frame count
 	};
-	m_crawl_direction = CrawlDirection::TowardsCamera;
+	m_crawl_direction = CharacterCameraFacing::TowardsCamera;
 
 	// this creates a quad on the xy axes, we have to rotate it up to face the camera with the model matrix
 	m_mesh_id = m_crawl_sprite_sheet.CreateQuadMesh(asset_manager);
@@ -242,15 +243,17 @@ void Baby::Update(float dt, Dog const * dog, SceneState scene_state)
 	if (m_state == State::Walking)
 	{
 		if (velocity.y > DirectionEpsilon)
-			set_crawl_direction(CrawlDirection::AwayFromCamera);
+			set_crawl_direction(CharacterCameraFacing::AwayFromCamera);
 		else if (velocity.y < -DirectionEpsilon)
-			set_crawl_direction(CrawlDirection::TowardsCamera);
+			set_crawl_direction(CharacterCameraFacing::TowardsCamera);
 	}
 
-	if (velocity.x > 0.0f && !facing_right	  // moving right, but facing left
-		|| velocity.x < 0.0f && facing_right) // moving left, but facing right
+	if (velocity.x > DirectionEpsilon && m_horizontal_facing != CharacterHorizontalFacing::Right
+		|| velocity.x < -DirectionEpsilon && m_horizontal_facing != CharacterHorizontalFacing::Left)
 	{
-		facing_right = !facing_right;
+		m_horizontal_facing = velocity.x > DirectionEpsilon
+			? CharacterHorizontalFacing::Right
+			: CharacterHorizontalFacing::Left;
 		update_frame_uvs();
 	}
 
@@ -272,22 +275,33 @@ void Baby::OnSceneStateChanged(SceneState new_state)
 		set_state(State::Idle);
 }
 
-void Baby::Reload(glm::vec3 const & camera_dir, glm::vec2 pos)
+void Baby::Reload(
+	glm::vec3 const & camera_dir,
+	glm::vec2 pos,
+	CharacterCameraFacing camera_facing,
+	CharacterHorizontalFacing horizontal_facing)
 {
 	m_state = State::Idle;
-	facing_right = true;
 	m_animation_timer = 0.0f;
 	m_crawl_sprite_sheet.SetCurrentFrame(0);
 	m_crawl_away_sprite_sheet.SetCurrentFrame(0);
-	m_crawl_direction = CrawlDirection::TowardsCamera;
-	m_pipeline_data.tex_id = m_crawl_sprite_sheet.GetTextureId();
-	update_frame_uvs();
+	SetFacing(camera_facing, horizontal_facing);
+	SetCameraDirection(camera_dir);
+	SetPosition(pos);
+}
 
+void Baby::SetFacing(CharacterCameraFacing camera_facing, CharacterHorizontalFacing horizontal_facing)
+{
+	set_crawl_direction(camera_facing);
+	m_horizontal_facing = horizontal_facing;
+	update_frame_uvs();
+}
+
+void Baby::SetCameraDirection(glm::vec3 const & camera_dir)
+{
+	glm::vec2 const pos = GetPosition();
 	m_pipeline_data.model = create_camera_facing_model(camera_dir);
-	m_shadow_pipeline_data.model = create_shadow_model(
-		camera_dir,
-		pos,
-		BabyShadowTowardsCameraOffset);
+	m_shadow_pipeline_data.model = create_shadow_model(camera_dir, pos, get_shadow_offset());
 	SetPosition(pos);
 }
 
@@ -315,26 +329,26 @@ void Baby::SetTint(glm::vec3 tint)
 
 SpriteSheet & Baby::get_active_sprite_sheet()
 {
-	return m_crawl_direction == CrawlDirection::AwayFromCamera
+	return m_crawl_direction == CharacterCameraFacing::AwayFromCamera
 		? m_crawl_away_sprite_sheet
 		: m_crawl_sprite_sheet;
 }
 
 SpriteSheet const & Baby::get_active_sprite_sheet() const
 {
-	return m_crawl_direction == CrawlDirection::AwayFromCamera
+	return m_crawl_direction == CharacterCameraFacing::AwayFromCamera
 		? m_crawl_away_sprite_sheet
 		: m_crawl_sprite_sheet;
 }
 
 glm::vec2 Baby::get_shadow_offset() const
 {
-	return m_crawl_direction == CrawlDirection::AwayFromCamera
+	return m_crawl_direction == CharacterCameraFacing::AwayFromCamera
 		? BabyShadowAwayFromCameraOffset
 		: BabyShadowTowardsCameraOffset;
 }
 
-void Baby::set_crawl_direction(CrawlDirection direction)
+void Baby::set_crawl_direction(CharacterCameraFacing direction)
 {
 	if (m_crawl_direction == direction)
 		return;
@@ -377,11 +391,11 @@ void Baby::update_frame_uvs()
 {
 	m_pipeline_data.frame_uvs = get_active_sprite_sheet().GetCurrentFrameUVs();
 	m_shadow_pipeline_data.frame_uvs = glm::vec4{ 0.0f, 1.0f, 0.0f, 1.0f };
-	if (!facing_right)
+	if (m_horizontal_facing == CharacterHorizontalFacing::Left)
 		std::swap(m_pipeline_data.frame_uvs.x, m_pipeline_data.frame_uvs.y);
 
-	bool flip_shadow = !facing_right;
-	if (m_crawl_direction == CrawlDirection::AwayFromCamera)
+	bool flip_shadow = m_horizontal_facing == CharacterHorizontalFacing::Left;
+	if (m_crawl_direction == CharacterCameraFacing::AwayFromCamera)
 		flip_shadow = !flip_shadow;
 	if (flip_shadow)
 		std::swap(m_shadow_pipeline_data.frame_uvs.x, m_shadow_pipeline_data.frame_uvs.y);

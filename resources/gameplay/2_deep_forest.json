@@ -1,7 +1,12 @@
 {
   "id": "2_deep_forest",
   "background": "2_deep_forest.png",
-  "tint": [0.62, 0.68, 0.88, 1.0],
+  "tint": [
+    0.6200000047683716,
+    0.6800000071525574,
+    0.8799999952316284,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -82,14 +87,22 @@
     {
       "target_scene_id": "2_golden_hour",
       "arrival_points": {
-        "dog": [
-          0.4194379448890686,
-          10.730745315551758
-        ],
-        "baby": [
-          -0.38988637924194336,
-          11.56890869140625
-        ]
+        "dog": {
+          "position": [
+            0.20968231558799744,
+            10.44538402557373
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -0.7379688024520874,
+            11.425819396972656
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -113,14 +126,22 @@
     {
       "target_scene_id": "2_dark_forest",
       "arrival_points": {
-        "dog": [
-          -0.471824049949646,
-          -2.9338667392730713
-        ],
-        "baby": [
-          0.2956559360027313,
-          -3.37900447845459
-        ]
+        "dog": {
+          "position": [
+            -0.471824049949646,
+            -2.9338667392730713
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.2956559360027313,
+            -3.37900447845459
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [

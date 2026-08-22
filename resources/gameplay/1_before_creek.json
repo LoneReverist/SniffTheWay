@@ -115,14 +115,22 @@
     {
       "target_scene_id": "1_thicker_forest_transition",
       "arrival_points": {
-        "dog": [
-          0.38467445969581604,
-          -3.0327157974243164
-        ],
-        "baby": [
-          -0.610645592212677,
-          -3.5653648376464844
-        ]
+        "dog": {
+          "position": [
+            0.38467445969581604,
+            -3.0327157974243164
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -0.610645592212677,
+            -3.5653648376464844
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -146,14 +154,22 @@
     {
       "target_scene_id": "creek",
       "arrival_points": {
-        "dog": [
-          0.7359369397163391,
-          12.48532485961914
-        ],
-        "baby": [
-          1.4973818063735962,
-          13.684404373168945
-        ]
+        "dog": {
+          "position": [
+            0.7359369397163391,
+            12.48532485961914
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            1.4973818063735962,
+            13.684404373168945
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [

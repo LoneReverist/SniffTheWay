@@ -16,6 +16,7 @@ module;
 export module GameplaySceneLoader;
 
 import GameplaySceneData;
+import CharacterFacing;
 import GameplayMessageData;
 import Polygon2d;
 import SniffTheWayConstants;
@@ -134,6 +135,36 @@ GameplayCameraData parse_gameplay_camera(json const & j, GameplayCameraData fall
 	return fallback;
 }
 
+CharacterCameraFacing parse_character_camera_facing(std::string const & value)
+{
+	if (value == "away")
+		return CharacterCameraFacing::AwayFromCamera;
+	if (value != "towards")
+		LOG(WARNING) << "GameplaySceneLoader: Unknown character camera facing '" << value << "'. Using towards.";
+	return CharacterCameraFacing::TowardsCamera;
+}
+
+CharacterHorizontalFacing parse_character_horizontal_facing(std::string const & value)
+{
+	if (value == "left")
+		return CharacterHorizontalFacing::Left;
+	if (value != "right")
+		LOG(WARNING) << "GameplaySceneLoader: Unknown character horizontal facing '" << value << "'. Using right.";
+	return CharacterHorizontalFacing::Right;
+}
+
+GameplayCharacterArrival parse_gameplay_character_arrival(json const & j, GameplayCharacterArrival fallback)
+{
+	if (!j.is_object())
+		return fallback;
+
+	if (j.contains("position"))
+		fallback.position = parse_gameplay_vec2(j["position"], fallback.position);
+	fallback.camera_facing = parse_character_camera_facing(j.value("camera_facing", std::string{ "towards" }));
+	fallback.horizontal_facing = parse_character_horizontal_facing(j.value("horizontal_facing", std::string{ "right" }));
+	return fallback;
+}
+
 GameplaySceneLink parse_gameplay_scene_link(json const & j)
 {
 	GameplaySceneLink scene_link;
@@ -153,10 +184,10 @@ GameplaySceneLink parse_gameplay_scene_link(json const & j)
 
 	json const arrival_points_json = j.value("arrival_points", json::object());
 	if (arrival_points_json.contains("dog"))
-		scene_link.dog_arrival_pos = parse_gameplay_vec2(arrival_points_json["dog"], scene_link.dog_arrival_pos);
+		scene_link.dog_arrival = parse_gameplay_character_arrival(arrival_points_json["dog"], scene_link.dog_arrival);
 
 	if (arrival_points_json.contains("baby"))
-		scene_link.baby_arrival_pos = parse_gameplay_vec2(arrival_points_json["baby"], scene_link.baby_arrival_pos);
+		scene_link.baby_arrival = parse_gameplay_character_arrival(arrival_points_json["baby"], scene_link.baby_arrival);
 
 	return scene_link;
 }
@@ -240,13 +271,32 @@ json serialize_gameplay_camera(GameplayCameraData const & camera)
 	};
 }
 
+std::string serialize_character_camera_facing(CharacterCameraFacing facing)
+{
+	return facing == CharacterCameraFacing::AwayFromCamera ? "away" : "towards";
+}
+
+std::string serialize_character_horizontal_facing(CharacterHorizontalFacing facing)
+{
+	return facing == CharacterHorizontalFacing::Left ? "left" : "right";
+}
+
+json serialize_gameplay_character_arrival(GameplayCharacterArrival const & arrival)
+{
+	return json{
+		{ "position", serialize_gameplay_vec2(arrival.position) },
+		{ "camera_facing", serialize_character_camera_facing(arrival.camera_facing) },
+		{ "horizontal_facing", serialize_character_horizontal_facing(arrival.horizontal_facing) }
+	};
+}
+
 json serialize_gameplay_scene_link(GameplaySceneLink const & scene_link)
 {
 	return json{
 		{ "target_scene_id", std::string{ SniffTheWay::ToString(scene_link.target_scene_id) } },
 		{ "arrival_points", json{
-			{ "dog", serialize_gameplay_vec2(scene_link.dog_arrival_pos) },
-			{ "baby", serialize_gameplay_vec2(scene_link.baby_arrival_pos) }
+			{ "dog", serialize_gameplay_character_arrival(scene_link.dog_arrival) },
+			{ "baby", serialize_gameplay_character_arrival(scene_link.baby_arrival) }
 		} },
 		{ "trigger", serialize_gameplay_polygon(scene_link.trigger) }
 	};

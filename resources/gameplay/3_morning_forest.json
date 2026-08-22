@@ -1,7 +1,12 @@
 {
   "id": "3_morning_forest",
   "background": "3_morning_forest.png",
-  "tint": [0.99, 1.0, 0.88, 1.0],
+  "tint": [
+    0.9900000095367432,
+    1.0,
+    0.8799999952316284,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -10,8 +15,8 @@
     ],
     "direction": [
       0.0,
-      0.9998990893363953,
-      0.014213665388524532
+      0.9998989701271057,
+      0.014213663525879383
     ],
     "fov_degrees": 55.0
   },
@@ -86,28 +91,44 @@
     {
       "target_scene_id": "night",
       "arrival_points": {
-        "dog": [
-          -0.19567246735095978,
-          -3.7337265014648438
-        ],
-        "baby": [
-          -1.0339710712432861,
-          -3.9482662677764893
-        ]
+        "dog": {
+          "position": [
+            -0.34229981899261475,
+            -4.107548713684082
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            -1.085153579711914,
+            -3.813462495803833
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": []
     },
     {
       "target_scene_id": "3_morning_forest2",
       "arrival_points": {
-        "dog": [
-          5.1148529052734375,
-          3.989973545074463
-        ],
-        "baby": [
-          6.11475944519043,
-          4.982287406921387
-        ]
+        "dog": {
+          "position": [
+            4.587198734283447,
+            3.3821911811828613
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            6.0312652587890625,
+            4.42032527923584
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -153,9 +174,14 @@
       "repeat": "none",
       "message": {
         "text": "We'll find the way home.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

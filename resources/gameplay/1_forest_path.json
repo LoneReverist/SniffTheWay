@@ -1,7 +1,12 @@
 {
   "id": "1_forest_path",
   "background": "1_forest_path.png",
-  "tint": [0.98, 1.0, 0.94, 1.0],
+  "tint": [
+    0.9800000190734863,
+    1.0,
+    0.9399999976158142,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -111,28 +116,44 @@
     {
       "target_scene_id": "picnic",
       "arrival_points": {
-        "dog": [
-          -0.5881401300430298,
-          -2.9410581588745117
-        ],
-        "baby": [
-          0.30242037773132324,
-          -2.4050850868225098
-        ]
+        "dog": {
+          "position": [
+            -0.6175156235694885,
+            -2.8619184494018555
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.5560740828514099,
+            -3.4098241329193115
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": []
     },
     {
       "target_scene_id": "1_forest_path2",
       "arrival_points": {
-        "dog": [
-          -0.58610999584198,
-          9.03229808807373
-        ],
-        "baby": [
-          0.09727424383163452,
-          10.044441223144531
-        ]
+        "dog": {
+          "position": [
+            -0.8016704320907593,
+            8.174723625183105
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.1705208718776703,
+            9.438187599182129
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -178,9 +199,14 @@
       "repeat": "none",
       "message": {
         "text": "Let's follow the scent.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     },
     {
@@ -208,7 +234,7 @@
         "text": "Use [W][A][S][D] or Arrow Keys to move.",
         "position": [
           960.0,
-          993.6
+          993.5999755859375
         ],
         "font_size": 36.0,
         "fade_in_duration": 0.25,

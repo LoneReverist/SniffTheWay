@@ -1,7 +1,12 @@
 {
   "id": "1_playground",
   "background": "1_playground.png",
-  "tint": [1.0, 0.99, 0.95, 1.0],
+  "tint": [
+    1.0,
+    0.9900000095367432,
+    0.949999988079071,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -187,14 +192,22 @@
     {
       "target_scene_id": "1_forest_lake",
       "arrival_points": {
-        "dog": [
-          -3.381439685821533,
-          -3.0280261039733887
-        ],
-        "baby": [
-          -4.087737083435059,
-          -2.3648595809936523
-        ]
+        "dog": {
+          "position": [
+            -3.381439685821533,
+            -3.0280261039733887
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            -3.5326950550079346,
+            -2.0010571479797363
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -218,14 +231,22 @@
     {
       "target_scene_id": "1_forest_horizontal",
       "arrival_points": {
-        "dog": [
-          3.6358344554901123,
-          -2.8062987327575684
-        ],
-        "baby": [
-          4.390335559844971,
-          -2.1272945404052734
-        ]
+        "dog": {
+          "position": [
+            3.425351858139038,
+            -3.061368942260742
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            3.41448974609375,
+            -2.2669572830200195
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -271,9 +292,14 @@
       "repeat": "none",
       "message": {
         "text": "So many smells...\nBut none feel like home.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

@@ -10,15 +10,23 @@ module;
 export module GameplaySceneData;
 
 import GameplayMessageData;
+import CharacterFacing;
 import Polygon2d;
 import SniffTheWayConstants;
+
+export struct GameplayCharacterArrival
+{
+	glm::vec2 position{ 0.0f };
+	CharacterCameraFacing camera_facing = CharacterCameraFacing::TowardsCamera;
+	CharacterHorizontalFacing horizontal_facing = CharacterHorizontalFacing::Right;
+};
 
 export struct GameplaySceneLink
 {
 	SniffTheWay::SceneId target_scene_id = SniffTheWay::SceneId::Exit;
 	Polygon2d trigger;
-	glm::vec2 dog_arrival_pos{ 0.0f };
-	glm::vec2 baby_arrival_pos{ 0.0f };
+	GameplayCharacterArrival dog_arrival;
+	GameplayCharacterArrival baby_arrival;
 };
 
 export struct ScentTrailData

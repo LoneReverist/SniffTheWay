@@ -1,7 +1,12 @@
 {
   "id": "1_thicker_forest_transition",
   "background": "1_thicker_forest_transition.png",
-  "tint": [0.92, 0.98, 0.94, 1.0],
+  "tint": [
+    0.9200000166893005,
+    0.9800000190734863,
+    0.9399999976158142,
+    1.0
+  ],
   "camera": {
     "position": [
       0.022499985992908478,
@@ -9,9 +14,9 @@
       2.0300235748291016
     ],
     "direction": [
-      -0.2542990446090698,
-      0.9593248963356018,
-      -0.12258853763341904
+      -0.25429901480674744,
+      0.9593247771263123,
+      -0.12258852273225784
     ],
     "fov_degrees": 45.0
   },
@@ -127,14 +132,22 @@
     {
       "target_scene_id": "1_forest_horizontal",
       "arrival_points": {
-        "dog": [
-          -4.814299583435059,
-          -3.7472825050354004
-        ],
-        "baby": [
-          -5.75155782699585,
-          -3.3053393363952637
-        ]
+        "dog": {
+          "position": [
+            -5.3907575607299805,
+            -3.7170801162719727
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            -5.71804666519165,
+            -2.6621475219726563
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -158,14 +171,22 @@
     {
       "target_scene_id": "1_before_creek",
       "arrival_points": {
-        "dog": [
-          -0.3992390036582947,
-          12.003496170043945
-        ],
-        "baby": [
-          0.07547755539417267,
-          13.326616287231445
-        ]
+        "dog": {
+          "position": [
+            -0.5690898299217224,
+            11.141122817993164
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.32822132110595703,
+            12.821227073669434
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [

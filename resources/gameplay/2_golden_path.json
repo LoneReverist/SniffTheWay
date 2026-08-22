@@ -1,7 +1,12 @@
 {
   "id": "2_golden_path",
   "background": "2_golden_path.png",
-  "tint": [1.0, 0.80, 0.52, 1.0],
+  "tint": [
+    1.0,
+    0.800000011920929,
+    0.5199999809265137,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -94,14 +99,22 @@
     {
       "target_scene_id": "2_golden_intersection",
       "arrival_points": {
-        "dog": [
-          -1.5923395156860352,
-          -2.1521120071411133
-        ],
-        "baby": [
-          -3.0210766792297363,
-          -0.991431713104248
-        ]
+        "dog": {
+          "position": [
+            -1.5923395156860352,
+            -2.1521120071411133
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            -3.0210766792297363,
+            -0.991431713104248
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -125,14 +138,22 @@
     {
       "target_scene_id": "2_golden_hour",
       "arrival_points": {
-        "dog": [
-          5.836485862731934,
-          0.12988710403442383
-        ],
-        "baby": [
-          7.7547454833984375,
-          1.4830999374389648
-        ]
+        "dog": {
+          "position": [
+            6.232757091522217,
+            0.13221311569213867
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            6.445448875427246,
+            1.2689790725708008
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -178,9 +199,14 @@
       "repeat": "none",
       "message": {
         "text": "Deeper into the woods... it's our only way.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

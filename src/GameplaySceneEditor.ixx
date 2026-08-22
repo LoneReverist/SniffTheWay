@@ -20,6 +20,7 @@ import Dreamhearth;
 import AssetManager;
 import AssetPool;
 import Camera;
+import CharacterFacing;
 import EditorGrid;
 import FontAtlas;
 import GameplaySceneData;
@@ -189,7 +190,11 @@ private:
 	std::vector<glm::vec2> get_target_vertices(PolygonEditTarget target) const;
 	void set_target_vertices(PolygonEditTarget target, std::vector<glm::vec2> vertices);
 	glm::vec2 get_arrival_position(ArrivalEditTarget target) const;
+	GameplayCharacterArrival * get_arrival(ArrivalEditTarget target);
+	GameplayCharacterArrival const * get_arrival(ArrivalEditTarget target) const;
 	void set_arrival_position(ArrivalEditTarget target, glm::vec2 pos);
+	void toggle_arrival_camera_facing(ArrivalEditTarget target, AssetManager & asset_manager, SceneRenderer & renderer);
+	void toggle_arrival_horizontal_facing(ArrivalEditTarget target, AssetManager & asset_manager, SceneRenderer & renderer);
 	void update_polygon_editing_label();
 	std::string create_editor_label_text() const;
 	bool save_scene_data() const;
@@ -208,9 +213,12 @@ private:
 	void append_arrival_marker_lines(
 		std::vector<LineInstance> & lines,
 		glm::vec2 pos,
+		CharacterCameraFacing camera_facing,
+		CharacterHorizontalFacing horizontal_facing,
 		glm::vec4 color,
 		float size,
-		float thickness) const;
+		float thickness,
+		bool show_facing) const;
 	bool is_editing_polygon() const { return m_edit_mode == EditMode::Polygon && m_polygon_edit_target.has_value(); }
 	bool is_editing_scent_trails() const
 	{
@@ -646,6 +654,42 @@ void GameplaySceneEditor::Update(
 				.character = ArrivalCharacter::Baby,
 				.link_index = *m_selected_scene_link_index
 			});
+		return;
+	}
+
+	if (has_selected_scene_link() && input.KeyJustPressed('3'))
+	{
+		toggle_arrival_camera_facing(ArrivalEditTarget{
+			.character = ArrivalCharacter::Dog,
+			.link_index = *m_selected_scene_link_index
+		}, asset_manager, renderer);
+		return;
+	}
+
+	if (has_selected_scene_link() && input.KeyJustPressed('4'))
+	{
+		toggle_arrival_horizontal_facing(ArrivalEditTarget{
+			.character = ArrivalCharacter::Dog,
+			.link_index = *m_selected_scene_link_index
+		}, asset_manager, renderer);
+		return;
+	}
+
+	if (has_selected_scene_link() && input.KeyJustPressed('5'))
+	{
+		toggle_arrival_camera_facing(ArrivalEditTarget{
+			.character = ArrivalCharacter::Baby,
+			.link_index = *m_selected_scene_link_index
+		}, asset_manager, renderer);
+		return;
+	}
+
+	if (has_selected_scene_link() && input.KeyJustPressed('6'))
+	{
+		toggle_arrival_horizontal_facing(ArrivalEditTarget{
+			.character = ArrivalCharacter::Baby,
+			.link_index = *m_selected_scene_link_index
+		}, asset_manager, renderer);
 		return;
 	}
 }
@@ -1333,7 +1377,7 @@ void GameplaySceneEditor::append_polygon_vertex(AssetManager & asset_manager, Sc
 	if (m_draft_vertices.empty())
 	{
 		if (m_scene_data && !m_scene_data->scene_links.empty())
-			point = m_scene_data->scene_links.front().dog_arrival_pos;
+			point = m_scene_data->scene_links.front().dog_arrival.position;
 	}
 	else
 	{
@@ -1884,16 +1928,24 @@ void GameplaySceneEditor::set_target_vertices(PolygonEditTarget target, std::vec
 
 glm::vec2 GameplaySceneEditor::get_arrival_position(ArrivalEditTarget target) const
 {
-	if (!m_scene_data)
-		return glm::vec2{ 0.0f };
+	GameplayCharacterArrival const * arrival = get_arrival(target);
+	return arrival ? arrival->position : glm::vec2{ 0.0f };
+}
 
-	if (target.link_index >= m_scene_data->scene_links.size())
-		return glm::vec2{ 0.0f };
+GameplayCharacterArrival * GameplaySceneEditor::get_arrival(ArrivalEditTarget target)
+{
+	if (!m_scene_data || target.link_index >= m_scene_data->scene_links.size())
+		return nullptr;
+	GameplaySceneLink & scene_link = m_scene_data->scene_links[target.link_index];
+	return target.character == ArrivalCharacter::Dog ? &scene_link.dog_arrival : &scene_link.baby_arrival;
+}
 
+GameplayCharacterArrival const * GameplaySceneEditor::get_arrival(ArrivalEditTarget target) const
+{
+	if (!m_scene_data || target.link_index >= m_scene_data->scene_links.size())
+		return nullptr;
 	GameplaySceneLink const & scene_link = m_scene_data->scene_links[target.link_index];
-	return target.character == ArrivalCharacter::Dog
-		? scene_link.dog_arrival_pos
-		: scene_link.baby_arrival_pos;
+	return target.character == ArrivalCharacter::Dog ? &scene_link.dog_arrival : &scene_link.baby_arrival;
 }
 
 void GameplaySceneEditor::set_arrival_position(ArrivalEditTarget target, glm::vec2 pos)
@@ -1904,11 +1956,38 @@ void GameplaySceneEditor::set_arrival_position(ArrivalEditTarget target, glm::ve
 	if (target.link_index >= m_scene_data->scene_links.size())
 		return;
 
-	GameplaySceneLink & scene_link = m_scene_data->scene_links[target.link_index];
-	if (target.character == ArrivalCharacter::Dog)
-		scene_link.dog_arrival_pos = pos;
-	else
-		scene_link.baby_arrival_pos = pos;
+	if (GameplayCharacterArrival * arrival = get_arrival(target))
+		arrival->position = pos;
+}
+
+void GameplaySceneEditor::toggle_arrival_camera_facing(
+	ArrivalEditTarget target,
+	AssetManager & asset_manager,
+	SceneRenderer & renderer)
+{
+	GameplayCharacterArrival * arrival = get_arrival(target);
+	if (!arrival)
+		return;
+	arrival->camera_facing = arrival->camera_facing == CharacterCameraFacing::TowardsCamera
+		? CharacterCameraFacing::AwayFromCamera
+		: CharacterCameraFacing::TowardsCamera;
+	rebuild_arrival_markers(asset_manager, renderer);
+	update_polygon_editing_label();
+}
+
+void GameplaySceneEditor::toggle_arrival_horizontal_facing(
+	ArrivalEditTarget target,
+	AssetManager & asset_manager,
+	SceneRenderer & renderer)
+{
+	GameplayCharacterArrival * arrival = get_arrival(target);
+	if (!arrival)
+		return;
+	arrival->horizontal_facing = arrival->horizontal_facing == CharacterHorizontalFacing::Right
+		? CharacterHorizontalFacing::Left
+		: CharacterHorizontalFacing::Right;
+	rebuild_arrival_markers(asset_manager, renderer);
+	update_polygon_editing_label();
 }
 
 void GameplaySceneEditor::update_polygon_editing_label()
@@ -1957,7 +2036,13 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 		{
 			GameplaySceneLink const & scene_link = m_scene_data->scene_links[*m_selected_scene_link_index];
 			selected_scene_link_text = "#" + std::to_string(*m_selected_scene_link_index + 1)
-				+ ": " + std::string{ ToString(scene_link.target_scene_id) };
+				+ ": " + std::string{ ToString(scene_link.target_scene_id) }
+				+ "\nDog facing: "
+				+ (scene_link.dog_arrival.camera_facing == CharacterCameraFacing::TowardsCamera ? "towards" : "away")
+				+ "/" + (scene_link.dog_arrival.horizontal_facing == CharacterHorizontalFacing::Right ? "right" : "left")
+				+ "\nBaby facing: "
+				+ (scene_link.baby_arrival.camera_facing == CharacterCameraFacing::TowardsCamera ? "towards" : "away")
+				+ "/" + (scene_link.baby_arrival.horizontal_facing == CharacterHorizontalFacing::Right ? "right" : "left");
 		}
 		std::string selected_message_trigger_text = "none";
 		if (has_selected_message_trigger())
@@ -1979,6 +2064,8 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 			"[Delete] Delete selected link\n"
 			"[1] Dog selected link arrival point\n"
 			"[2] Baby selected link arrival point\n"
+			"[3/4] Toggle dog camera/horizontal facing\n"
+			"[5/6] Toggle baby camera/horizontal facing\n"
 			"[Ctrl+S] Save\n"
 			"[R] Reload\n"
 			"[Escape] Exit editor";
@@ -2208,7 +2295,19 @@ std::vector<LineInstance> GameplaySceneEditor::create_arrival_marker_lines() con
 			: is_selected_scene_link ? SelectedArrivalColor : base_color;
 		float const size = is_editing_this || is_selected_scene_link ? SelectedArrivalMarkerSize : ArrivalMarkerSize;
 		float const thickness = is_editing_this || is_selected_scene_link ? SelectedArrivalMarkerThickness : ArrivalMarkerThickness;
-		append_arrival_marker_lines(lines, get_arrival_position(target), color, size, thickness);
+		GameplayCharacterArrival const * arrival = get_arrival(target);
+		if (arrival)
+		{
+			append_arrival_marker_lines(
+				lines,
+				arrival->position,
+				arrival->camera_facing,
+				arrival->horizontal_facing,
+				color,
+				size,
+				thickness,
+				true);
+		}
 	};
 
 	for (std::size_t i = 0; i < m_scene_data->scene_links.size(); ++i)
@@ -2235,9 +2334,12 @@ std::vector<LineInstance> GameplaySceneEditor::create_selected_vertex_marker_lin
 	append_arrival_marker_lines(
 		lines,
 		m_draft_vertices[*m_selected_vertex_index],
+		CharacterCameraFacing::TowardsCamera,
+		CharacterHorizontalFacing::Right,
 		SelectedVertexColor,
 		SelectedVertexMarkerSize,
-		SelectedVertexMarkerThickness);
+		SelectedVertexMarkerThickness,
+		false);
 
 	return lines;
 }
@@ -2245,9 +2347,12 @@ std::vector<LineInstance> GameplaySceneEditor::create_selected_vertex_marker_lin
 void GameplaySceneEditor::append_arrival_marker_lines(
 	std::vector<LineInstance> & lines,
 	glm::vec2 pos,
+	CharacterCameraFacing camera_facing,
+	CharacterHorizontalFacing horizontal_facing,
 	glm::vec4 color,
 	float size,
-	float thickness) const
+	float thickness,
+	bool show_facing) const
 {
 	const float z = 0.02f;
 	lines.push_back(LineInstance{
@@ -2272,6 +2377,35 @@ void GameplaySceneEditor::append_arrival_marker_lines(
 		.p0 = { pos.x - size * 0.7f, pos.y + size * 0.7f, z },
 		.p1 = { pos.x + size * 0.7f, pos.y - size * 0.7f, z },
 		.thickness = thickness * 0.7f,
+		.color = color
+	});
+	if (!show_facing)
+		return;
+
+	glm::vec2 direction{
+		horizontal_facing == CharacterHorizontalFacing::Right ? 1.0f : -1.0f,
+		camera_facing == CharacterCameraFacing::AwayFromCamera ? 1.0f : -1.0f
+	};
+	direction = glm::normalize(direction);
+	glm::vec2 const tip = pos + direction * size * 2.75f;
+	glm::vec2 const side{ -direction.y, direction.x };
+	glm::vec2 const arrow_base = tip - direction * size;
+	lines.push_back(LineInstance{
+		.p0 = { pos.x, pos.y, z },
+		.p1 = { tip.x, tip.y, z },
+		.thickness = thickness,
+		.color = color
+	});
+	lines.push_back(LineInstance{
+		.p0 = { tip.x, tip.y, z },
+		.p1 = { arrow_base.x + side.x * size * 0.5f, arrow_base.y + side.y * size * 0.5f, z },
+		.thickness = thickness,
+		.color = color
+	});
+	lines.push_back(LineInstance{
+		.p0 = { tip.x, tip.y, z },
+		.p1 = { arrow_base.x - side.x * size * 0.5f, arrow_base.y - side.y * size * 0.5f, z },
+		.thickness = thickness,
 		.color = color
 	});
 }

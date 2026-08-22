@@ -1,7 +1,12 @@
 {
   "id": "3_morning_forest2",
   "background": "3_morning_forest2.png",
-  "tint": [1.0, 0.99, 0.90, 1.0],
+  "tint": [
+    1.0,
+    0.9900000095367432,
+    0.8999999761581421,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -90,14 +95,22 @@
     {
       "target_scene_id": "3_morning_forest",
       "arrival_points": {
-        "dog": [
-          0.2507445514202118,
-          -2.7572054862976074
-        ],
-        "baby": [
-          -0.6121221780776978,
-          -3.258277654647827
-        ]
+        "dog": {
+          "position": [
+            0.45620080828666687,
+            -2.9471933841705322
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -0.5202147960662842,
+            -3.245516538619995
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -121,14 +134,22 @@
     {
       "target_scene_id": "3_dirt_path",
       "arrival_points": {
-        "dog": [
-          7.9953227043151855,
-          5.0119709968566895
-        ],
-        "baby": [
-          9.786134719848633,
-          6.900594711303711
-        ]
+        "dog": {
+          "position": [
+            8.065641403198242,
+            4.530169486999512
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            7.922731399536133,
+            5.5798444747924805
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -174,9 +195,14 @@
       "repeat": "none",
       "message": {
         "text": "One step at a time.",
-        "hold_duration": 3.5,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 3.5
       }
     }
   ]

@@ -79,8 +79,8 @@ private:
 	void store_camera_data();
 	void refresh_character_camera_facing();
 	void order_characters_for_rendering();
-	std::pair<glm::vec2, glm::vec2> get_default_spawn_positions() const;
-	std::pair<glm::vec2, glm::vec2> get_spawn_positions(SceneTransition const & transition) const;
+	std::pair<GameplayCharacterArrival, GameplayCharacterArrival> get_default_arrivals() const;
+	std::pair<GameplayCharacterArrival, GameplayCharacterArrival> get_arrivals(SceneTransition const & transition) const;
 	void reset_message_triggers();
 	void ensure_message_overlays();
 	void update_message_triggers(glm::vec2 dog_pos);
@@ -167,8 +167,8 @@ GameplayScene::GameplayScene(
 	m_background.Init(m_asset_manager, m_bg_tex_id);
 	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
-	const auto [dog_spawn_pos, baby_spawn_pos] = get_spawn_positions(transition);
-	recreate_scent_trails(dog_spawn_pos);
+	const auto [dog_arrival, baby_arrival] = get_arrivals(transition);
+	recreate_scent_trails(dog_arrival.position);
 
 #ifdef _DEBUG
 	m_editor.Init(m_asset_manager, m_renderer, m_camera3d, m_font_atlas, m_text_pipeline_id, m_scene_data, get_gameplay_filepath());
@@ -180,7 +180,8 @@ GameplayScene::GameplayScene(
 		false /*flip_vertically*/,
 		false /*use_mip_map*/);
 
-	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_spawn_pos, character_shadow_tex_id);
+	m_dog.Init(m_asset_manager, m_camera3d.GetDir(), dog_arrival.position, character_shadow_tex_id);
+	m_dog.SetFacing(dog_arrival.camera_facing, dog_arrival.horizontal_facing);
 	m_dog.SetTint(glm::vec3{ m_scene_data.tint });
 	if (m_dog.HasShadow())
 	{
@@ -194,7 +195,8 @@ GameplayScene::GameplayScene(
 	m_dog_ro_id = m_renderer.CreateRenderObject(
 		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
 
-	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_spawn_pos, character_shadow_tex_id);
+	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_arrival.position, character_shadow_tex_id);
+	m_baby.SetFacing(baby_arrival.camera_facing, baby_arrival.horizontal_facing);
 	m_baby.SetTint(glm::vec3{ m_scene_data.tint });
 	if (m_baby.HasShadow())
 	{
@@ -417,12 +419,14 @@ void GameplayScene::reload_scene_data()
 		message_overlay.Hide();
 	ensure_message_overlays();
 	reset_message_triggers();
-	const auto [dog_spawn_pos, baby_spawn_pos] = get_default_spawn_positions();
-	m_dog.Reload(m_camera3d.GetDir(), dog_spawn_pos);
-	m_baby.Reload(m_camera3d.GetDir(), baby_spawn_pos);
+	const auto [dog_arrival, baby_arrival] = get_default_arrivals();
+	m_dog.Reload(
+		m_camera3d.GetDir(), dog_arrival.position, dog_arrival.camera_facing, dog_arrival.horizontal_facing);
+	m_baby.Reload(
+		m_camera3d.GetDir(), baby_arrival.position, baby_arrival.camera_facing, baby_arrival.horizontal_facing);
 	m_dog.SetTint(glm::vec3{ m_scene_data.tint });
 	m_baby.SetTint(glm::vec3{ m_scene_data.tint });
-	recreate_scent_trails(dog_spawn_pos);
+	recreate_scent_trails(dog_arrival.position);
 
 #ifdef _DEBUG
 	m_editor.Reload(m_asset_manager, m_renderer);
@@ -450,8 +454,8 @@ void GameplayScene::store_camera_data()
 
 void GameplayScene::refresh_character_camera_facing()
 {
-	m_dog.Reload(m_camera3d.GetDir(), m_dog.GetPosition());
-	m_baby.Reload(m_camera3d.GetDir(), m_baby.GetPosition());
+	m_dog.SetCameraDirection(m_camera3d.GetDir());
+	m_baby.SetCameraDirection(m_camera3d.GetDir());
 }
 
 void GameplayScene::order_characters_for_rendering()
@@ -488,29 +492,30 @@ void GameplayScene::reload_background_texture()
 		m_asset_manager.RemoveTexture(old_bg_tex_id);
 }
 
-std::pair<glm::vec2, glm::vec2> GameplayScene::get_spawn_positions(SceneTransition const & transition) const
+std::pair<GameplayCharacterArrival, GameplayCharacterArrival> GameplayScene::get_arrivals(
+	SceneTransition const & transition) const
 {
 	if (transition.previous_scene_id.has_value())
 	{
 		for (GameplaySceneLink const & scene_link : m_scene_data.scene_links)
 		{
 			if (scene_link.target_scene_id == transition.previous_scene_id.value())
-				return { scene_link.dog_arrival_pos, scene_link.baby_arrival_pos };
+				return { scene_link.dog_arrival, scene_link.baby_arrival };
 		}
 	}
 
-	return get_default_spawn_positions();
+	return get_default_arrivals();
 }
 
-std::pair<glm::vec2, glm::vec2> GameplayScene::get_default_spawn_positions() const
+std::pair<GameplayCharacterArrival, GameplayCharacterArrival> GameplayScene::get_default_arrivals() const
 {
 	if (!m_scene_data.scene_links.empty())
 	{
 		GameplaySceneLink const & default_spawn_link = m_scene_data.scene_links.front();
-		return { default_spawn_link.dog_arrival_pos, default_spawn_link.baby_arrival_pos };
+		return { default_spawn_link.dog_arrival, default_spawn_link.baby_arrival };
 	}
 
-	return { glm::vec2{ 0.0f }, glm::vec2{ 0.0f } };
+	return { GameplayCharacterArrival{}, GameplayCharacterArrival{} };
 }
 
 void GameplayScene::reset_message_triggers()

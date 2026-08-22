@@ -1,7 +1,12 @@
 {
   "id": "3_dirt_path",
   "background": "3_dirt_path.png",
-  "tint": [1.0, 0.98, 0.92, 1.0],
+  "tint": [
+    1.0,
+    0.9800000190734863,
+    0.9200000166893005,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -10,8 +15,8 @@
     ],
     "direction": [
       0.0,
-      0.9958370923995972,
-      -0.09115181863307953
+      0.9958369731903076,
+      -0.09115181118249893
     ],
     "fov_degrees": 50.0
   },
@@ -86,14 +91,22 @@
     {
       "target_scene_id": "3_morning_forest2",
       "arrival_points": {
-        "dog": [
-          -1.4245325326919556,
-          -2.7290821075439453
-        ],
-        "baby": [
-          -2.2173333168029785,
-          -2.530500888824463
-        ]
+        "dog": {
+          "position": [
+            -1.3313217163085938,
+            -3.028661012649536
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            -2.2173333168029785,
+            -2.530500888824463
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -121,14 +134,22 @@
     {
       "target_scene_id": "3_dirt_intersection",
       "arrival_points": {
-        "dog": [
-          4.532913684844971,
-          3.468414783477783
-        ],
-        "baby": [
-          5.22637939453125,
-          4.874845027923584
-        ]
+        "dog": {
+          "position": [
+            4.84951639175415,
+            3.718679904937744
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            4.527701377868652,
+            4.456486701965332
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -174,9 +195,14 @@
       "repeat": "none",
       "message": {
         "text": "The trees are thinning.",
-        "hold_duration": 3.5,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 3.5
       }
     }
   ]

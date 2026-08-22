@@ -1,7 +1,12 @@
 {
   "id": "3_dirt_intersection",
   "background": "3_dirt_intersection.png",
-  "tint": [1.0, 0.98, 0.93, 1.0],
+  "tint": [
+    1.0,
+    0.9800000190734863,
+    0.9300000071525574,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -123,14 +128,22 @@
     {
       "target_scene_id": "3_dirt_path",
       "arrival_points": {
-        "dog": [
-          -0.9548129439353943,
-          -3.0947763919830322
-        ],
-        "baby": [
-          -1.4164549112319946,
-          -3.5736701488494873
-        ]
+        "dog": {
+          "position": [
+            -1.4664454460144043,
+            -2.9849822521209717
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            -0.7945757508277893,
+            -3.5881216526031494
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -154,14 +167,22 @@
     {
       "target_scene_id": "3_bench_path",
       "arrival_points": {
-        "dog": [
-          4.9277262687683105,
-          8.348052024841309
-        ],
-        "baby": [
-          5.977880954742432,
-          9.200428009033203
-        ]
+        "dog": {
+          "position": [
+            4.618676662445068,
+            7.954908847808838
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            5.999715328216553,
+            8.894767761230469
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -207,9 +228,14 @@
       "repeat": "none",
       "message": {
         "text": "There! The trail again.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

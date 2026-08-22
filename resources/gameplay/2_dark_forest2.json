@@ -1,7 +1,12 @@
 {
   "id": "2_dark_forest2",
   "background": "2_dark_forest2.png",
-  "tint": [0.43, 0.54, 0.82, 1.0],
+  "tint": [
+    0.4300000071525574,
+    0.5400000214576721,
+    0.8199999928474426,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -78,14 +83,22 @@
     {
       "target_scene_id": "2_dark_forest",
       "arrival_points": {
-        "dog": [
-          -0.1061967983841896,
-          7.111677169799805
-        ],
-        "baby": [
-          0.5091454982757568,
-          7.761867523193359
-        ]
+        "dog": {
+          "position": [
+            -0.2531196177005768,
+            6.601425647735596
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.5545392036437988,
+            7.9336442947387695
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -109,14 +122,22 @@
     {
       "target_scene_id": "night",
       "arrival_points": {
-        "dog": [
-          0.1804812252521515,
-          -3.5603435039520264
-        ],
-        "baby": [
-          -0.4755728244781494,
-          -3.896822690963745
-        ]
+        "dog": {
+          "position": [
+            0.1804812252521515,
+            -3.5603435039520264
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -0.4755728244781494,
+            -3.896822690963745
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -162,9 +183,14 @@
       "repeat": "none",
       "message": {
         "text": "He's tired. We need to rest.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

@@ -1,7 +1,12 @@
 {
   "id": "2_golden_intersection",
   "background": "2_golden_intersection.png",
-  "tint": [1.0, 0.87, 0.60, 1.0],
+  "tint": [
+    1.0,
+    0.8700000047683716,
+    0.6000000238418579,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -10,8 +15,8 @@
     ],
     "direction": [
       0.0,
-      0.9983783960342407,
-      -0.05692797526717186
+      0.9983782768249512,
+      -0.05692796781659126
     ],
     "fov_degrees": 50.0
   },
@@ -115,14 +120,22 @@
     {
       "target_scene_id": "2_after_creek",
       "arrival_points": {
-        "dog": [
-          -3.168541669845581,
-          7.594690799713135
-        ],
-        "baby": [
-          -4.267632961273193,
-          8.509164810180664
-        ]
+        "dog": {
+          "position": [
+            -3.168541669845581,
+            7.594690799713135
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -4.267632961273193,
+            8.509164810180664
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -146,14 +159,22 @@
     {
       "target_scene_id": "2_golden_path",
       "arrival_points": {
-        "dog": [
-          5.3345842361450195,
-          0.5328259468078613
-        ],
-        "baby": [
-          6.99158239364624,
-          2.468280792236328
-        ]
+        "dog": {
+          "position": [
+            5.3345842361450195,
+            0.5328259468078613
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            5.347434997558594,
+            1.767225742340088
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -177,14 +198,22 @@
     {
       "target_scene_id": "2_fallen_tree",
       "arrival_points": {
-        "dog": [
-          0.4881955087184906,
-          -3.3437068462371826
-        ],
-        "baby": [
-          -0.42577823996543884,
-          -3.6405370235443115
-        ]
+        "dog": {
+          "position": [
+            0.4881955087184906,
+            -3.3437068462371826
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -0.42577823996543884,
+            -3.6405370235443115
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -230,9 +259,14 @@
       "repeat": "none",
       "message": {
         "text": "The woods feel quieter now.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

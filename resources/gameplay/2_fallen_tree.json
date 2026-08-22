@@ -1,7 +1,12 @@
 {
   "id": "2_fallen_tree",
   "background": "2_fallen_tree.png",
-  "tint": [1.0, 0.84, 0.57, 1.0],
+  "tint": [
+    1.0,
+    0.8399999737739563,
+    0.5699999928474426,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -87,14 +92,22 @@
     {
       "target_scene_id": "2_golden_intersection",
       "arrival_points": {
-        "dog": [
-          0.7051512002944946,
-          10.070703506469727
-        ],
-        "baby": [
-          1.1939183473587036,
-          10.971019744873047
-        ]
+        "dog": {
+          "position": [
+            0.22248628735542297,
+            9.586029052734375
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            1.1657164096832275,
+            10.546852111816406
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -140,9 +153,14 @@
       "repeat": "none",
       "message": {
         "text": "This tree is too big for us to pass.\nWe'll have to find another way.",
-        "hold_duration": 5.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 5.0
       }
     }
   ]

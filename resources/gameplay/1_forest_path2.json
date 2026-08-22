@@ -1,7 +1,12 @@
 {
   "id": "1_forest_path2",
   "background": "1_forest_path2.png",
-  "tint": [0.98, 1.0, 0.95, 1.0],
+  "tint": [
+    0.9800000190734863,
+    1.0,
+    0.949999988079071,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -123,14 +128,22 @@
     {
       "target_scene_id": "1_forest_path",
       "arrival_points": {
-        "dog": [
-          0.048748861998319626,
-          -2.56084942817688
-        ],
-        "baby": [
-          -0.9556130170822144,
-          -3.071329116821289
-        ]
+        "dog": {
+          "position": [
+            -0.7271702289581299,
+            -2.8450253009796143
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.24572452902793884,
+            -3.1949291229248047
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -154,14 +167,22 @@
     {
       "target_scene_id": "1_right_turn",
       "arrival_points": {
-        "dog": [
-          2.0331907272338867,
-          9.04096794128418
-        ],
-        "baby": [
-          3.233372449874878,
-          10.411092758178711
-        ]
+        "dog": {
+          "position": [
+            2.0331907272338867,
+            9.04096794128418
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            3.233372449874878,
+            10.411092758178711
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -207,9 +228,14 @@
       "repeat": "none",
       "message": {
         "text": "Their trail is faint... but it's here.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

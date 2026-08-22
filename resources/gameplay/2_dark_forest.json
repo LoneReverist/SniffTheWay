@@ -1,7 +1,12 @@
 {
   "id": "2_dark_forest",
   "background": "2_dark_forest.png",
-  "tint": [0.50, 0.60, 0.86, 1.0],
+  "tint": [
+    0.5,
+    0.6000000238418579,
+    0.8600000143051147,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -98,14 +103,22 @@
     {
       "target_scene_id": "2_deep_forest",
       "arrival_points": {
-        "dog": [
-          0.1712311953306198,
-          6.057339668273926
-        ],
-        "baby": [
-          0.8677971959114075,
-          7.5190839767456055
-        ]
+        "dog": {
+          "position": [
+            0.0,
+            6.208174705505371
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.8677971959114075,
+            7.5190839767456055
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -129,14 +142,22 @@
     {
       "target_scene_id": "2_dark_forest2",
       "arrival_points": {
-        "dog": [
-          0.25697681307792664,
-          -3.040766477584839
-        ],
-        "baby": [
-          -0.36078789830207825,
-          -3.4084622859954834
-        ]
+        "dog": {
+          "position": [
+            0.4249827563762665,
+            -2.736271381378174
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            -0.36078789830207825,
+            -3.4084622859954834
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        }
       },
       "trigger": [
         [
@@ -182,9 +203,14 @@
       "repeat": "none",
       "message": {
         "text": "Stay close. I won't lose you.",
-        "hold_duration": 4.0,
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
         "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
       }
     }
   ]

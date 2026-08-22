@@ -1,7 +1,12 @@
 {
   "id": "1_right_turn",
   "background": "1_right_turn.png",
-  "tint": [0.96, 1.0, 0.95, 1.0],
+  "tint": [
+    0.9599999785423279,
+    1.0,
+    0.949999988079071,
+    1.0
+  ],
   "camera": {
     "position": [
       0.0,
@@ -127,14 +132,22 @@
     {
       "target_scene_id": "1_forest_path2",
       "arrival_points": {
-        "dog": [
-          0.3563266396522522,
-          -2.038466691970825
-        ],
-        "baby": [
-          -0.40344926714897156,
-          -2.5358328819274902
-        ]
+        "dog": {
+          "position": [
+            -0.5556437373161316,
+            -2.479414224624634
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "right"
+        },
+        "baby": {
+          "position": [
+            0.30175715684890747,
+            -2.742337942123413
+          ],
+          "camera_facing": "away",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [
@@ -158,14 +171,22 @@
     {
       "target_scene_id": "1_forest_lake",
       "arrival_points": {
-        "dog": [
-          7.456882476806641,
-          4.226060390472412
-        ],
-        "baby": [
-          8.434172630310059,
-          5.237773418426514
-        ]
+        "dog": {
+          "position": [
+            7.456882476806641,
+            4.226060390472412
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        },
+        "baby": {
+          "position": [
+            7.623665809631348,
+            5.575215816497803
+          ],
+          "camera_facing": "towards",
+          "horizontal_facing": "left"
+        }
       },
       "trigger": [
         [

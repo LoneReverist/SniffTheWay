@@ -2,7 +2,7 @@
   "id": "1_before_creek",
   "audio": {
     "music": "early_forest",
-    "ambience": "early_forest"
+    "ambience": "distant_creek"
   },
   "background": "1_before_creek.png",
   "tint": [0.96, 1.0, 0.93, 1.0],

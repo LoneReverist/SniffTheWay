@@ -119,6 +119,7 @@ export namespace SniffTheWay
 	enum class AmbienceCue
 	{
 		EarlyForest,
+		DistantCreek,
 		Creek,
 		MiddleForest,
 		Night,
@@ -131,6 +132,8 @@ export namespace SniffTheWay
 		{
 		case AmbienceCue::EarlyForest:
 			return "early_forest";
+		case AmbienceCue::DistantCreek:
+			return "distant_creek";
 		case AmbienceCue::Creek:
 			return "creek";
 		case AmbienceCue::MiddleForest:
@@ -145,6 +148,8 @@ export namespace SniffTheWay
 
 	constexpr std::optional<AmbienceCue> AmbienceCueFromString(std::string_view name)
 	{
+		if (name == "distant_creek")
+			return AmbienceCue::DistantCreek;
 		if (name == "early_forest")
 			return AmbienceCue::EarlyForest;
 		if (name == "creek")

@@ -57,6 +57,12 @@ export namespace SniffTheWay
 				AudioTrack{ resources_path / "music" / "Firefly_audio_clip_birds_chirping_softly_#1.wav", 0.22f },
 				AudioTrack{ resources_path / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
 			};
+		case AmbienceCue::DistantCreek:
+			return {
+				AudioTrack{ resources_path / "music" / "Firefly_audio_clip_birds_chirping_softly_#1.wav", 0.22f },
+				AudioTrack{ resources_path / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
+				AudioTrack{ resources_path / "music" / "Firefly_audio_water_trickling,_small_creek_variation1.wav", 0.2f },
+			};
 		case AmbienceCue::Creek:
 			return {
 				AudioTrack{ resources_path / "music" / "Firefly_audio_water_trickling,_small_creek_variation1.wav", 0.35f },

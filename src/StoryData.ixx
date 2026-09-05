@@ -58,6 +58,7 @@ export struct StoryPage
 
 export struct StorySceneData
 {
+	std::optional<SniffTheWay::SceneId> prev_scene_id;
 	SniffTheWay::SceneId next_scene_id = SniffTheWay::SceneId::Exit;
 	std::vector<StoryPage> pages;
 };

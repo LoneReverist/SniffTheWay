@@ -41,6 +41,9 @@ public:
 
 private:
 	void update_audio(SceneId scene_id);
+#ifdef _DEBUG
+	std::optional<SceneTransition> get_debug_transition(Input const & input) const;
+#endif
 
 private:
 	// SceneManager holds references to these objects, so their declaration order
@@ -67,8 +70,32 @@ void Game::OnWindowResized(int width, int height)
 
 void Game::Update(float dt, Input const & input)
 {
+#ifdef _DEBUG
+	m_scene_manager.Update(dt, input, get_debug_transition(input));
+#else
 	m_scene_manager.Update(dt, input);
+#endif
 }
+
+#ifdef _DEBUG
+std::optional<SceneTransition> Game::get_debug_transition(Input const & input) const
+{
+	if (!input.ControlIsDown())
+		return std::nullopt;
+
+	const SceneId current_scene_id = m_scene_manager.GetCurrentSceneId();
+	if (!IsStoryScene(current_scene_id) && !IsGameplayScene(current_scene_id))
+		return std::nullopt;
+
+	constexpr SceneId story_scenes[] = { SceneId::Picnic, SceneId::Creek, SceneId::Night, SceneId::Home };
+	for (int i = 0; i < 4; ++i)
+	{
+		if (input.KeyJustPressed('1' + i))
+			return SceneTransition{ story_scenes[i], current_scene_id };
+	}
+	return std::nullopt;
+}
+#endif
 
 void Game::Render() const
 {

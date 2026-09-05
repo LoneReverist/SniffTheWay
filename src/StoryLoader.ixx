@@ -149,6 +149,14 @@ export namespace StoryLoader
 		{
 			file >> root;
 
+			if (root.contains("prev_scene_id") && !root["prev_scene_id"].is_null())
+			{
+				const std::string prev_scene_id = root.at("prev_scene_id").get<std::string>();
+				scene_data.prev_scene_id = SniffTheWay::SceneIdFromString(prev_scene_id);
+				if (!scene_data.prev_scene_id)
+					LOG(WARNING) << "StoryLoader: Unknown previous scene id '" << prev_scene_id << "' in " << filepath;
+			}
+
 			const std::string next_scene_id = root.value("next_scene_id", std::string{ "exit" });
 			if (std::optional<SniffTheWay::SceneId> scene_id = SniffTheWay::SceneIdFromString(next_scene_id))
 			{

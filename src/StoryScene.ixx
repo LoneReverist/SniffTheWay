@@ -210,6 +210,16 @@ void StoryScene::OnViewportChanged(GameViewport const & viewport)
 
 std::optional<SceneTransition> StoryScene::Update(float dt, Input const & input)
 {
+#ifdef _DEBUG
+	if (!input.ControlIsDown())
+	{
+		if (input.KeyJustPressed('1') && m_scene_data.prev_scene_id)
+			return SceneTransition{ *m_scene_data.prev_scene_id, m_scene_id };
+		if (input.KeyJustPressed('2'))
+			return SceneTransition{ m_scene_data.next_scene_id, m_scene_id };
+	}
+#endif
+
 	if (m_page_transition_state != PageTransitionState::None)
 	{
 		update_page_transition(dt);

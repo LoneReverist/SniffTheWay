@@ -28,7 +28,9 @@ public:
 
     void OnWindowResized(int w, int h);
 
-    void Update(float dt, Input const & input);
+    // An external transition takes priority over scene input while active.
+    void Update(float dt, Input const & input, std::optional<SceneTransition> transition = std::nullopt);
+    SceneId GetCurrentSceneId() const { return m_cur_scene_id; }
     void Render() const;
 
     // Destroys the old scene (and its GPU resources) safely, then builds the next.
@@ -59,6 +61,7 @@ private:
 
 	SceneRegistry m_scene_registry;
     std::unique_ptr<IScene> m_cur_scene;
+	SceneId m_cur_scene_id;
     std::optional<SceneTransition> m_pending_scene_transition;
 	TransitionState m_transition_state = TransitionState::FadingIn;
 	float m_transition_opacity = 1.0f;
@@ -69,6 +72,7 @@ private:
 SceneManager::SceneManager(AudioSystem & audio_system, dh::RenderContext const & ctx, SceneTransition initial_trans)
 	: m_audio_system{ audio_system }
 	, m_render_context{ctx}
+	, m_cur_scene_id{ initial_trans.next_scene_id }
 {
 	m_cur_scene = m_scene_registry.Create(initial_trans, m_render_context, m_audio_system, nullptr);
 	if (m_cur_scene)
@@ -84,8 +88,7 @@ void SceneManager::OnWindowResized(int w, int h)
 		m_cur_scene->OnViewportChanged(m_game_viewport);
 }
 
-// Returns false when the app should exit.
-void SceneManager::Update(float dt, Input const & input)
+void SceneManager::Update(float dt, Input const & input, std::optional<SceneTransition> transition)
 {
 	if (!m_cur_scene)
 		return;
@@ -99,7 +102,10 @@ void SceneManager::Update(float dt, Input const & input)
 			m_transition_state = TransitionState::Active;
 		break;
 	case TransitionState::Active:
-		if (std::optional<SceneTransition> transition = m_cur_scene->Update(dt, input))
+	{
+		if (!transition)
+			transition = m_cur_scene->Update(dt, input);
+		if (transition)
 		{
 			m_pending_scene_transition = std::move(transition);
 			m_fade_audio = is_story_gameplay_transition(*m_pending_scene_transition);
@@ -109,6 +115,7 @@ void SceneManager::Update(float dt, Input const & input)
 			m_transition_state = TransitionState::FadingOut;
 		}
 		break;
+	}
 	case TransitionState::FadingOut:
 		set_transition_opacity(m_transition_opacity + transition_step);
 		if (m_fade_audio)
@@ -141,6 +148,7 @@ bool SceneManager::ApplyPendingTransition(Playthrough * playthrough)
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
 
 	m_cur_scene = m_scene_registry.Create(transition, m_render_context, m_audio_system, playthrough);
+	m_cur_scene_id = transition.next_scene_id;
 	if (!m_cur_scene)
 		return false;
 

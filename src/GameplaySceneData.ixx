@@ -24,6 +24,8 @@ export struct GameplayCharacterArrival
 
 export struct GameplaySceneLink
 {
+	std::string requires_trigger;
+	std::string requires_not_trigger;
 	SniffTheWay::SceneId target_scene_id = SniffTheWay::SceneId::Exit;
 	Polygon2d trigger;
 	GameplayCharacterArrival dog_arrival;
@@ -49,6 +51,8 @@ export enum class GameplayMessageRepeat
 
 export struct GameplayMessageTriggerData
 {
+	std::string requires_trigger;
+	std::string requires_not_trigger;
 	std::string id;
 	Polygon2d trigger;
 	GameplayMessageRepeat repeat = GameplayMessageRepeat::None;
@@ -57,6 +61,7 @@ export struct GameplayMessageTriggerData
 
 export struct GameplaySceneData
 {
+	std::vector<std::string> on_enter_triggers;
 	SceneAudioData audio;
 	std::string bg_image_filename;
 	glm::vec4 tint{ 1.0f };

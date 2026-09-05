@@ -32,6 +32,7 @@ public:
 
 	void Show(GameplayMessage const & message);
 	void Hide();
+	void FadeOut();
 	void Update(float dt);
 	void RenderOffscreenTexture() const;
 
@@ -53,6 +54,7 @@ private:
 	GameplayMessage m_message;
 	State m_state = State::Hidden;
 	float m_elapsed = 0.0f;
+	float m_opacity = 0.0f;
 };
 
 void GameplayMessageOverlay::Init(
@@ -109,6 +111,21 @@ void GameplayMessageOverlay::Hide()
 	m_label.SetVisible(false);
 }
 
+void GameplayMessageOverlay::FadeOut()
+{
+	if (m_state == State::Hidden || m_state == State::FadingOut)
+		return;
+	if (m_message.fade_out_duration <= 0.0f || m_opacity <= 0.0f)
+	{
+		Hide();
+		return;
+	}
+	// Join the existing fade-out timeline at the current opacity.
+	m_message.hold_duration = 0.0f;
+	m_elapsed = m_message.fade_in_duration + (1.0f - m_opacity) * m_message.fade_out_duration;
+	set_state_and_opacity(State::FadingOut, m_opacity);
+}
+
 void GameplayMessageOverlay::Update(float dt)
 {
 	if (m_state == State::Hidden)
@@ -157,5 +174,6 @@ void GameplayMessageOverlay::RenderOffscreenTexture() const
 void GameplayMessageOverlay::set_state_and_opacity(State state, float opacity)
 {
 	m_state = state;
+	m_opacity = opacity;
 	m_label.SetOpacity(opacity);
 }

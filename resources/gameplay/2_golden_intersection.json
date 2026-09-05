@@ -42,12 +42,12 @@
       -2.1580286026000977
     ],
     [
-      5.939286231994629,
-      0.3263077735900879
+      5.794042110443115,
+      0.253173828125
     ],
     [
-      9.307516098022461,
-      4.621352672576904
+      9.150318145751953,
+      4.564236164093018
     ],
     [
       1.8259621858596802,
@@ -197,7 +197,8 @@
           4.958693504333496,
           -0.7478957176208496
         ]
-      ]
+      ],
+      "requires_trigger": "visited_fallen_tree"
     },
     {
       "target_scene_id": "2_fallen_tree",
@@ -240,6 +241,40 @@
     }
   ],
   "message_triggers": [
+    {
+      "id": "golden_path_uncertain",
+      "trigger": [
+        [
+          4.476963520050049,
+          -1.6768012046813965
+        ],
+        [
+          12.600000381469727,
+          8.199999809265137
+        ],
+        [
+          10.475552558898926,
+          7.370912551879883
+        ],
+        [
+          4.101975917816162,
+          -1.6708896160125732
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "I'm not sure about this path.\nI should follow the scent trail.",
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75,
+        "hold_duration": 5.0
+      },
+      "requires_not_trigger": "visited_fallen_tree"
+    },
     {
       "id": "quieter_woods",
       "trigger": [

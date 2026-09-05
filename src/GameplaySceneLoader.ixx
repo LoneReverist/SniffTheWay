@@ -98,6 +98,8 @@ GameplayMessageRepeat parse_gameplay_message_repeat(std::string const & repeat)
 GameplayMessageTriggerData parse_gameplay_message_trigger(json const & j)
 {
 	GameplayMessageTriggerData message_trigger;
+	message_trigger.requires_trigger = j.value("requires_trigger", "");
+	message_trigger.requires_not_trigger = j.value("requires_not_trigger", "");
 	message_trigger.id = j.value("id", "");
 	if (j.contains("trigger"))
 		message_trigger.trigger = parse_gameplay_polygon(j["trigger"]);
@@ -169,6 +171,8 @@ GameplayCharacterArrival parse_gameplay_character_arrival(json const & j, Gamepl
 GameplaySceneLink parse_gameplay_scene_link(json const & j)
 {
 	GameplaySceneLink scene_link;
+	scene_link.requires_trigger = j.value("requires_trigger", "");
+	scene_link.requires_not_trigger = j.value("requires_not_trigger", "");
 
 	const std::string target_scene_id = j.value("target_scene_id", std::string{ "exit" });
 	if (std::optional<SniffTheWay::SceneId> parsed_target_scene_id = SniffTheWay::SceneIdFromString(target_scene_id))
@@ -244,12 +248,17 @@ json serialize_gameplay_message(GameplayMessage const & message)
 
 json serialize_gameplay_message_trigger(GameplayMessageTriggerData const & message_trigger)
 {
-	return json{
+	json result{
 		{ "id", message_trigger.id },
 		{ "trigger", serialize_gameplay_polygon(message_trigger.trigger) },
 		{ "repeat", serialize_gameplay_message_repeat(message_trigger.repeat) },
 		{ "message", serialize_gameplay_message(message_trigger.message) }
 	};
+	if (!message_trigger.requires_trigger.empty())
+		result["requires_trigger"] = message_trigger.requires_trigger;
+	if (!message_trigger.requires_not_trigger.empty())
+		result["requires_not_trigger"] = message_trigger.requires_not_trigger;
+	return result;
 }
 
 json serialize_scent_trail(ScentTrailData const & scent_trail)
@@ -293,7 +302,7 @@ json serialize_gameplay_character_arrival(GameplayCharacterArrival const & arriv
 
 json serialize_gameplay_scene_link(GameplaySceneLink const & scene_link)
 {
-	return json{
+	json result{
 		{ "target_scene_id", std::string{ SniffTheWay::ToString(scene_link.target_scene_id) } },
 		{ "arrival_points", json{
 			{ "dog", serialize_gameplay_character_arrival(scene_link.dog_arrival) },
@@ -301,6 +310,11 @@ json serialize_gameplay_scene_link(GameplaySceneLink const & scene_link)
 		} },
 		{ "trigger", serialize_gameplay_polygon(scene_link.trigger) }
 	};
+	if (!scene_link.requires_trigger.empty())
+		result["requires_trigger"] = scene_link.requires_trigger;
+	if (!scene_link.requires_not_trigger.empty())
+		result["requires_not_trigger"] = scene_link.requires_not_trigger;
+	return result;
 }
 
 json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json existing_root = json::object())
@@ -310,6 +324,8 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 		root["id"] = existing_root["id"];
 
 	root["audio"] = SerializeSceneAudio(scene_data.audio);
+	if (!scene_data.on_enter_triggers.empty())
+		root["on_enter_triggers"] = scene_data.on_enter_triggers;
 	root["background"] = scene_data.bg_image_filename;
 	root["tint"] = serialize_gameplay_vec4(scene_data.tint);
 	root["camera"] = serialize_gameplay_camera(scene_data.camera);
@@ -333,6 +349,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 	{
 		if (key != "audio" &&
 			key != "id" &&
+			key != "on_enter_triggers" &&
 			key != "background" &&
 			key != "tint" &&
 			key != "initial_state" &&
@@ -370,6 +387,7 @@ export namespace GameplaySceneLoader
 			file >> root;
 
 			scene_data.audio = ParseSceneAudio(root, filepath);
+			scene_data.on_enter_triggers = root.value("on_enter_triggers", std::vector<std::string>{});
 
 			scene_data.bg_image_filename = root.value("background", "");
 			if (root.contains("tint"))

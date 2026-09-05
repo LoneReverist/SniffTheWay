@@ -1,5 +1,6 @@
 {
   "id": "2_fallen_tree",
+  "on_enter_triggers": ["visited_fallen_tree"],
   "audio": {
     "music": "middle_forest",
     "ambience": "middle_forest"

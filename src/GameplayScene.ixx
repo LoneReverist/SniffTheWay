@@ -120,6 +120,8 @@ private:
 	FPSLabel m_fps_label;
 #endif
 	std::deque<GameplayMessageOverlay> m_gameplay_message_overlays;
+	std::deque<std::size_t> m_pending_message_triggers;
+	std::optional<std::size_t> m_active_message_trigger;
 	std::vector<bool> m_message_trigger_was_inside;
 	PauseOverlay m_pause_overlay;
 	SettingsOverlay m_settings_overlay;
@@ -226,6 +228,8 @@ GameplayScene::GameplayScene(
 
 	ApplySceneAudio(m_audio_system, m_scene_data.audio, m_asset_manager.GetResourcesPath());
 	ChangeSceneState(SceneState::Gameplay);
+	for (std::string const & trigger : m_scene_data.on_enter_triggers)
+		m_playthrough.SetTrigger(trigger);
 }
 
 void GameplayScene::OnViewportChanged(GameViewport const & viewport)
@@ -344,7 +348,8 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 		for (GameplaySceneLink const & scene_link : m_scene_data.scene_links)
 		{
-			if (scene_link.trigger.Contains(dog_pos))
+			if (m_playthrough.MeetsTriggerConditions(scene_link.requires_trigger, scene_link.requires_not_trigger)
+				&& scene_link.trigger.Contains(dog_pos))
 				return SceneTransition{ scene_link.target_scene_id, m_scene_id };
 		}
 	}
@@ -525,6 +530,8 @@ std::pair<GameplayCharacterArrival, GameplayCharacterArrival> GameplayScene::get
 
 void GameplayScene::reset_message_triggers()
 {
+	m_pending_message_triggers.clear();
+	m_active_message_trigger.reset();
 	m_message_trigger_was_inside.assign(m_scene_data.message_triggers.size(), false);
 }
 
@@ -548,7 +555,8 @@ void GameplayScene::update_message_triggers(glm::vec2 dog_pos)
 	for (std::size_t i = 0; i < m_scene_data.message_triggers.size(); ++i)
 	{
 		GameplayMessageTriggerData const & message_trigger = m_scene_data.message_triggers[i];
-		const bool is_inside = message_trigger.trigger.IsValid()
+		const bool is_inside = m_playthrough.MeetsTriggerConditions(message_trigger.requires_trigger, message_trigger.requires_not_trigger)
+			&& message_trigger.trigger.IsValid()
 			&& message_trigger.trigger.Contains(dog_pos);
 		const bool entered = is_inside && !m_message_trigger_was_inside[i];
 		m_message_trigger_was_inside[i] = is_inside;
@@ -560,9 +568,26 @@ void GameplayScene::update_message_triggers(glm::vec2 dog_pos)
 		{
 		case GameplayMessageRepeat::None:
 			if (m_playthrough.TryTrigger(m_scene_id, message_trigger.id))
-				m_gameplay_message_overlays[i].Show(message_trigger.message);
+				m_pending_message_triggers.push_back(i);
 			break;
 		}
+	}
+
+	if (m_active_message_trigger)
+	{
+		GameplayMessageOverlay & active = m_gameplay_message_overlays[*m_active_message_trigger];
+		if (!m_pending_message_triggers.empty())
+			active.FadeOut();
+		if (active.IsVisible())
+			return;
+		m_active_message_trigger.reset();
+	}
+	if (!m_pending_message_triggers.empty())
+	{
+		const std::size_t index = m_pending_message_triggers.front();
+		m_pending_message_triggers.pop_front();
+		m_gameplay_message_overlays[index].Show(m_scene_data.message_triggers[index].message);
+		m_active_message_trigger = index;
 	}
 }
 

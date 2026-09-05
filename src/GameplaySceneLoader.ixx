@@ -327,6 +327,25 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 	if (!scene_data.on_enter_triggers.empty())
 		root["on_enter_triggers"] = scene_data.on_enter_triggers;
 	root["background"] = scene_data.bg_image_filename;
+	root["environment_objects"] = json::array();
+	for (auto const & object : scene_data.environment_objects)
+	{
+		json entry = { { "id", object.id }, { "texture", object.texture },
+			{ "placement", object.placement == EnvironmentPlacement::World ? "world" : "background" },
+			{ "tint", serialize_gameplay_vec4(object.tint) } };
+		if (object.placement == EnvironmentPlacement::World)
+		{
+			entry["position"] = { object.position.x, object.position.y, object.position.z };
+			entry["size"] = { object.size.x, object.size.y };
+			entry["anchor"] = { object.anchor.x, object.anchor.y };
+		}
+		else
+		{
+			entry["image_rect"] = serialize_gameplay_vec4(object.image_rect);
+			entry["depth"] = object.depth;
+		}
+		root["environment_objects"].push_back(std::move(entry));
+	}
 	root["tint"] = serialize_gameplay_vec4(scene_data.tint);
 	root["camera"] = serialize_gameplay_camera(scene_data.camera);
 	root["bounds"] = serialize_gameplay_polygon(scene_data.bounds);
@@ -351,6 +370,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 			key != "id" &&
 			key != "on_enter_triggers" &&
 			key != "background" &&
+			key != "environment_objects" &&
 			key != "tint" &&
 			key != "initial_state" &&
 			key != "camera" &&
@@ -390,6 +410,41 @@ export namespace GameplaySceneLoader
 			scene_data.on_enter_triggers = root.value("on_enter_triggers", std::vector<std::string>{});
 
 			scene_data.bg_image_filename = root.value("background", "");
+			if (root.contains("environment_objects") && root["environment_objects"].is_array())
+			{
+				for (auto const & entry : root["environment_objects"])
+				{
+					try
+					{
+						EnvironmentObjectData object;
+						object.id = entry.value("id", "");
+						object.texture = entry.at("texture").get<std::string>();
+						auto const placement = entry.value("placement", "world");
+						if (placement != "world" && placement != "background")
+						{
+							LOG(WARNING) << "Unknown environment placement: " << placement;
+							continue;
+						}
+						object.placement = placement == "world" ? EnvironmentPlacement::World : EnvironmentPlacement::Background;
+						if (entry.contains("position")) object.position = parse_gameplay_vec3(entry["position"], object.position);
+						if (entry.contains("size")) object.size = parse_gameplay_vec2(entry["size"], object.size);
+						if (entry.contains("anchor")) object.anchor = parse_gameplay_vec2(entry["anchor"], object.anchor);
+						if (entry.contains("image_rect"))
+						{
+							auto const & rect = entry["image_rect"];
+							if (!rect.is_array() || rect.size() != 4) continue;
+							object.image_rect = { rect[0].get<float>(), rect[1].get<float>(), rect[2].get<float>(), rect[3].get<float>() };
+						}
+						if (entry.contains("tint")) object.tint = parse_gameplay_tint(entry["tint"], object.tint);
+						object.depth = entry.value("depth", object.depth);
+						scene_data.environment_objects.push_back(std::move(object));
+					}
+					catch (json::exception const & error)
+					{
+						LOG(WARNING) << "Skipping malformed environment object: " << error.what();
+					}
+				}
+			}
 			if (root.contains("tint"))
 				scene_data.tint = parse_gameplay_tint(root["tint"], scene_data.tint);
 			if (root.contains("camera"))

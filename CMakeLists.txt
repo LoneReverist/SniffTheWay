@@ -96,8 +96,8 @@ elseif(BUILD_OPENGL)
     add_dependencies(SniffTheWay OpenGLShaders)
 endif()
 
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
-file(GLOB_RECURSE MODULE_FILES "src/*.ixx")
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS "src/*.ixx")
 
 target_sources(SniffTheWay PRIVATE
     FILE_SET CXX_MODULES TYPE CXX_MODULES

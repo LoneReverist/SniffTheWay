@@ -10,6 +10,7 @@ module;
 export module GameplaySceneData;
 
 import GameplayMessageData;
+export import EnvironmentObjectData;
 import CharacterFacing;
 import Polygon2d;
 import SniffTheWayConstants;
@@ -64,6 +65,7 @@ export struct GameplaySceneData
 	std::vector<std::string> on_enter_triggers;
 	SceneAudioData audio;
 	std::string bg_image_filename;
+	std::vector<EnvironmentObjectData> environment_objects;
 	glm::vec4 tint{ 1.0f };
 	GameplayCameraData camera;
 	Polygon2d bounds;

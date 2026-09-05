@@ -3,6 +3,8 @@
 module;
 
 #include <filesystem>
+#include <algorithm>
+#include <memory>
 #include <deque>
 #include <optional>
 #include <string>
@@ -25,6 +27,7 @@ import Background;
 import Texture2dPipeline;
 import Camera;
 import Dog;
+import EnvironmentObject;
 import FontAtlas;
 #ifdef _DEBUG
 import FPSLabel;
@@ -76,10 +79,12 @@ private:
 	std::filesystem::path get_gameplay_filepath() const;
 	void reload_scene_data();
 	void reload_background_texture();
+	void reload_environment_objects();
+	void update_environment_transforms();
 	void apply_camera_data();
 	void store_camera_data();
 	void refresh_character_camera_facing();
-	void order_characters_for_rendering();
+	void order_scene_sprites();
 	std::pair<GameplayCharacterArrival, GameplayCharacterArrival> get_default_arrivals() const;
 	std::pair<GameplayCharacterArrival, GameplayCharacterArrival> get_arrivals(SceneTransition const & transition) const;
 	void reset_message_triggers();
@@ -104,6 +109,8 @@ private:
 
 	Background m_background;
 	AssetId m_bg_tex_id;
+	std::vector<std::unique_ptr<EnvironmentObject>> m_environment_objects;
+	PipelineId<SpritePipeline> m_sprite_pipeline_id;
 	std::vector<ScentTrail> m_scent_trails;
 	PipelineId<ScentTrailPipeline> m_scent_trail_pipeline_id;
 	std::vector<AssetId> m_scent_trail_ro_ids;
@@ -161,7 +168,7 @@ GameplayScene::GameplayScene(
 	m_font_atlas.Init(font_tex_id, m_asset_manager.GetFontsPath() / "Alice.json");
 
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
-	const auto sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
+	m_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
 	const auto ground_shadow_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(
 		m_camera3d, m_asset_manager, false /*enable_depth_write*/);
 	m_scent_trail_pipeline_id = m_asset_manager.AddPipeline<ScentTrailPipeline>(m_camera3d);
@@ -173,6 +180,7 @@ GameplayScene::GameplayScene(
 	m_renderer.CreateRenderObject("background", RenderLayer::Background, m_background.GetMeshId(), bg_pipeline_id, m_background.GetPipelineData());
 
 	const auto [dog_arrival, baby_arrival] = get_arrivals(transition);
+	reload_environment_objects();
 	recreate_scent_trails(dog_arrival.position);
 
 #ifdef _DEBUG
@@ -198,7 +206,7 @@ GameplayScene::GameplayScene(
 			m_dog.GetShadowPipelineData());
 	}
 	m_dog_ro_id = m_renderer.CreateRenderObject(
-		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), sprite_pipeline_id, m_dog.GetPipelineData());
+		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), m_sprite_pipeline_id, m_dog.GetPipelineData());
 
 	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_arrival.position, character_shadow_tex_id);
 	m_baby.SetFacing(baby_arrival.camera_facing, baby_arrival.horizontal_facing);
@@ -213,8 +221,8 @@ GameplayScene::GameplayScene(
 			m_baby.GetShadowPipelineData());
 	}
 	m_baby_ro_id = m_renderer.CreateRenderObject(
-		"baby", RenderLayer::Scene3d, m_baby.GetMeshId(), sprite_pipeline_id, m_baby.GetPipelineData());
-	order_characters_for_rendering();
+		"baby", RenderLayer::Scene3d, m_baby.GetMeshId(), m_sprite_pipeline_id, m_baby.GetPipelineData());
+	order_scene_sprites();
 
 #ifdef _DEBUG
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
@@ -239,6 +247,7 @@ void GameplayScene::OnViewportChanged(GameViewport const & viewport)
 	m_renderer.SetViewport(pixels.x, pixels.y, pixels.z, pixels.w);
 	m_camera3d.SetViewportSize(pixels.z, pixels.w);
 	m_camera2d.SetViewportSize(pixels.z, pixels.w);
+	update_environment_transforms();
 }
 
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
@@ -334,7 +343,7 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
-	order_characters_for_rendering();
+	order_scene_sprites();
 
 	const glm::vec2 dog_pos = m_dog.GetPosition();
 	for (std::size_t i = 0; i < m_scene_data.scent_trails.size() && i < m_scent_trails.size(); ++i)
@@ -425,6 +434,7 @@ void GameplayScene::reload_scene_data()
 	ApplySceneAudio(m_audio_system, m_scene_data.audio, m_asset_manager.GetResourcesPath());
 	apply_camera_data();
 	reload_background_texture();
+	reload_environment_objects();
 	for (GameplayMessageOverlay & message_overlay : m_gameplay_message_overlays)
 		message_overlay.Hide();
 	ensure_message_overlays();
@@ -468,19 +478,50 @@ void GameplayScene::refresh_character_camera_facing()
 	m_baby.SetCameraDirection(m_camera3d.GetDir());
 }
 
-void GameplayScene::order_characters_for_rendering()
+void GameplayScene::order_scene_sprites()
 {
-	// Draw the farther transparent sprite first so the nearer sprite's soft edges blend over it.
-	glm::vec3 const camera_pos = m_camera3d.GetPosition();
-	glm::vec3 const camera_dir = m_camera3d.GetDir();
-	float const dog_depth = glm::dot(glm::vec3{ m_dog.GetPosition(), 0.0f } - camera_pos, camera_dir);
-	float const baby_depth = glm::dot(glm::vec3{ m_baby.GetPosition(), 0.0f } - camera_pos, camera_dir);
+	update_environment_transforms();
+	struct Entry { AssetId id; float depth; };
+	std::vector<Entry> entries;
+	auto depth = [&](glm::vec2 position) {
+		return glm::dot(glm::vec3{ position, 0 } - m_camera3d.GetPosition(), m_camera3d.GetDir());
+	};
+	if (m_dog_ro_id.IsValid()) entries.push_back({ m_dog_ro_id, depth(m_dog.GetPosition()) });
+	if (m_baby_ro_id.IsValid()) entries.push_back({ m_baby_ro_id, depth(m_baby.GetPosition()) });
+	for (auto const & object : m_environment_objects)
+		if (object->GetRenderObjectId().IsValid())
+			entries.push_back({ object->GetRenderObjectId(), object->GetDepth(m_camera3d) });
+	std::stable_sort(entries.begin(), entries.end(), [](Entry const & a, Entry const & b) {
+		return a.depth > b.depth;
+	});
+	// Insert from near to far so the final order is far to near, regardless of
+	// the previous frame's order. Ties retain deterministic insertion order.
+	for (std::size_t i = entries.size(); i > 1; --i)
+		m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, entries[i - 2].id, entries[i - 1].id);
+	// Trails do not write depth. Render after all depth-writing sprites so each
+	// ground fragment is tested against objects and characters at its location.
+	for (AssetId trail : m_scent_trail_ro_ids)
+		for (auto const & entry : entries)
+			m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, entry.id, trail);
+}
 
-	constexpr float DepthEpsilon = 1e-4f;
-	if (dog_depth > baby_depth + DepthEpsilon)
-		m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, m_dog_ro_id, m_baby_ro_id);
-	else if (baby_depth > dog_depth + DepthEpsilon)
-		m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, m_baby_ro_id, m_dog_ro_id);
+void GameplayScene::update_environment_transforms()
+{
+	for (auto const & object : m_environment_objects)
+		object->UpdateTransform(m_scene_data.camera, m_camera3d);
+}
+
+void GameplayScene::reload_environment_objects()
+{
+	for (auto const & object : m_environment_objects)
+		object->Destroy(m_asset_manager, m_renderer);
+	m_environment_objects.clear();
+	for (auto const & data : m_scene_data.environment_objects)
+	{
+		auto object = std::make_unique<EnvironmentObject>();
+		object->Init(data, m_asset_manager, m_renderer, m_sprite_pipeline_id, m_scene_data.camera, m_camera3d);
+		m_environment_objects.push_back(std::move(object));
+	}
 }
 
 void GameplayScene::reload_background_texture()

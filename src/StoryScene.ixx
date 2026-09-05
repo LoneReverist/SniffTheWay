@@ -21,6 +21,7 @@ import Dreamhearth;
 import AssetManager;
 import AssetPool;
 import AudioSystem;
+import GameAudio;
 import SceneAudioData;
 import Background;
 import Texture2dPipeline;
@@ -191,7 +192,7 @@ StoryScene::StoryScene(
 
 	ensure_story_ui_capacity();
 
-	ApplySceneAudio(*m_audio_system, m_scene_data.audio);
+	ApplySceneAudio(*m_audio_system, m_scene_data.audio, m_asset_manager.GetResourcesPath());
 	apply_current_page();
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
@@ -505,7 +506,7 @@ void StoryScene::reload_story()
 
 	const std::size_t cur_page_index = std::min<std::size_t>(m_page_index, m_scene_data.pages.size() - 1);
 	m_page_index = static_cast<std::uint8_t>(cur_page_index);
-	ApplySceneAudio(*m_audio_system, m_scene_data.audio);
+	ApplySceneAudio(*m_audio_system, m_scene_data.audio, m_asset_manager.GetResourcesPath());
 	apply_current_page();
 	LOG(INFO) << "StoryScene: Reloaded story '" << ToString(m_scene_id) << "'.";
 }
@@ -519,7 +520,7 @@ void StoryScene::apply_current_page()
 	if (page.ambience)
 	{
 		if (page.ambience->cue)
-			m_audio_system->PlayAmbience(*page.ambience->cue);
+			m_audio_system->PlayAmbience(AmbienceTracks(*page.ambience->cue, m_asset_manager.GetResourcesPath()));
 		else
 			m_audio_system->StopAmbience();
 	}
@@ -602,7 +603,7 @@ void StoryScene::update_story_sounds()
 		if (m_story_sounds_played[i] || m_page_time < page.sounds[i].play_time)
 			continue;
 
-		m_audio_system->PlaySound(page.sounds[i].cue);
+		m_audio_system->PlaySound(SoundTrack(page.sounds[i].cue, m_asset_manager.GetResourcesPath()));
 		m_story_sounds_played[i] = true;
 	}
 }

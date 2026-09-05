@@ -10,7 +10,6 @@ module;
 
 export module StoryData;
 
-import AudioSystem;
 import DecorationAtlas;
 import SniffTheWayConstants;
 import SceneAudioData;
@@ -39,13 +38,13 @@ export struct StoryDecoration
 
 export struct StorySound
 {
-	SoundCue cue = SoundCue::ShortChime;
+	SniffTheWay::SoundCue cue = SniffTheWay::SoundCue::ShortChime;
 	float play_time = 0.0f;
 };
 
 export struct StoryAmbience
 {
-	std::optional<AmbienceCue> cue;
+	std::optional<SniffTheWay::AmbienceCue> cue;
 };
 
 export struct StoryPage

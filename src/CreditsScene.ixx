@@ -11,6 +11,7 @@ export module CreditsScene;
 import Dreamhearth;
 
 import AudioSystem;
+import GameAudio;
 import AssetManager;
 import AssetPool;
 import Background;
@@ -143,7 +144,7 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem
 
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 	
-	audio_system.PlayMusic(MusicCue::Home);
+	audio_system.PlayMusic(MusicTrack(MusicCue::Home, m_asset_manager.GetResourcesPath()));
 	audio_system.StopAmbience();
 }
 

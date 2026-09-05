@@ -14,7 +14,6 @@ module;
 
 export module StoryLoader;
 
-import AudioSystem;
 import DecorationAtlas;
 import SniffTheWayConstants;
 import SceneAudioJson;
@@ -61,32 +60,20 @@ SniffTheWay::Decorations::DecorationId parse_decoration_id(std::string const & n
 	return SniffTheWay::Decorations::DecorationId::HorizontalDividerPawFlourish;
 }
 
-std::optional<SoundCue> parse_sound_cue(std::string const & name)
+std::optional<SniffTheWay::SoundCue> parse_sound_cue(std::string const & name)
 {
-	if (name == "short_chime")
-		return SoundCue::ShortChime;
-	if (name == "gust_of_wind")
-		return SoundCue::GustOfWind;
-
-	LOG(WARNING) << "StoryLoader: Unknown sound cue '" << name << "'. Skipping sound.";
-	return std::nullopt;
+	const auto cue = SniffTheWay::SoundCueFromString(name);
+	if (!cue)
+		LOG(WARNING) << "StoryLoader: Unknown sound cue " << name << ". Skipping sound.";
+	return cue;
 }
 
-std::optional<AmbienceCue> parse_ambience_cue(std::string const & name)
+std::optional<SniffTheWay::AmbienceCue> parse_ambience_cue(std::string const & name)
 {
-	if (name == "early_forest")
-		return AmbienceCue::EarlyForest;
-	if (name == "creek")
-		return AmbienceCue::Creek;
-	if (name == "middle_forest")
-		return AmbienceCue::MiddleForest;
-	if (name == "night")
-		return AmbienceCue::Night;
-	if (name == "late_forest")
-		return AmbienceCue::LateForest;
-
-	LOG(WARNING) << "StoryLoader: Unknown ambience cue '" << name << "'. Skipping ambience change.";
-	return std::nullopt;
+	const auto cue = SniffTheWay::AmbienceCueFromString(name);
+	if (!cue)
+		LOG(WARNING) << "StoryLoader: Unknown ambience cue " << name << ". Skipping ambience change.";
+	return cue;
 }
 
 StoryText parse_story_text(json const & j)
@@ -122,7 +109,7 @@ StoryDecoration parse_story_decoration(json const & j)
 
 std::optional<StorySound> parse_story_sound(json const & j)
 {
-	const std::optional<SoundCue> cue = parse_sound_cue(j.value("cue", ""));
+	const std::optional<SniffTheWay::SoundCue> cue = parse_sound_cue(j.value("cue", ""));
 	if (!cue)
 		return std::nullopt;
 
@@ -183,7 +170,7 @@ export namespace StoryLoader
 					}
 					else if (ambience_json.is_object())
 					{
-						if (std::optional<AmbienceCue> cue = parse_ambience_cue(ambience_json.value("cue", "")))
+						if (std::optional<SniffTheWay::AmbienceCue> cue = parse_ambience_cue(ambience_json.value("cue", "")))
 							page.ambience = StoryAmbience{ .cue = *cue };
 					}
 					else

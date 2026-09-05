@@ -59,6 +59,132 @@ export namespace SniffTheWay
 		Paused,
 	};
 
+	enum class MusicCue
+	{
+		Title,
+		Picnic,
+		EarlyForest,
+		Creek,
+		MiddleForest,
+		Night,
+		LateForest,
+		Home,
+	};
+
+	constexpr std::string_view ToString(MusicCue cue)
+	{
+		switch (cue)
+		{
+		case MusicCue::Title:
+			return "title";
+		case MusicCue::Picnic:
+			return "picnic";
+		case MusicCue::EarlyForest:
+			return "early_forest";
+		case MusicCue::Creek:
+			return "creek";
+		case MusicCue::MiddleForest:
+			return "middle_forest";
+		case MusicCue::Night:
+			return "night";
+		case MusicCue::LateForest:
+			return "late_forest";
+		case MusicCue::Home:
+			return "home";
+		}
+		return {};
+	}
+
+	constexpr std::optional<MusicCue> MusicCueFromString(std::string_view name)
+	{
+		if (name == "title")
+			return MusicCue::Title;
+		if (name == "picnic")
+			return MusicCue::Picnic;
+		if (name == "early_forest")
+			return MusicCue::EarlyForest;
+		if (name == "creek")
+			return MusicCue::Creek;
+		if (name == "middle_forest")
+			return MusicCue::MiddleForest;
+		if (name == "night")
+			return MusicCue::Night;
+		if (name == "late_forest")
+			return MusicCue::LateForest;
+		if (name == "home")
+			return MusicCue::Home;
+		return std::nullopt;
+	}
+
+	enum class AmbienceCue
+	{
+		EarlyForest,
+		Creek,
+		MiddleForest,
+		Night,
+		LateForest,
+	};
+
+	constexpr std::string_view ToString(AmbienceCue cue)
+	{
+		switch (cue)
+		{
+		case AmbienceCue::EarlyForest:
+			return "early_forest";
+		case AmbienceCue::Creek:
+			return "creek";
+		case AmbienceCue::MiddleForest:
+			return "middle_forest";
+		case AmbienceCue::Night:
+			return "night";
+		case AmbienceCue::LateForest:
+			return "late_forest";
+		}
+		return {};
+	}
+
+	constexpr std::optional<AmbienceCue> AmbienceCueFromString(std::string_view name)
+	{
+		if (name == "early_forest")
+			return AmbienceCue::EarlyForest;
+		if (name == "creek")
+			return AmbienceCue::Creek;
+		if (name == "middle_forest")
+			return AmbienceCue::MiddleForest;
+		if (name == "night")
+			return AmbienceCue::Night;
+		if (name == "late_forest")
+			return AmbienceCue::LateForest;
+		return std::nullopt;
+	}
+
+	enum class SoundCue
+	{
+		ShortChime,
+		GustOfWind,
+	};
+
+	constexpr std::string_view ToString(SoundCue cue)
+	{
+		switch (cue)
+		{
+		case SoundCue::ShortChime:
+			return "short_chime";
+		case SoundCue::GustOfWind:
+			return "gust_of_wind";
+		}
+		return {};
+	}
+
+	constexpr std::optional<SoundCue> SoundCueFromString(std::string_view name)
+	{
+		if (name == "short_chime")
+			return SoundCue::ShortChime;
+		if (name == "gust_of_wind")
+			return SoundCue::GustOfWind;
+		return std::nullopt;
+	}
+
 	enum class SceneId : std::uint8_t
 	{
 		Exit, // flag to close the application

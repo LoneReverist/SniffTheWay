@@ -13,6 +13,7 @@ export module PauseOverlay;
 import AssetManager;
 import AssetPool;
 import AudioSystem;
+import GameAudio;
 import Camera;
 import ColorPipeline;
 import FontAtlas;
@@ -66,6 +67,7 @@ private:
 private:
 	SceneRenderer * m_renderer = nullptr;
 	AudioSystem * m_audio_system = nullptr;
+	AudioTrack m_chime_track;
 	UIDarkBackdrop m_backdrop;
 	UILabel m_title_label;
 	UILabel m_resume_label;
@@ -94,6 +96,7 @@ void PauseOverlay::Init(
 {
 	m_renderer = &renderer;
 	m_audio_system = &audio_system;
+	m_chime_track = SoundTrack(SoundCue::ShortChime, asset_manager.GetResourcesPath());
 
 	const auto color_pipeline_id = asset_manager.AddPipeline<ColorPipeline>(camera2d);
 	const auto text_pipeline_id = asset_manager.AddPipeline<TextPipeline>(camera2d, asset_manager);
@@ -205,7 +208,7 @@ PauseAction PauseOverlay::Update(Input const & input, GameViewport const & viewp
 
 	update_button_colors();
 	if (action != PauseAction::None && m_audio_system)
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(m_chime_track);
 	return action;
 }
 

@@ -1,7 +1,7 @@
 module;
 
 #include <algorithm>
-#include <array>
+#include <span>
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -19,97 +19,6 @@ module;
 
 module AudioSystem;
 
-import PlatformUtils;
-
-namespace
-{
-	constexpr std::size_t AmbienceLayerCount = 2;
-
-	struct TrackConfig
-	{
-		std::filesystem::path path;
-		float volume = 1.0f;
-	};
-
-	std::filesystem::path GetResourcesPath()
-	{
-#ifdef SNIFF_THE_WAY_DEV_RESOURCES_PATH
-		return SNIFF_THE_WAY_DEV_RESOURCES_PATH;
-#else
-		return PlatformUtils::GetExecutableDir() / "resources";
-#endif
-	}
-
-	TrackConfig MusicTrack(MusicCue cue)
-	{
-		switch (cue)
-		{
-		case MusicCue::Title:
-			return { GetResourcesPath() / "music" / "Sunlight_on_the_Forest_Floor.mp3", 0.45f };
-		case MusicCue::Picnic:
-			return { GetResourcesPath() / "music" / "The_Afternoon_Meadow.mp3", 0.45f };
-		case MusicCue::EarlyForest:
-			return { GetResourcesPath() / "music" / "Through_the_Sun_Dappled_Thicket.mp3", 0.45f };
-		case MusicCue::Creek:
-			return { GetResourcesPath() / "music" / "The_Crossing_at_Dawn.mp3", 0.45f };
-		case MusicCue::MiddleForest:
-			return { GetResourcesPath() / "music" / "Stepping_Stones_at_Dawn.mp3", 0.45f };
-		case MusicCue::Night:
-			return { GetResourcesPath() / "music" / "The_Quiet_Between_Pines.mp3", 0.45f };
-		case MusicCue::LateForest:
-			return { GetResourcesPath() / "music" / "Noon_in_the_Hidden_Clearing.mp3", 0.45f };
-		case MusicCue::Home:
-			return { GetResourcesPath() / "music" / "The_Hearth_s_Last_Glow.mp3", 0.45f };
-		}
-
-		return {};
-	}
-
-	TrackConfig SoundTrack(SoundCue cue)
-	{
-		switch (cue)
-		{
-		case SoundCue::ShortChime:
-			return { GetResourcesPath() / "sfx" / "short_chime.wav", 1.0f };
-		case SoundCue::GustOfWind:
-			return { GetResourcesPath() / "sfx" / "gust_of_wind.wav", 1.0f };
-		}
-
-		return {};
-	}
-
-	std::vector<TrackConfig> AmbienceTracks(AmbienceCue cue)
-	{
-		switch (cue)
-		{
-		case AmbienceCue::EarlyForest:
-			return {
-				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_birds_chirping_softly_#1.wav", 0.22f },
-				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
-			};
-		case AmbienceCue::Creek:
-			return {
-				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_water_trickling,_small_creek_variation1.wav", 0.35f },
-			};
-		case AmbienceCue::MiddleForest:
-			return {
-				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
-			};
-		case AmbienceCue::Night:
-			return {
-				TrackConfig{ GetResourcesPath() / "music" / "crickets_intermittent.wav", 0.225f },
-			};
-		case AmbienceCue::LateForest:
-			return {
-				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_birds_chirping_softly_#1.wav", 0.22f },
-				TrackConfig{ GetResourcesPath() / "music" / "Firefly_audio_clip_leaves_rustling_in_the_wind_softly_#4.wav", 0.45f },
-			};
-		}
-
-		return {};
-	}
-}
-
 class AudioSystem::Impl
 {
 public:
@@ -118,11 +27,11 @@ public:
 
 	bool IsAvailable() const { return m_engine_initialized; }
 
-	bool PlayMusic(MusicCue cue);
+	bool PlayMusic(AudioTrack const & music_track);
 	void StopMusic();
-	bool PlayAmbience(AmbienceCue cue);
+	bool PlayAmbience(std::span<AudioTrack const> ambience_tracks);
 	void StopAmbience();
-	bool PlaySound(SoundCue cue);
+	bool PlaySound(AudioTrack const & sound_track);
 
 	void SetTransitionVolume(float volume_factor);
 
@@ -142,17 +51,15 @@ private:
 	bool m_engine_initialized = false;
 	bool m_music_initialized = false;
 	bool m_sound_effect_initialized = false;
-	bool m_has_current_sound_cue = false;
-	SoundCue m_current_sound_cue = SoundCue::ShortChime;
+	std::filesystem::path m_current_sound_path;
 	float m_sound_effect_volume = 1.0f;
-	bool m_has_current_cue = false;
-	MusicCue m_current_cue = MusicCue::Title;
+	std::filesystem::path m_current_music_path;
 	float m_music_volume = 1.0f;
-	std::array<ma_sound, AmbienceLayerCount> m_ambience{};
-	std::array<float, AmbienceLayerCount> m_ambience_volumes{};
+	// miniaudio sounds must keep stable addresses while the layer list grows.
+	std::vector<std::unique_ptr<ma_sound>> m_ambience;
+	std::vector<float> m_ambience_volumes;
 	std::size_t m_ambience_initialized_count = 0;
-	bool m_has_current_ambience_cue = false;
-	AmbienceCue m_current_ambience_cue = AmbienceCue::EarlyForest;
+	std::vector<AudioTrack> m_current_ambience_tracks;
 	float m_transition_volume = 1.0f;
 	float m_master_volume = 1.0f;
 	float m_music_category_volume = 1.0f;
@@ -184,13 +91,15 @@ AudioSystem::Impl::~Impl()
 		ma_engine_uninit(&m_engine);
 }
 
-bool AudioSystem::Impl::PlayMusic(MusicCue cue)
+bool AudioSystem::Impl::PlayMusic(AudioTrack const & music_track)
 {
 	if (!m_engine_initialized)
 		return false;
 
-	if (m_music_initialized && m_has_current_cue && m_current_cue == cue)
+	if (m_music_initialized && m_current_music_path == music_track.path)
 	{
+		m_music_volume = music_track.volume;
+		apply_volumes();
 		if (!ma_sound_is_playing(&m_music))
 			ma_sound_start(&m_music);
 		return true;
@@ -198,7 +107,6 @@ bool AudioSystem::Impl::PlayMusic(MusicCue cue)
 
 	StopMusic();
 
-	const TrackConfig music_track = MusicTrack(cue);
 	ma_result result;
 #if defined(_WIN32)
 	result = ma_sound_init_from_file_w(
@@ -225,8 +133,7 @@ bool AudioSystem::Impl::PlayMusic(MusicCue cue)
 	}
 
 	m_music_initialized = true;
-	m_has_current_cue = true;
-	m_current_cue = cue;
+	m_current_music_path = music_track.path;
 	ma_sound_set_looping(&m_music, MA_TRUE);
 	m_music_volume = music_track.volume;
 	apply_volumes();
@@ -253,29 +160,33 @@ void AudioSystem::Impl::StopMusic()
 	ma_sound_uninit(&m_music);
 	m_music = {};
 	m_music_initialized = false;
-	m_has_current_cue = false;
+	m_current_music_path.clear();
 }
 
-bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
+bool AudioSystem::Impl::PlayAmbience(std::span<AudioTrack const> ambience_tracks)
 {
 	if (!m_engine_initialized)
 		return false;
 
-	if (m_has_current_ambience_cue && m_current_ambience_cue == cue)
+	if (std::ranges::equal(m_current_ambience_tracks, ambience_tracks,
+		[](AudioTrack const & a, AudioTrack const & b) { return a.path == b.path; }))
 	{
 		for (std::size_t i = 0; i < m_ambience_initialized_count; ++i)
 		{
-			if (!ma_sound_is_playing(&m_ambience[i]))
-				ma_sound_start(&m_ambience[i]);
+			m_ambience_volumes[i] = ambience_tracks[i].volume;
+			if (!ma_sound_is_playing(m_ambience[i].get()))
+				ma_sound_start(m_ambience[i].get());
 		}
+		apply_volumes();
 		return true;
 	}
 
 	StopAmbience();
 
-	const auto ambience_tracks = AmbienceTracks(cue);
+	m_ambience_volumes.resize(ambience_tracks.size());
 	for (std::size_t i = 0; i < ambience_tracks.size(); ++i)
 	{
+		m_ambience.push_back(std::make_unique<ma_sound>());
 		ma_result result;
 #if defined(_WIN32)
 		result = ma_sound_init_from_file_w(
@@ -284,7 +195,7 @@ bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
 			MA_SOUND_FLAG_STREAM | MA_SOUND_FLAG_NO_SPATIALIZATION,
 			nullptr,
 			nullptr,
-			&m_ambience[i]);
+			m_ambience[i].get());
 #else
 		result = ma_sound_init_from_file(
 			&m_engine,
@@ -292,7 +203,7 @@ bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
 			MA_SOUND_FLAG_STREAM | MA_SOUND_FLAG_NO_SPATIALIZATION,
 			nullptr,
 			nullptr,
-			&m_ambience[i]);
+			m_ambience[i].get());
 #endif
 		if (result != MA_SUCCESS)
 		{
@@ -303,7 +214,7 @@ bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
 		}
 
 		++m_ambience_initialized_count;
-		ma_sound_set_looping(&m_ambience[i], MA_TRUE);
+		ma_sound_set_looping(m_ambience[i].get(), MA_TRUE);
 		m_ambience_volumes[i] = ambience_tracks[i].volume;
 		apply_volumes();
 	}
@@ -312,8 +223,8 @@ bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
 		+ ma_engine_get_sample_rate(&m_engine) / 20;
 	for (std::size_t i = 0; i < m_ambience_initialized_count; ++i)
 	{
-		ma_sound_set_start_time_in_pcm_frames(&m_ambience[i], start_time);
-		const ma_result result = ma_sound_start(&m_ambience[i]);
+		ma_sound_set_start_time_in_pcm_frames(m_ambience[i].get(), start_time);
+		const ma_result result = ma_sound_start(m_ambience[i].get());
 		if (result != MA_SUCCESS)
 		{
 			LOG(WARNING) << "AudioSystem: Failed to start ambience '" << ambience_tracks[i].path.string()
@@ -323,8 +234,7 @@ bool AudioSystem::Impl::PlayAmbience(AmbienceCue cue)
 		}
 	}
 
-	m_has_current_ambience_cue = true;
-	m_current_ambience_cue = cue;
+	m_current_ambience_tracks.assign(ambience_tracks.begin(), ambience_tracks.end());
 	LOG(INFO) << "AudioSystem: Playing " << m_ambience_initialized_count << " ambience layers.";
 	return true;
 }
@@ -333,13 +243,15 @@ void AudioSystem::Impl::StopAmbience()
 {
 	for (std::size_t i = 0; i < m_ambience_initialized_count; ++i)
 	{
-		ma_sound_stop(&m_ambience[i]);
-		ma_sound_uninit(&m_ambience[i]);
+		ma_sound_stop(m_ambience[i].get());
+		ma_sound_uninit(m_ambience[i].get());
 		m_ambience[i] = {};
 	}
 
 	m_ambience_initialized_count = 0;
-	m_has_current_ambience_cue = false;
+	m_ambience.clear();
+	m_ambience_volumes.clear();
+	m_current_ambience_tracks.clear();
 }
 
 void AudioSystem::Impl::SetTransitionVolume(float volume_factor)
@@ -366,23 +278,22 @@ void AudioSystem::Impl::SetSoundEffectsVolume(float volume)
 	apply_volumes();
 }
 
-bool AudioSystem::Impl::PlaySound(SoundCue cue)
+bool AudioSystem::Impl::PlaySound(AudioTrack const & sound_track)
 {
 	if (!m_engine_initialized)
 		return false;
 
-	if (m_sound_effect_initialized && (!m_has_current_sound_cue || m_current_sound_cue != cue))
+	if (m_sound_effect_initialized && m_current_sound_path != sound_track.path)
 	{
 		ma_sound_stop(&m_sound_effect);
 		ma_sound_uninit(&m_sound_effect);
 		m_sound_effect = {};
 		m_sound_effect_initialized = false;
-		m_has_current_sound_cue = false;
+		m_current_sound_path.clear();
 	}
 
 	if (!m_sound_effect_initialized)
 	{
-		const TrackConfig sound_track = SoundTrack(cue);
 		ma_result init_result;
 #if defined(_WIN32)
 		init_result = ma_sound_init_from_file_w(
@@ -408,11 +319,10 @@ bool AudioSystem::Impl::PlaySound(SoundCue cue)
 			return false;
 		}
 		m_sound_effect_initialized = true;
-		m_has_current_sound_cue = true;
-		m_current_sound_cue = cue;
-		m_sound_effect_volume = sound_track.volume;
+		m_current_sound_path = sound_track.path;
 	}
 
+	m_sound_effect_volume = sound_track.volume;
 	ma_sound_stop(&m_sound_effect);
 	ma_sound_seek_to_pcm_frame(&m_sound_effect, 0);
 	apply_volumes();
@@ -433,7 +343,7 @@ void AudioSystem::Impl::apply_volumes()
 			m_music_volume * m_music_category_volume * m_master_volume * m_transition_volume);
 
 	for (std::size_t i = 0; i < m_ambience_initialized_count; ++i)
-		ma_sound_set_volume(&m_ambience[i],
+		ma_sound_set_volume(m_ambience[i].get(),
 			m_ambience_volumes[i] * m_music_category_volume * m_master_volume * m_transition_volume);
 
 	if (m_sound_effect_initialized)
@@ -452,9 +362,9 @@ bool AudioSystem::IsAvailable() const
 	return m_impl->IsAvailable();
 }
 
-bool AudioSystem::PlayMusic(MusicCue cue)
+bool AudioSystem::PlayMusic(AudioTrack const & music_track)
 {
-	return m_impl->PlayMusic(cue);
+	return m_impl->PlayMusic(music_track);
 }
 
 void AudioSystem::StopMusic()
@@ -462,9 +372,9 @@ void AudioSystem::StopMusic()
 	m_impl->StopMusic();
 }
 
-bool AudioSystem::PlayAmbience(AmbienceCue cue)
+bool AudioSystem::PlayAmbience(std::span<AudioTrack const> ambience_tracks)
 {
-	return m_impl->PlayAmbience(cue);
+	return m_impl->PlayAmbience(ambience_tracks);
 }
 
 void AudioSystem::StopAmbience()
@@ -472,9 +382,9 @@ void AudioSystem::StopAmbience()
 	m_impl->StopAmbience();
 }
 
-bool AudioSystem::PlaySound(SoundCue cue)
+bool AudioSystem::PlaySound(AudioTrack const & sound_track)
 {
-	return m_impl->PlaySound(cue);
+	return m_impl->PlaySound(sound_track);
 }
 
 void AudioSystem::SetTransitionVolume(float volume_factor)

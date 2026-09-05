@@ -1,34 +1,16 @@
 module;
 
 #include <memory>
+#include <filesystem>
+#include <span>
 
 export module AudioSystem;
 
-export enum class MusicCue
+// Callers supply full paths; AudioSystem does not resolve resource directories.
+export struct AudioTrack
 {
-	Title,
-	Picnic,
-	EarlyForest,
-	Creek,
-	MiddleForest,
-	Night,
-	LateForest,
-	Home,
-};
-
-export enum class AmbienceCue
-{
-	EarlyForest,
-	Creek,
-	MiddleForest,
-	Night,
-	LateForest,
-};
-
-export enum class SoundCue
-{
-	ShortChime,
-	GustOfWind,
+	std::filesystem::path path;
+	float volume = 1.0f;
 };
 
 export class AudioSystem
@@ -44,11 +26,14 @@ public:
 
 	bool IsAvailable() const;
 	
-	bool PlayMusic(MusicCue cue);
+	// Music and ambience loop. Reusing the same paths updates volume without restarting.
+	bool PlayMusic(AudioTrack const & music_track);
 	void StopMusic();
-	bool PlayAmbience(AmbienceCue cue);
+	// An empty list stops ambience. Tracks are copied; the input need not outlive this call.
+	bool PlayAmbience(std::span<AudioTrack const> ambience_tracks);
 	void StopAmbience();
-	bool PlaySound(SoundCue cue);
+	// Sound effects play once, restarting from the beginning on each request.
+	bool PlaySound(AudioTrack const & sound_track);
 
 	void SetTransitionVolume(float volume_factor);
 

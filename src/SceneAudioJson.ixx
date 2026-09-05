@@ -3,56 +3,44 @@ module;
 #include <filesystem>
 #include <optional>
 #include <string>
-#include <utility>
+#include <string_view>
 
 #include <glog/logging.h>
 #include <nlohmann/json.hpp>
 
 export module SceneAudioJson;
 
-import AudioSystem;
+import SniffTheWayConstants;
 import SceneAudioData;
 
 namespace
 {
-	constexpr std::pair<char const *, MusicCue> MusicNames[] = {
-		{ "title", MusicCue::Title }, { "picnic", MusicCue::Picnic },
-		{ "early_forest", MusicCue::EarlyForest }, { "creek", MusicCue::Creek },
-		{ "middle_forest", MusicCue::MiddleForest }, { "night", MusicCue::Night },
-		{ "late_forest", MusicCue::LateForest }, { "home", MusicCue::Home },
-	};
-	constexpr std::pair<char const *, AmbienceCue> AmbienceNames[] = {
-		{ "early_forest", AmbienceCue::EarlyForest }, { "creek", AmbienceCue::Creek },
-		{ "middle_forest", AmbienceCue::MiddleForest }, { "night", AmbienceCue::Night },
-		{ "late_forest", AmbienceCue::LateForest },
-	};
-
-	template<class Cue, std::size_t N>
+	template<class Cue>
 	std::optional<Cue> ParseCue(nlohmann::ordered_json const & audio, char const * field,
-		std::filesystem::path const & filepath, std::pair<char const *, Cue> const (&names)[N])
+		std::filesystem::path const & filepath, std::optional<Cue> (*from_string)(std::string_view))
 	{
 		if (!audio.contains(field) || audio[field].is_null())
 			return std::nullopt;
 		auto const & value = audio[field];
 		if (value.is_string())
 		{
-			for (auto const & [name, cue] : names)
-				if (value.get_ref<std::string const &>() == name)
-					return cue;
+			if (auto cue = from_string(value.get_ref<std::string const &>()))
+				return cue;
 		}
 		LOG(WARNING) << "SceneAudioJson: Invalid audio." << field << " in " << filepath
 			<< ": " << value.dump() << ". Using silence.";
 		return std::nullopt;
 	}
 
-	template<class Cue, std::size_t N>
-	nlohmann::ordered_json SerializeCue(std::optional<Cue> cue,
-		std::pair<char const *, Cue> const (&names)[N])
+	template<class Cue>
+	nlohmann::ordered_json SerializeCue(std::optional<Cue> cue)
 	{
 		if (cue)
-			for (auto const & [name, candidate] : names)
-				if (*cue == candidate)
-					return name;
+		{
+			const auto name = SniffTheWay::ToString(*cue);
+			if (!name.empty())
+				return std::string{ name };
+		}
 		return nullptr;
 	}
 }
@@ -69,13 +57,13 @@ export SceneAudioData ParseSceneAudio(nlohmann::ordered_json const & root,
 		return {};
 	}
 	return {
-		.music = ParseCue(audio, "music", filepath, MusicNames),
-		.ambience = ParseCue(audio, "ambience", filepath, AmbienceNames),
+		.music = ParseCue(audio, "music", filepath, SniffTheWay::MusicCueFromString),
+		.ambience = ParseCue(audio, "ambience", filepath, SniffTheWay::AmbienceCueFromString),
 	};
 }
 
 export nlohmann::ordered_json SerializeSceneAudio(SceneAudioData const & data)
 {
-	return { { "music", SerializeCue(data.music, MusicNames) },
-		{ "ambience", SerializeCue(data.ambience, AmbienceNames) } };
+	return { { "music", SerializeCue(data.music) },
+		{ "ambience", SerializeCue(data.ambience) } };
 }

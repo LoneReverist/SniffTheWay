@@ -224,7 +224,7 @@ GameplayScene::GameplayScene(
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 
-	ApplySceneAudio(m_audio_system, m_scene_data.audio);
+	ApplySceneAudio(m_audio_system, m_scene_data.audio, m_asset_manager.GetResourcesPath());
 	ChangeSceneState(SceneState::Gameplay);
 }
 
@@ -417,7 +417,7 @@ void GameplayScene::reload_scene_data()
 	}
 
 	m_scene_data = std::move(reloaded_scene_data);
-	ApplySceneAudio(m_audio_system, m_scene_data.audio);
+	ApplySceneAudio(m_audio_system, m_scene_data.audio, m_asset_manager.GetResourcesPath());
 	apply_camera_data();
 	reload_background_texture();
 	for (GameplayMessageOverlay & message_overlay : m_gameplay_message_overlays)

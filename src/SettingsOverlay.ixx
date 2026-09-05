@@ -13,6 +13,7 @@ export module SettingsOverlay;
 import AssetManager;
 import AssetPool;
 import AudioSystem;
+import GameAudio;
 import Camera;
 import ColorPipeline;
 import FontAtlas;
@@ -62,6 +63,7 @@ private:
 private:
 	SceneRenderer * m_renderer = nullptr;
 	AudioSystem * m_audio_system = nullptr;
+	AudioTrack m_chime_track;
 	UIDarkBackdrop m_backdrop;
 	UILabel m_title_label;
 	UILabel m_master_label;
@@ -92,6 +94,7 @@ void SettingsOverlay::Init(
 {
 	m_renderer = &renderer;
 	m_audio_system = &audio_system;
+	m_chime_track = SoundTrack(SoundCue::ShortChime, asset_manager.GetResourcesPath());
 
 	const auto color_pipeline_id = asset_manager.AddPipeline<ColorPipeline>(camera2d);
 	const auto text_pipeline_id = asset_manager.AddPipeline<TextPipeline>(camera2d, asset_manager);
@@ -189,7 +192,7 @@ bool SettingsOverlay::Update(Input const & input, GameViewport const & viewport)
 			m_selected_row = released_over;
 			if (released_over == Row::Back)
 			{
-				m_audio_system->PlaySound(SoundCue::ShortChime);
+				m_audio_system->PlaySound(m_chime_track);
 				return true;
 			}
 			if (pointer_position)
@@ -204,7 +207,7 @@ bool SettingsOverlay::Update(Input const & input, GameViewport const & viewport)
 	if (((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown())
 		|| input.KeyJustPressed(Input::Key::Space)) && m_selected_row == Row::Back)
 	{
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(m_chime_track);
 		return true;
 	}
 
@@ -297,21 +300,21 @@ void SettingsOverlay::adjust_selected(float amount)
 	{
 		const float old_volume = m_audio_system->GetMasterVolume();
 		m_audio_system->SetMasterVolume(old_volume + amount);
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(m_chime_track);
 		break;
 	}
 	case Row::Music:
 	{
 		const float old_volume = m_audio_system->GetMusicVolume();
 		m_audio_system->SetMusicVolume(old_volume + amount);
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(m_chime_track);
 		break;
 	}
 	case Row::SoundEffects:
 	{
 		const float old_volume = m_audio_system->GetSoundEffectsVolume();
 		m_audio_system->SetSoundEffectsVolume(old_volume + amount);
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(m_chime_track);
 		break;
 	}
 	case Row::Back:

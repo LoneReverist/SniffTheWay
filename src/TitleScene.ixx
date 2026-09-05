@@ -14,6 +14,7 @@ import Dreamhearth;
 import AssetManager;
 import AssetPool;
 import AudioSystem;
+import GameAudio;
 import Background;
 import Camera;
 import GameViewport;
@@ -249,7 +250,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 	
-	audio_system.PlayMusic(MusicCue::Title);
+	audio_system.PlayMusic(MusicTrack(MusicCue::Title, m_asset_manager.GetResourcesPath()));
 	audio_system.StopAmbience();
 }
 
@@ -279,17 +280,17 @@ std::optional<SceneTransition> TitleScene::Update(float /*dt*/, Input const & in
 	m_credits_button.Update(input, pointer_position);
 	if ((input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown()) || m_start_button.WasActivated())
 	{
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(SoundTrack(SoundCue::ShortChime, m_asset_manager.GetResourcesPath()));
 		return SceneTransition{ SceneId::Picnic, SceneId::Title, PlaythroughAction::StartNew };
 	}
 	if (m_credits_button.WasActivated())
 	{
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(SoundTrack(SoundCue::ShortChime, m_asset_manager.GetResourcesPath()));
 		return SceneTransition{ SceneId::Credits, SceneId::Title };
 	}
 	if (m_settings_button.WasActivated())
 	{
-		m_audio_system->PlaySound(SoundCue::ShortChime);
+		m_audio_system->PlaySound(SoundTrack(SoundCue::ShortChime, m_asset_manager.GetResourcesPath()));
 		m_settings_overlay.SetVisible(true);
 	}
 

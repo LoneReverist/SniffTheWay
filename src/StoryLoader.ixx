@@ -17,6 +17,7 @@ export module StoryLoader;
 import AudioSystem;
 import DecorationAtlas;
 import SniffTheWayConstants;
+import SceneAudioJson;
 import StoryData;
 import UILabel;
 
@@ -148,6 +149,8 @@ export namespace StoryLoader
 		try
 		{
 			file >> root;
+
+			scene_data.audio = ParseSceneAudio(root, filepath);
 
 			if (root.contains("prev_scene_id") && !root["prev_scene_id"].is_null())
 			{

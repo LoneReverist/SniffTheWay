@@ -13,6 +13,7 @@ import GameplayMessageData;
 import CharacterFacing;
 import Polygon2d;
 import SniffTheWayConstants;
+import SceneAudioData;
 
 export struct GameplayCharacterArrival
 {
@@ -56,6 +57,7 @@ export struct GameplayMessageTriggerData
 
 export struct GameplaySceneData
 {
+	SceneAudioData audio;
 	std::string bg_image_filename;
 	glm::vec4 tint{ 1.0f };
 	GameplayCameraData camera;

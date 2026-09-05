@@ -1,5 +1,9 @@
 {
   "id": "1_thicker_forest_transition",
+  "audio": {
+    "music": "early_forest",
+    "ambience": "early_forest"
+  },
   "background": "1_thicker_forest_transition.png",
   "tint": [
     0.9200000166893005,

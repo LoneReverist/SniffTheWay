@@ -1,5 +1,9 @@
 {
   "id": "1_forest_horizontal",
+  "audio": {
+    "music": "early_forest",
+    "ambience": "early_forest"
+  },
   "background": "1_forest_horizontal.png",
   "tint": [
     0.9700000286102295,

@@ -1,5 +1,9 @@
 {
   "id": "2_dark_forest",
+  "audio": {
+    "music": "middle_forest",
+    "ambience": "middle_forest"
+  },
   "background": "2_dark_forest.png",
   "tint": [
     0.5,

@@ -13,6 +13,7 @@ export module StoryData;
 import AudioSystem;
 import DecorationAtlas;
 import SniffTheWayConstants;
+import SceneAudioData;
 import UILabel;
 
 export struct StoryText
@@ -58,6 +59,7 @@ export struct StoryPage
 
 export struct StorySceneData
 {
+	SceneAudioData audio;
 	std::optional<SniffTheWay::SceneId> prev_scene_id;
 	SniffTheWay::SceneId next_scene_id = SniffTheWay::SceneId::Exit;
 	std::vector<StoryPage> pages;

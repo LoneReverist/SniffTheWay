@@ -10,6 +10,7 @@ export module CreditsScene;
 
 import Dreamhearth;
 
+import AudioSystem;
 import AssetManager;
 import AssetPool;
 import Background;
@@ -33,7 +34,7 @@ using namespace SniffTheWay;
 export class CreditsScene : public IScene
 {
 public:
-	explicit CreditsScene(dh::RenderContext const & render_context);
+	explicit CreditsScene(dh::RenderContext const & render_context, AudioSystem & audio_system);
 
 	void OnViewportChanged(GameViewport const & viewport) override;
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
@@ -55,7 +56,7 @@ private:
 	SceneFadeOverlay m_scene_fade_overlay;
 };
 
-CreditsScene::CreditsScene(dh::RenderContext const & render_context)
+CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem & audio_system)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
@@ -141,6 +142,9 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context)
 		StoryTextColor);
 
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
+	
+	audio_system.PlayMusic(MusicCue::Home);
+	audio_system.StopAmbience();
 }
 
 void CreditsScene::OnViewportChanged(GameViewport const & viewport)

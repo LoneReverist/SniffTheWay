@@ -1,5 +1,9 @@
 {
   "id": "3_dirt_path",
+  "audio": {
+    "music": "late_forest",
+    "ambience": "late_forest"
+  },
   "background": "3_dirt_path.png",
   "tint": [
     1.0,

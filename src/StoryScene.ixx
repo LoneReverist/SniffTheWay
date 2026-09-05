@@ -21,6 +21,7 @@ import Dreamhearth;
 import AssetManager;
 import AssetPool;
 import AudioSystem;
+import SceneAudioData;
 import Background;
 import Texture2dPipeline;
 import Camera;
@@ -190,6 +191,7 @@ StoryScene::StoryScene(
 
 	ensure_story_ui_capacity();
 
+	ApplySceneAudio(*m_audio_system, m_scene_data.audio);
 	apply_current_page();
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
@@ -503,6 +505,7 @@ void StoryScene::reload_story()
 
 	const std::size_t cur_page_index = std::min<std::size_t>(m_page_index, m_scene_data.pages.size() - 1);
 	m_page_index = static_cast<std::uint8_t>(cur_page_index);
+	ApplySceneAudio(*m_audio_system, m_scene_data.audio);
 	apply_current_page();
 	LOG(INFO) << "StoryScene: Reloaded story '" << ToString(m_scene_id) << "'.";
 }

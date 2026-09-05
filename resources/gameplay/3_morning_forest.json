@@ -1,5 +1,9 @@
 {
   "id": "3_morning_forest",
+  "audio": {
+    "music": "late_forest",
+    "ambience": "late_forest"
+  },
   "background": "3_morning_forest.png",
   "tint": [
     0.9900000095367432,

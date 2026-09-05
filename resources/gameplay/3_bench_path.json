@@ -1,5 +1,9 @@
 {
   "id": "3_bench_path",
+  "audio": {
+    "music": "late_forest",
+    "ambience": "late_forest"
+  },
   "background": "3_bench_path.png",
   "tint": [
     0.9900000095367432,

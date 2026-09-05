@@ -143,14 +143,20 @@ bool SceneManager::ApplyPendingTransition(Playthrough * playthrough)
 		return true;
 
 	SceneTransition const transition = *m_pending_scene_transition;
-	m_audio_system.SetTransitionVolume(1.0f);
 	m_render_context.WaitForLastFrame(); // GPU drains before old scene dies
 	m_cur_scene.reset(); // GPU resources destroyed here — safe because we waited
 
 	m_cur_scene = m_scene_registry.Create(transition, m_render_context, m_audio_system, playthrough);
 	m_cur_scene_id = transition.next_scene_id;
+	
 	if (!m_cur_scene)
+	{
+		m_audio_system.StopMusic();
+		m_audio_system.StopAmbience();
+		m_audio_system.SetTransitionVolume(1.0f);
 		return false;
+	}
+	m_audio_system.SetTransitionVolume(1.0f);
 
 	m_cur_scene->OnViewportChanged(m_game_viewport);
 	m_transition_state = TransitionState::FadingIn;

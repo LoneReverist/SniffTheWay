@@ -1,6 +1,10 @@
 {
   "prev_scene_id": "2_dark_forest2",
   "next_scene_id": "3_morning_forest",
+  "audio": {
+    "music": "night",
+    "ambience": null
+  },
   "pages": [
     {
       "background": "3_1_dusk.png",

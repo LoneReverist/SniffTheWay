@@ -40,7 +40,6 @@ public:
 	bool ApplyPendingTransition();
 
 private:
-	void update_audio(SceneId scene_id);
 #ifdef _DEBUG
 	std::optional<SceneTransition> get_debug_transition(Input const & input) const;
 #endif
@@ -60,7 +59,6 @@ Game::Game(dh::RenderContext render_context)
 	, m_playthrough{}
 	, m_scene_manager{ m_audio_system, m_render_context, SceneTransition{ SceneId::Title } }
 {
-	update_audio(SceneId::Title);
 }
 
 void Game::OnWindowResized(int width, int height)
@@ -118,8 +116,6 @@ bool Game::ApplyPendingTransition()
 		case PlaythroughAction::None:
 			break;
 		}
-
-		update_audio(transition->next_scene_id);
 	}
 
 	const bool should_continue = m_scene_manager.ApplyPendingTransition(
@@ -129,67 +125,4 @@ bool Game::ApplyPendingTransition()
 		m_playthrough.reset();
 
 	return should_continue;
-}
-
-void Game::update_audio(SceneId scene_id)
-{
-	switch (scene_id)
-	{
-	case SceneId::Title:
-		m_audio_system.PlayMusic(MusicCue::Title);
-		m_audio_system.StopAmbience();
-		break;
-	case SceneId::Picnic:
-		m_audio_system.PlayMusic(MusicCue::Picnic);
-		m_audio_system.StopAmbience();
-		break;
-	case SceneId::ForestPath:
-	case SceneId::ForestPath2:
-	case SceneId::RightTurn:
-	case SceneId::ForestLake:
-	case SceneId::Playground:
-	case SceneId::ForestHorizontal:
-	case SceneId::ThickerForestTransition:
-	case SceneId::BeforeCreek:
-		m_audio_system.PlayMusic(MusicCue::EarlyForest);
-		m_audio_system.PlayAmbience(AmbienceCue::EarlyForest);
-		break;
-	case SceneId::Creek:
-		m_audio_system.PlayMusic(MusicCue::Creek);
-		m_audio_system.PlayAmbience(AmbienceCue::Creek);
-		break;
-	case SceneId::AfterCreek:
-	case SceneId::GoldenIntersection:
-	case SceneId::FallenTree:
-	case SceneId::GoldenPath:
-	case SceneId::GoldenHour:
-	case SceneId::DeepForest:
-	case SceneId::DarkForest:
-	case SceneId::DarkForest2:
-		m_audio_system.PlayMusic(MusicCue::MiddleForest);
-		m_audio_system.PlayAmbience(AmbienceCue::MiddleForest);
-		break;
-	case SceneId::Night:
-		m_audio_system.PlayMusic(MusicCue::Night);
-		m_audio_system.StopAmbience();
-		break;
-	case SceneId::MorningForest:
-	case SceneId::MorningForest2:
-	case SceneId::DirtPath:
-	case SceneId::DirtIntersection:
-	case SceneId::BenchPath:
-	case SceneId::HousePath:
-		m_audio_system.PlayMusic(MusicCue::LateForest);
-		m_audio_system.PlayAmbience(AmbienceCue::LateForest);
-		break;
-	case SceneId::Home:
-	case SceneId::Credits:
-		m_audio_system.PlayMusic(MusicCue::Home);
-		m_audio_system.StopAmbience();
-		break;
-	default:
-		m_audio_system.StopMusic();
-		m_audio_system.StopAmbience();
-		break;
-	}
 }

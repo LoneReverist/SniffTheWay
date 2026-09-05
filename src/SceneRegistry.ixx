@@ -44,7 +44,7 @@ std::unique_ptr<IScene> SceneRegistry::Create(
 		return std::make_unique<TitleScene>(ctx, audio_system);
 
 	if (trans.next_scene_id == SceneId::Credits)
-		return std::make_unique<CreditsScene>(ctx);
+		return std::make_unique<CreditsScene>(ctx, audio_system);
 
 	if (IsStoryScene(trans.next_scene_id))
 		return std::make_unique<StoryScene>(ctx, audio_system, trans.next_scene_id);

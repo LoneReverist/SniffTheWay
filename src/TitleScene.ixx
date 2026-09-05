@@ -248,6 +248,9 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
+	
+	audio_system.PlayMusic(MusicCue::Title);
+	audio_system.StopAmbience();
 }
 
 void TitleScene::OnViewportChanged(GameViewport const & viewport)

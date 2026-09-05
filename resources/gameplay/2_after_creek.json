@@ -1,5 +1,9 @@
 {
   "id": "2_after_creek",
+  "audio": {
+    "music": "middle_forest",
+    "ambience": "middle_forest"
+  },
   "background": "2_after_creek.png",
   "tint": [
     0.9800000190734863,

@@ -1,5 +1,9 @@
 {
   "id": "2_golden_hour",
+  "audio": {
+    "music": "middle_forest",
+    "ambience": "middle_forest"
+  },
   "background": "2_golden_hour.png",
   "tint": [
     1.0,

@@ -20,6 +20,7 @@ import CharacterFacing;
 import GameplayMessageData;
 import Polygon2d;
 import SniffTheWayConstants;
+import SceneAudioJson;
 
 using json = nlohmann::ordered_json;
 
@@ -308,6 +309,7 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 	if (existing_root.contains("id"))
 		root["id"] = existing_root["id"];
 
+	root["audio"] = SerializeSceneAudio(scene_data.audio);
 	root["background"] = scene_data.bg_image_filename;
 	root["tint"] = serialize_gameplay_vec4(scene_data.tint);
 	root["camera"] = serialize_gameplay_camera(scene_data.camera);
@@ -329,7 +331,8 @@ json serialize_gameplay_scene_data(GameplaySceneData const & scene_data, json ex
 
 	for (auto const & [key, value] : existing_root.items())
 	{
-		if (key != "id" &&
+		if (key != "audio" &&
+			key != "id" &&
 			key != "background" &&
 			key != "tint" &&
 			key != "initial_state" &&
@@ -365,6 +368,8 @@ export namespace GameplaySceneLoader
 		try
 		{
 			file >> root;
+
+			scene_data.audio = ParseSceneAudio(root, filepath);
 
 			scene_data.bg_image_filename = root.value("background", "");
 			if (root.contains("tint"))

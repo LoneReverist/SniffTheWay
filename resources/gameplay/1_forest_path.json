@@ -1,5 +1,9 @@
 {
   "id": "1_forest_path",
+  "audio": {
+    "music": "early_forest",
+    "ambience": "early_forest"
+  },
   "background": "1_forest_path.png",
   "tint": [
     0.9800000190734863,

@@ -1,6 +1,10 @@
 {
   "prev_scene_id": null,
   "next_scene_id": "1_forest_path",
+  "audio": {
+    "music": "picnic",
+    "ambience": null
+  },
   "pages": [
     {
       "background": "1_1_picnic.png",

@@ -1,6 +1,10 @@
 {
   "prev_scene_id": "3_house_path",
   "next_scene_id": "credits",
+  "audio": {
+    "music": "home",
+    "ambience": null
+  },
   "pages": [
     {
       "background": "4_1_home.png",

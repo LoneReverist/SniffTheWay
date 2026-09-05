@@ -1,5 +1,9 @@
 {
   "id": "1_right_turn",
+  "audio": {
+    "music": "early_forest",
+    "ambience": "early_forest"
+  },
   "background": "1_right_turn.png",
   "tint": [
     0.9599999785423279,

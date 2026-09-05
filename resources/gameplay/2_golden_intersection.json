@@ -1,5 +1,9 @@
 {
   "id": "2_golden_intersection",
+  "audio": {
+    "music": "middle_forest",
+    "ambience": "middle_forest"
+  },
   "background": "2_golden_intersection.png",
   "tint": [
     1.0,

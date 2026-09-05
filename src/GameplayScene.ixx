@@ -19,6 +19,7 @@ import Dreamhearth;
 import AssetManager;
 import AssetPool;
 import AudioSystem;
+import SceneAudioData;
 import Baby;
 import Background;
 import Texture2dPipeline;
@@ -90,6 +91,7 @@ private:
 
 private:
 	Playthrough & m_playthrough;
+	AudioSystem & m_audio_system;
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera3d m_camera3d;
@@ -135,6 +137,7 @@ GameplayScene::GameplayScene(
 	SceneId scene_id,
 	SceneTransition const & transition)
 	: m_playthrough{ playthrough }
+	, m_audio_system{ audio_system }
 	, m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera3d{ render_context.ShouldFlipScreenY() }
@@ -221,6 +224,7 @@ GameplayScene::GameplayScene(
 	m_settings_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 
+	ApplySceneAudio(m_audio_system, m_scene_data.audio);
 	ChangeSceneState(SceneState::Gameplay);
 }
 
@@ -413,6 +417,7 @@ void GameplayScene::reload_scene_data()
 	}
 
 	m_scene_data = std::move(reloaded_scene_data);
+	ApplySceneAudio(m_audio_system, m_scene_data.audio);
 	apply_camera_data();
 	reload_background_texture();
 	for (GameplayMessageOverlay & message_overlay : m_gameplay_message_overlays)

@@ -1,6 +1,10 @@
 {
   "prev_scene_id": "1_before_creek",
   "next_scene_id": "2_after_creek",
+  "audio": {
+    "music": "creek",
+    "ambience": "creek"
+  },
   "pages": [
     {
       "background": "2_1_approaching_creek.png",

@@ -1,5 +1,9 @@
 {
   "id": "2_fallen_tree",
+  "audio": {
+    "music": "middle_forest",
+    "ambience": "middle_forest"
+  },
   "background": "2_fallen_tree.png",
   "tint": [
     1.0,

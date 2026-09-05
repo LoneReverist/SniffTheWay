@@ -1,5 +1,9 @@
 {
   "id": "1_playground",
+  "audio": {
+    "music": "early_forest",
+    "ambience": "early_forest"
+  },
   "background": "1_playground.png",
   "tint": [
     1.0,

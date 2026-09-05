@@ -27,6 +27,7 @@ public:
 		PipelineId<SpritePipeline> pipeline, GameplayCameraData const & authored, Camera3d const & camera);
 	void Destroy(AssetManager & assets, SceneRenderer & renderer);
 	void UpdateTransform(GameplayCameraData const & authored, Camera3d const & camera);
+	void SetOpacity(float opacity) { m_pipeline_data.tint.a = m_data.tint.a * opacity; }
 	static glm::mat4 CalculateTransform(EnvironmentObjectData const & data,
 		GameplayCameraData const & authored, Camera3d const & camera);
 	AssetId GetRenderObjectId() const { return m_render_id; }

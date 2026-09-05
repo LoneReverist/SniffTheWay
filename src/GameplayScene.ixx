@@ -44,6 +44,7 @@ import IScene;
 import PauseOverlay;
 import Playthrough;
 import SceneRenderer;
+import RenderObject;
 import SceneFadeOverlay;
 import SettingsOverlay;
 import ScentTrail;
@@ -111,6 +112,7 @@ private:
 	AssetId m_bg_tex_id;
 	std::vector<std::unique_ptr<EnvironmentObject>> m_environment_objects;
 	PipelineId<SpritePipeline> m_sprite_pipeline_id;
+	PipelineId<SpritePipeline> m_translucent_sprite_pipeline_id;
 	std::vector<ScentTrail> m_scent_trails;
 	PipelineId<ScentTrailPipeline> m_scent_trail_pipeline_id;
 	std::vector<AssetId> m_scent_trail_ro_ids;
@@ -169,7 +171,7 @@ GameplayScene::GameplayScene(
 
 	const auto bg_pipeline_id = m_asset_manager.AddPipeline<Texture2dPipeline>(m_camera2d, m_asset_manager);
 	m_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(m_camera3d, m_asset_manager);
-	const auto ground_shadow_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(
+	m_translucent_sprite_pipeline_id = m_asset_manager.AddPipeline<SpritePipeline>(
 		m_camera3d, m_asset_manager, false /*enable_depth_write*/);
 	m_scent_trail_pipeline_id = m_asset_manager.AddPipeline<ScentTrailPipeline>(m_camera3d);
 	m_text_pipeline_id = m_asset_manager.AddPipeline<TextPipeline>(m_camera2d, m_asset_manager);
@@ -202,7 +204,7 @@ GameplayScene::GameplayScene(
 			"dog shadow",
 			RenderLayer::Scene3dGroundShadow,
 			m_dog.GetShadowMeshId(),
-			ground_shadow_pipeline_id,
+			m_translucent_sprite_pipeline_id,
 			m_dog.GetShadowPipelineData());
 	}
 	m_dog_ro_id = m_renderer.CreateRenderObject(
@@ -217,7 +219,7 @@ GameplayScene::GameplayScene(
 			"baby shadow",
 			RenderLayer::Scene3dGroundShadow,
 			m_baby.GetShadowMeshId(),
-			ground_shadow_pipeline_id,
+			m_translucent_sprite_pipeline_id,
 			m_baby.GetShadowPipelineData());
 	}
 	m_baby_ro_id = m_renderer.CreateRenderObject(
@@ -395,9 +397,24 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 
 #ifdef _DEBUG
 	m_editor.OnSceneStateChanged(m_scene_state, m_asset_manager, m_renderer);
-	const float character_opacity = m_scene_state == SceneState::Editing ? 0.3f : 1.0f;
-	m_dog.SetOpacity(character_opacity);
-	m_baby.SetOpacity(character_opacity);
+
+	const float sprite_opacity = m_scene_state == SceneState::Editing ? 0.3f : 1.0f;
+	const auto sprite_pipeline = m_scene_state == SceneState::Editing
+		? m_translucent_sprite_pipeline_id : m_sprite_pipeline_id;
+	m_dog.SetOpacity(sprite_opacity);
+	m_baby.SetOpacity(sprite_opacity);
+	if (auto * render_object = m_renderer.GetRenderObject(m_dog_ro_id))
+		render_object->SetPipelineId(sprite_pipeline);
+	if (auto * render_object = m_renderer.GetRenderObject(m_baby_ro_id))
+		render_object->SetPipelineId(sprite_pipeline);
+	for (auto const & object : m_environment_objects)
+	{
+		object->SetOpacity(sprite_opacity);
+		// Alpha blending does not weaken depth writes. Let editor lines pass
+		// through translucent objects, whichever order the editor creates them in.
+		if (auto * render_object = m_renderer.GetRenderObject(object->GetRenderObjectId()))
+			render_object->SetPipelineId(sprite_pipeline);
+	}
 #endif
 }
 

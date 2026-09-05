@@ -83,6 +83,7 @@
 		{
 			"name": "default",
 			"configurePreset": "default",
+			"nativeToolOptions": ["/clp:Summary"],
 			"targets": [
 				"SniffTheWay"
 			]
@@ -90,6 +91,7 @@
 		{
 			"name": "x64-windows-static-release",
 			"configurePreset": "x64-windows-static",
+			"nativeToolOptions": ["/clp:Summary"],
 			"configuration": "Release",
 			"targets": [
 				"SniffTheWay"
@@ -98,6 +100,7 @@
 		{
 			"name": "x64-windows-static-debug",
 			"configurePreset": "x64-windows-static",
+			"nativeToolOptions": ["/clp:Summary"],
 			"configuration": "Debug",
 			"targets": [
 				"SniffTheWay"
@@ -106,6 +109,7 @@
 		{
 			"name": "package-windows-vulkan-release",
 			"configurePreset": "package-windows-vulkan",
+			"nativeToolOptions": ["/clp:Summary"],
 			"configuration": "Release",
 			"jobs": 1,
 			"targets": [
@@ -115,6 +119,7 @@
 		{
 			"name": "package-windows-opengl-release",
 			"configurePreset": "package-windows-opengl",
+			"nativeToolOptions": ["/clp:Summary"],
 			"configuration": "Release",
 			"jobs": 1,
 			"targets": [

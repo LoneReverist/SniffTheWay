@@ -97,7 +97,7 @@ TitleScene::TitleScene(dh::RenderContext const & render_context, AudioSystem & a
 		false /*flip_vertically*/,
 		false /*use_mip_map*/);
 	const AssetId baby_texture_id = m_asset_manager.AddTexture(
-		m_asset_manager.GetTexturesPath() / "baby_crawl_sprite_sheet.png",
+		m_asset_manager.GetTexturesPath() / "baby_crawl.png",
 		dh::PixelFormat::RGBA_SRGB,
 		false /*flip_vertically*/,
 		false /*use_mip_map*/);

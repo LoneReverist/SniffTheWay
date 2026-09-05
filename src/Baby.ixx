@@ -158,10 +158,10 @@ void Baby::Init(
 	AssetId shadow_tex_id)
 {
 	AssetId const crawl_tex_id = asset_manager.AddTexture(
-		asset_manager.GetTexturesPath() / "baby_crawl_sprite_sheet.png",
+		asset_manager.GetTexturesPath() / "baby_crawl.png",
 		 dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 	AssetId const crawl_away_tex_id = asset_manager.AddTexture(
-		asset_manager.GetTexturesPath() / "baby_crawl_away_sprite_sheet.png",
+		asset_manager.GetTexturesPath() / "baby_crawl_away.png",
 		dh::PixelFormat::RGBA_SRGB, false /*flip_vertically*/, false /*use_mip_map*/);
 
 	m_crawl_sprite_sheet = SpriteSheet{

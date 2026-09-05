@@ -45,6 +45,12 @@ add_executable(SniffTheWay)
 
 set_target_properties(SniffTheWay PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
+if(WIN32 AND (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
+    # Release is a GUI application; keep the existing main() and CRT startup.
+    set_property(TARGET SniffTheWay PROPERTY WIN32_EXECUTABLE "$<CONFIG:Release>")
+    target_link_options(SniffTheWay PRIVATE "$<$<CONFIG:Release>:LINKER:/ENTRY:mainCRTStartup>")
+endif()
+
 set(SHADER_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders)
 file(GLOB SHADER_FILES "${SHADER_SOURCE_DIR}/*")
 

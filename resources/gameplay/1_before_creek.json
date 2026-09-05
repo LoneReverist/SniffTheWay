@@ -193,7 +193,7 @@
   ],
   "message_triggers": [
     {
-      "id": "water_ahead",
+      "id": "creek_ahead",
       "trigger": [
         [
           -1.8799993991851807,
@@ -214,7 +214,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "Water ahead.",
+        "text": "There's a creek. I hear it.\nStay near me.",
         "hold_duration": 3.5,
         "fade_in_duration": 0.25,
         "fade_out_duration": 0.75

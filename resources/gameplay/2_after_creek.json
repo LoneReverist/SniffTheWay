@@ -169,7 +169,7 @@
   ],
   "message_triggers": [
     {
-      "id": "entry_hint",
+      "id": "proud_of_you",
       "trigger": [
         [
           -1.0800001621246338,
@@ -190,7 +190,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "Let's keep moving.",
+        "text": "You made it, I'm proud of you.",
         "position": [
           960.0,
           918.0

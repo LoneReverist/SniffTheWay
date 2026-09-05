@@ -182,7 +182,7 @@
   ],
   "message_triggers": [
     {
-      "id": "houses_ahead",
+      "id": "nearly_home",
       "trigger": [
         [
           -1.8873541355133057,
@@ -203,7 +203,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "Houses... we're close.",
+        "text": "Nearly there, little one. Nearly home.",
         "position": [
           960.0,
           918.0

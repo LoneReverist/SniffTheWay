@@ -206,7 +206,7 @@
   ],
   "message_triggers": [
     {
-      "id": "trail_is_faint",
+      "id": "familiar_smell",
       "trigger": [
         [
           -1.0065107345581055,
@@ -227,7 +227,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "Their trail is faint... but it's here.",
+        "text": "A familiar smell... just a little. This way.",
         "position": [
           960.0,
           918.0

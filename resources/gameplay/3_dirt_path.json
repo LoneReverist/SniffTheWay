@@ -171,39 +171,5 @@
       ]
     }
   ],
-  "message_triggers": [
-    {
-      "id": "trees_thinning",
-      "trigger": [
-        [
-          1.279290795326233,
-          -1.6741660833358765
-        ],
-        [
-          2.517364025115967,
-          -0.4158933162689209
-        ],
-        [
-          0.8104360103607178,
-          2.9028000831604004
-        ],
-        [
-          0.01720149628818035,
-          2.609619617462158
-        ]
-      ],
-      "repeat": "none",
-      "message": {
-        "text": "The trees are thinning.",
-        "position": [
-          960.0,
-          918.0
-        ],
-        "font_size": 56.0,
-        "fade_in_duration": 0.25,
-        "fade_out_duration": 0.75,
-        "hold_duration": 3.5
-      }
-    }
-  ]
+  "message_triggers": []
 }

@@ -157,7 +157,7 @@
   ],
   "message_triggers": [
     {
-      "id": "light_fading",
+      "id": "getting_dark",
       "trigger": [
         [
           -5.54679012298584,
@@ -178,7 +178,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "The light is fading.",
+        "text": "It's getting dark.\nI thought we'd be home by now.",
         "position": [
           960.0,
           918.0

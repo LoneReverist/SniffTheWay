@@ -152,7 +152,7 @@
   ],
   "message_triggers": [
     {
-      "id": "entry_hint",
+      "id": "home_on_breeze",
       "trigger": [
         [
           -2.372474431991577,
@@ -173,7 +173,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "We'll find the way home.",
+        "text": "There it is. Home is on the breeze.",
         "position": [
           960.0,
           918.0

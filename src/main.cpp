@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <thread>
@@ -19,12 +20,30 @@ import Game;
 import Input;
 import PlatformUtils;
 import SniffTheWayConstants;
+import StbImage;
 
 namespace dh = Dreamhearth;
 using namespace SniffTheWay;
 
 namespace
 {
+	void set_window_icon(dh::Window & window)
+	{
+#ifdef SNIFF_THE_WAY_DEV_RESOURCES_PATH
+		std::filesystem::path const resources_path{ SNIFF_THE_WAY_DEV_RESOURCES_PATH };
+#else
+		std::filesystem::path const resources_path = PlatformUtils::GetExecutableDir() / "resources";
+#endif
+		auto const icon_path = resources_path / "icons" / "dog_happy_icon_256.png";
+		StbImage icon{ icon_path, 4 /*req_comp*/, false /*flip_vertically*/ };
+		if (!icon.IsValid())
+		{
+			LOG(WARNING) << "Failed to load window icon: " << icon_path.string();
+			return;
+		}
+		window.SetIcon(icon.GetWidth(), icon.GetHeight(), icon.GetData());
+	}
+
 	class LoggingLifetime
 	{
 	public:
@@ -174,6 +193,7 @@ std::optional<std::string> run_application()
 	dh::Window window(dh::WindowSize{ 1920, 1080 }, FullTitle, on_error);
 	if (!window.IsValid())
 		return "Failed to initialize the application window. See the log for details.";
+	set_window_icon(window);
 	window.ToggleFullscreen(); // start fullscreen
 
 	// these are synchronized across update/render thread and main event loop thread

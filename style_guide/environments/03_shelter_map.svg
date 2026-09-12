@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 830"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#aa6136"/></marker><marker id="cam" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#8b4d92"/></marker></defs><rect width="1000" height="830" fill="#faf6ed"/>
+<text x="35" y="40" font-family="Segoe UI,Arial,sans-serif" font-size="25" fill="#25362f">03 / Shelter tree and two-way trail</text>
+<text x="35" y="68" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">One south-facing root hollow; incoming southwest trail; forward northeast trail.</text>
+<rect x="45" y="100" width="660" height="660" rx="8" fill="#e6eadb" stroke="#adb7a0"/>
+<path d="M45.0,100 V760 M45,100.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M111.0,100 V760 M45,166.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M177.0,100 V760 M45,232.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M243.0,100 V760 M45,298.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M309.0,100 V760 M45,364.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M375.0,100 V760 M45,430.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M441.0,100 V760 M45,496.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M507.0,100 V760 M45,562.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M573.0,100 V760 M45,628.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M639.0,100 V760 M45,694.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M705.0,100 V760 M45,760.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<text x="750" y="120" font-family="Segoe UI,Arial,sans-serif" font-size="17" fill="#25362f">TOP-DOWN / DRAFT</text>
+<text x="750" y="148" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Up = local map north</text>
+<text x="750" y="173" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Layout units, not meters</text>
+<text x="750" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">PURPLE: camera + aim</text>
+<text x="750" y="247" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">RUST: movement / flow</text>
+<text x="750" y="272" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">IDs: fixed landmarks</text>
+<polyline points="71.4,720.4 210.0,621.4 414.59999999999997,562.0 533.4,449.79999999999995 599.4,298.0 678.5999999999999,146.2" fill="none" stroke="#b7a789" stroke-width="29" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="302.4" cy="357.4" rx="99.0" ry="118.8" fill="#887953" stroke="#667163" stroke-width="2"/>
+<text x="210.0" y="357.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N-T main trunk</text>
+<polyline points="229.79999999999998,423.4 203.39999999999998,509.2 276.0,548.8" fill="none" stroke="#887953" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="361.79999999999995,403.59999999999997 447.59999999999997,489.4 460.79999999999995,542.2" fill="none" stroke="#887953" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="328.8" cy="476.2" rx="92.39999999999999" ry="52.8" fill="#c9b88e" stroke="#667163" stroke-width="2"/>
+<text x="243.0" y="476.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N-H hollow</text>
+<ellipse cx="487.2" cy="581.8" rx="39.599999999999994" ry="26.4" fill="#b0a0c5" stroke="#667163" stroke-width="2"/>
+<text x="454.2" y="581.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N-F</text>
+<ellipse cx="196.79999999999998" cy="601.5999999999999" rx="33.0" ry="19.799999999999997" fill="#9d9e88" stroke="#667163" stroke-width="2"/>
+<text x="170.39999999999998" y="601.5999999999999" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N-R</text>
+<ellipse cx="553.2" cy="383.8" rx="33.0" ry="46.199999999999996" fill="#7b8f67" stroke="#667163" stroke-width="2"/>
+<text x="526.8" y="383.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N-T2</text>
+<polyline points="97.8,713.8 236.39999999999998,614.8 335.4,555.4" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="427.79999999999995,562.0 553.2,410.2 632.4,245.2" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="58.2" y="753.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">from creek</text>
+<text x="546.5999999999999" y="133.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">toward home</text>
+<polyline points="559.8,502.59999999999997 309.0,581.8" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="559.8" cy="502.59999999999997" r="12" fill="#8b4d92"/>
+<text x="574.8" y="494.59999999999997" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">N1</text>
+<polyline points="533.4,608.2 328.8,555.4" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="533.4" cy="608.2" r="12" fill="#8b4d92"/>
+<text x="548.4" y="600.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">N2</text>
+<polyline points="421.2,700.6 335.4,476.2" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="421.2" cy="700.6" r="12" fill="#8b4d92"/>
+<text x="436.2" y="692.6" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">N3</text>
+<polyline points="447.59999999999997,647.8 348.59999999999997,476.2" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="447.59999999999997" cy="647.8" r="12" fill="#8b4d92"/>
+<text x="462.59999999999997" y="639.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">N4</text>
+<text x="735" y="330" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N1 dusk: reverse to arrival</text>
+<text x="735" y="355" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N2 tired: close near hollow</text>
+<text x="735" y="380" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N3 sleep: look north/northwest</text>
+<text x="735" y="405" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N4 morning: same hollow</text>
+<text x="735" y="430" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Moon bearing: northeast</text>
+<text x="735" y="455" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Moon above forward trail in N3</text>
+<text x="735" y="480" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Not pasted into reverse views</text>
+<text x="735" y="505" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Roots stay fixed across shots</text>
+<text x="735" y="530" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">N-F purple flowers / N-R rock</text>
+<text x="45" y="800" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Camera arrows show aim only; framing and lens are specified in the companion plan.</text></svg>

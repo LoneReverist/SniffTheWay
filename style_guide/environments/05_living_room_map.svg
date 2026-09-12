@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 830"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#aa6136"/></marker><marker id="cam" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#8b4d92"/></marker></defs><rect width="1000" height="830" fill="#faf6ed"/>
+<text x="35" y="40" font-family="Segoe UI,Arial,sans-serif" font-size="25" fill="#25362f">05 / Living room floor plan</text>
+<text x="35" y="68" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">East wing of house; fireplace on east wall; window and sofa north; hall connection west.</text>
+<rect x="45" y="100" width="660" height="660" rx="8" fill="#e6eadb" stroke="#adb7a0"/>
+<path d="M45.0,100 V760 M45,100.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M111.0,100 V760 M45,166.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M177.0,100 V760 M45,232.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M243.0,100 V760 M45,298.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M309.0,100 V760 M45,364.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M375.0,100 V760 M45,430.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M441.0,100 V760 M45,496.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M507.0,100 V760 M45,562.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M573.0,100 V760 M45,628.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M639.0,100 V760 M45,694.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M705.0,100 V760 M45,760.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<text x="750" y="120" font-family="Segoe UI,Arial,sans-serif" font-size="17" fill="#25362f">TOP-DOWN / DRAFT</text>
+<text x="750" y="148" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Up = local map north</text>
+<text x="750" y="173" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Layout units, not meters</text>
+<text x="750" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">PURPLE: camera + aim</text>
+<text x="750" y="247" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">RUST: movement / flow</text>
+<text x="750" y="272" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">IDs: fixed landmarks</text>
+<rect x="124.19999999999999" y="179.2" width="501.59999999999997" height="501.59999999999997" rx="5" fill="#e8ddc9" stroke="#667163"/>
+<polyline points="190.2,179.2 368.4,179.2" fill="none" stroke="#85b8ca" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="196.79999999999998" y="159.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">L-W window</text>
+<rect x="170.39999999999998" y="258.4" width="224.39999999999998" height="79.19999999999999" rx="5" fill="#84906d" stroke="#667163"/>
+<text x="177.0" y="278.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">L-S sofa faces south</text>
+<rect x="408.0" y="245.2" width="66.0" height="66.0" rx="5" fill="#bf9d72" stroke="#667163"/>
+<text x="414.59999999999997" y="265.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">table</text>
+<rect x="500.4" y="192.39999999999998" width="66.0" height="85.8" rx="5" fill="#a99476" stroke="#667163"/>
+<text x="507.0" y="212.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">books</text>
+<rect x="586.1999999999999" y="357.4" width="39.599999999999994" height="145.2" rx="5" fill="#a39988" stroke="#667163"/>
+<rect x="546.5999999999999" y="344.2" width="39.599999999999994" height="171.6" rx="5" fill="#c0b297" stroke="#667163"/>
+<text x="573.0" y="324.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">L-F fireplace</text>
+<rect x="229.79999999999998" y="390.4" width="277.2" height="217.79999999999998" rx="5" fill="#d4c19f" stroke="#667163"/>
+<text x="236.39999999999998" y="410.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">L-R rug</text>
+<ellipse cx="460.79999999999995" cy="496.0" rx="52.8" ry="39.599999999999994" fill="#a7ac8b" stroke="#667163" stroke-width="2"/>
+<text x="414.59999999999997" y="496.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">L-B bed</text>
+<polyline points="124.19999999999999,535.5999999999999 124.19999999999999,614.8" fill="none" stroke="#faf6ed" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="51.6" y="654.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">hall / front door</text>
+<polyline points="124.19999999999999,575.2 243.0,542.2 328.8,489.4" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="210.0,641.1999999999999 414.59999999999997,390.4" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="210.0" cy="641.1999999999999" r="12" fill="#8b4d92"/>
+<text x="225.0" y="633.1999999999999" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">I1</text>
+<polyline points="328.8,608.2 467.4,476.2" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="328.8" cy="608.2" r="12" fill="#8b4d92"/>
+<text x="343.8" y="600.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">I2</text>
+<text x="735" y="330" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">I1 safe again: wide NE view</text>
+<text x="735" y="355" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">I2 fireplace: tighter NE view</text>
+<text x="735" y="380" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Window/sofa remain screen-left</text>
+<text x="735" y="405" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Fireplace stays screen-right</text>
+<text x="735" y="430" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">L-B bed fixed outside hearth</text>
+<text x="735" y="455" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">I1 family seated on rug</text>
+<text x="735" y="480" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">I2 baby + dog asleep in bed</text>
+<text x="735" y="505" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">No furniture teleportation</text>
+<text x="735" y="530" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Hall leads to exterior porch</text>
+<text x="45" y="800" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Camera arrows show aim only; framing and lens are specified in the companion plan.</text></svg>

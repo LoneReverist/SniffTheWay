@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 830"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#aa6136"/></marker><marker id="cam" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#8b4d92"/></marker></defs><rect width="1000" height="830" fill="#faf6ed"/>
+<text x="35" y="40" font-family="Segoe UI,Arial,sans-serif" font-size="25" fill="#25362f">02 / Creek crossing</text>
+<text x="35" y="68" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Bank A to Bank B; three permanent stepping stones; water flows west to east.</text>
+<rect x="45" y="100" width="660" height="660" rx="8" fill="#e6eadb" stroke="#adb7a0"/>
+<path d="M45.0,100 V760 M45,100.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M111.0,100 V760 M45,166.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M177.0,100 V760 M45,232.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M243.0,100 V760 M45,298.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M309.0,100 V760 M45,364.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M375.0,100 V760 M45,430.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M441.0,100 V760 M45,496.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M507.0,100 V760 M45,562.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M573.0,100 V760 M45,628.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M639.0,100 V760 M45,694.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M705.0,100 V760 M45,760.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<text x="750" y="120" font-family="Segoe UI,Arial,sans-serif" font-size="17" fill="#25362f">TOP-DOWN / DRAFT</text>
+<text x="750" y="148" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Up = local map north</text>
+<text x="750" y="173" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Layout units, not meters</text>
+<text x="750" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">PURPLE: camera + aim</text>
+<text x="750" y="247" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">RUST: movement / flow</text>
+<text x="750" y="272" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">IDs: fixed landmarks</text>
+<rect x="51.6" y="311.2" width="646.8" height="237.6" rx="5" fill="#a4c7cc" stroke="#667163"/>
+<text x="58.2" y="331.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Creek channel</text>
+<polyline points="64.8,416.79999999999995 216.6,416.79999999999995" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="526.8,416.79999999999995 678.5999999999999,416.79999999999995" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="328.8,746.8 355.2,641.1999999999999 361.79999999999995,548.8" fill="none" stroke="#c1af8b" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="375.0,311.2 434.4,232.0 467.4,113.2" fill="none" stroke="#c1af8b" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="361.79999999999995" cy="496.0" rx="52.8" ry="29.7" fill="#c4b18e" stroke="#667163" stroke-width="2"/>
+<text x="315.59999999999997" y="496.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">S1</text>
+<ellipse cx="388.2" cy="430.0" rx="59.4" ry="29.7" fill="#c4b18e" stroke="#667163" stroke-width="2"/>
+<text x="335.4" y="430.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">S2</text>
+<ellipse cx="375.0" cy="364.0" rx="52.8" ry="29.7" fill="#c4b18e" stroke="#667163" stroke-width="2"/>
+<text x="328.8" y="364.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">S3</text>
+<text x="229.79999999999998" y="601.5999999999999" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">BANK A / entry</text>
+<text x="236.39999999999998" y="278.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">BANK B / exit</text>
+<ellipse cx="210.0" cy="595.0" rx="39.599999999999994" ry="46.199999999999996" fill="#7e9262" stroke="#667163" stroke-width="2"/>
+<text x="177.0" y="595.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-T1</text>
+<ellipse cx="533.4" cy="251.79999999999998" rx="39.599999999999994" ry="46.199999999999996" fill="#7e9262" stroke="#667163" stroke-width="2"/>
+<text x="500.4" y="251.79999999999998" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-T2</text>
+<ellipse cx="520.2" cy="575.2" rx="33.0" ry="19.799999999999997" fill="#a3aa98" stroke="#667163" stroke-width="2"/>
+<text x="493.79999999999995" y="575.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-R</text>
+<ellipse cx="203.39999999999998" cy="265.0" rx="46.199999999999996" ry="26.4" fill="#c1a2bf" stroke="#667163" stroke-width="2"/>
+<text x="163.8" y="265.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-F</text>
+<polyline points="269.4,700.6 375.0,403.59999999999997" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="269.4" cy="700.6" r="12" fill="#8b4d92"/>
+<text x="284.4" y="692.6" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">K1</text>
+<polyline points="507.0,291.4 361.79999999999995,515.8" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="507.0" cy="291.4" r="12" fill="#8b4d92"/>
+<text x="522.0" y="283.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">K2</text>
+<polyline points="434.4,251.79999999999998 381.59999999999997,436.59999999999997" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="434.4" cy="251.79999999999998" r="12" fill="#8b4d92"/>
+<text x="449.4" y="243.79999999999998" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">K3</text>
+<polyline points="361.79999999999995,152.8 394.79999999999995,317.79999999999995" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="361.79999999999995" cy="152.8" r="12" fill="#8b4d92"/>
+<text x="376.79999999999995" y="144.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">K4</text>
+<text x="735" y="330" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K1 approach / look north</text>
+<text x="735" y="355" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K2 reluctance / look south</text>
+<text x="735" y="380" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K3 crossing / look south</text>
+<text x="735" y="405" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K4 beyond / look south</text>
+<text x="735" y="430" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">S1 entry: broad oval</text>
+<text x="735" y="455" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">S2 middle: widest, notched east</text>
+<text x="735" y="480" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">S3 exit: flat north edge</text>
+<text x="735" y="505" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-R = entry-bank boulder</text>
+<text x="735" y="530" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-F = far-bank flower patch</text>
+<text x="45" y="800" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Camera arrows show aim only; framing and lens are specified in the companion plan.</text></svg>

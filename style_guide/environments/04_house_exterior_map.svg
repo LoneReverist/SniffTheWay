@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 830"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#aa6136"/></marker><marker id="cam" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#8b4d92"/></marker></defs><rect width="1000" height="830" fill="#faf6ed"/>
+<text x="35" y="40" font-family="Segoe UI,Arial,sans-serif" font-size="25" fill="#25362f">04 / House exterior</text>
+<text x="35" y="68" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">South-facing front; garage west; living room and chimney east; woodland approach south.</text>
+<rect x="45" y="100" width="660" height="660" rx="8" fill="#e6eadb" stroke="#adb7a0"/>
+<path d="M45.0,100 V760 M45,100.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M111.0,100 V760 M45,166.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M177.0,100 V760 M45,232.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M243.0,100 V760 M45,298.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M309.0,100 V760 M45,364.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M375.0,100 V760 M45,430.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M441.0,100 V760 M45,496.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M507.0,100 V760 M45,562.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M573.0,100 V760 M45,628.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M639.0,100 V760 M45,694.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M705.0,100 V760 M45,760.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<text x="750" y="120" font-family="Segoe UI,Arial,sans-serif" font-size="17" fill="#25362f">TOP-DOWN / DRAFT</text>
+<text x="750" y="148" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Up = local map north</text>
+<text x="750" y="173" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Layout units, not meters</text>
+<text x="750" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">PURPLE: camera + aim</text>
+<text x="750" y="247" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">RUST: movement / flow</text>
+<text x="750" y="272" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">IDs: fixed landmarks</text>
+<rect x="137.39999999999998" y="152.8" width="475.2" height="191.39999999999998" rx="5" fill="#dbcfae" stroke="#667163"/>
+<text x="144.0" y="172.6" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-H house footprint</text>
+<rect x="137.39999999999998" y="166.0" width="158.39999999999998" height="158.39999999999998" rx="5" fill="#c5c5ae" stroke="#667163"/>
+<text x="144.0" y="185.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">garage</text>
+<rect x="447.59999999999997" y="166.0" width="158.39999999999998" height="158.39999999999998" rx="5" fill="#e5d9bd" stroke="#667163"/>
+<text x="454.2" y="185.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">living room</text>
+<rect x="599.4" y="218.8" width="19.799999999999997" height="59.4" rx="5" fill="#9d9b8e" stroke="#667163"/>
+<rect x="355.2" y="331.0" width="112.19999999999999" height="59.4" rx="5" fill="#d8c1a0" stroke="#667163"/>
+<text x="361.79999999999995" y="350.79999999999995" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">porch</text>
+<text x="606.0" y="199.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">chimney</text>
+<polyline points="381.59999999999997,746.8 368.4,614.8 388.2,489.4 414.59999999999997,383.8" fill="none" stroke="#c1af8b" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="71.4,581.8 322.2,581.8" fill="none" stroke="#f8f6e8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="414.59999999999997,581.8 685.1999999999999,581.8" fill="none" stroke="#f8f6e8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="322.2" y="562.0" width="92.39999999999999" height="39.599999999999994" rx="5" fill="#d0d8bf" stroke="#667163"/>
+<text x="328.8" y="581.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-G</text>
+<rect x="177.0" y="614.8" width="79.19999999999999" height="33.0" rx="5" fill="#c5b08b" stroke="#667163"/>
+<text x="183.6" y="634.6" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-S</text>
+<rect x="520.2" y="614.8" width="39.599999999999994" height="26.4" rx="5" fill="#658576" stroke="#667163"/>
+<text x="526.8" y="634.6" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-M</text>
+<ellipse cx="619.1999999999999" cy="548.8" rx="33.0" ry="46.199999999999996" fill="#7c9064" stroke="#667163" stroke-width="2"/>
+<text x="592.8" y="548.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-T</text>
+<ellipse cx="262.79999999999995" cy="529.0" rx="39.599999999999994" ry="26.4" fill="#b7a4b5" stroke="#667163" stroke-width="2"/>
+<text x="229.79999999999998" y="529.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">flowers</text>
+<text x="427.79999999999995" y="489.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-R reunion</text>
+<polyline points="414.59999999999997,390.4 394.79999999999995,482.79999999999995" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="375.0,720.4 388.2,502.59999999999997" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<polyline points="342.0,746.8 408.0,357.4" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="342.0" cy="746.8" r="12" fill="#8b4d92"/>
+<text x="357.0" y="738.8" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">H1</text>
+<polyline points="322.2,700.6 401.4,482.79999999999995" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="322.2" cy="700.6" r="12" fill="#8b4d92"/>
+<text x="337.2" y="692.6" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">H2</text>
+<polyline points="295.79999999999995,628.0 394.79999999999995,489.4" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="295.79999999999995" cy="628.0" r="12" fill="#8b4d92"/>
+<text x="310.79999999999995" y="620.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">H3</text>
+<text x="735" y="330" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H1 home / H2 parents notice</text>
+<text x="735" y="355" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H3 reunion: house behind</text>
+<text x="735" y="380" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-G gate + flowering arch</text>
+<text x="735" y="405" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">H-S sign / H-M mailbox</text>
+<text x="735" y="430" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Mailbox outside fence, east</text>
+<text x="735" y="455" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Reunion inside front gate</text>
+<text x="735" y="480" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Porch door connects to hall</text>
+<text x="735" y="505" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Living room east of hall</text>
+<text x="735" y="530" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Fireplace on east wall</text>
+<text x="45" y="800" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Camera arrows show aim only; framing and lens are specified in the companion plan.</text></svg>

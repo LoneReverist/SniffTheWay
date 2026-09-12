@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 830"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#aa6136"/></marker><marker id="cam" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#8b4d92"/></marker></defs><rect width="1000" height="830" fill="#faf6ed"/>
+<text x="35" y="40" font-family="Segoe UI,Arial,sans-serif" font-size="25" fill="#25362f">01 / Picnic, hedge and lost trail</text>
+<text x="35" y="68" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">One clearing; diverging routes; a physical sightline break after the hedge.</text>
+<rect x="45" y="100" width="660" height="660" rx="8" fill="#e6eadb" stroke="#adb7a0"/>
+<path d="M45.0,100 V760 M45,100.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M111.0,100 V760 M45,166.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M177.0,100 V760 M45,232.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M243.0,100 V760 M45,298.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M309.0,100 V760 M45,364.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M375.0,100 V760 M45,430.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M441.0,100 V760 M45,496.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M507.0,100 V760 M45,562.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M573.0,100 V760 M45,628.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M639.0,100 V760 M45,694.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<path d="M705.0,100 V760 M45,760.0 H705" stroke="#cbd2bf" stroke-width="0.6"/>
+<text x="750" y="120" font-family="Segoe UI,Arial,sans-serif" font-size="17" fill="#25362f">TOP-DOWN / DRAFT</text>
+<text x="750" y="148" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Up = local map north</text>
+<text x="750" y="173" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Layout units, not meters</text>
+<text x="750" y="222" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">PURPLE: camera + aim</text>
+<text x="750" y="247" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">RUST: movement / flow</text>
+<text x="750" y="272" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">IDs: fixed landmarks</text>
+<rect x="58.2" y="113.2" width="633.5999999999999" height="105.6" rx="5" fill="#a9cbd0" stroke="#667163"/>
+<text x="64.8" y="133.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-L lake / distant mountain outlook</text>
+<ellipse cx="177.0" cy="350.79999999999995" rx="66.0" ry="66.0" fill="#829265" stroke="#667163" stroke-width="2"/>
+<text x="117.6" y="350.79999999999995" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-T shade tree</text>
+<rect x="262.79999999999995" y="350.79999999999995" width="79.19999999999999" height="52.8" rx="5" fill="#d6a396" stroke="#667163"/>
+<text x="269.4" y="370.59999999999997" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-B blanket</text>
+<polyline points="84.6,535.5999999999999 328.8,535.5999999999999" fill="none" stroke="#60794e" stroke-width="27" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="414.59999999999997,535.5999999999999 672.0,535.5999999999999" fill="none" stroke="#60794e" stroke-width="27" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="78.0" y="509.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-H dense hedge</text>
+<text x="328.8" y="575.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-G gap</text>
+<polyline points="368.4,535.5999999999999 368.4,608.2 487.2,628.0 573.0,700.6 691.8,700.6" fill="none" stroke="#c1af8b" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="487.2" cy="555.4" rx="52.8" ry="52.8" fill="#637b51" stroke="#667163" stroke-width="2"/>
+<text x="441.0" y="555.4" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-S</text>
+<ellipse cx="553.2" cy="601.5999999999999" rx="33.0" ry="33.0" fill="#7b865c" stroke="#667163" stroke-width="2"/>
+<text x="526.8" y="601.5999999999999" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-T2</text>
+<polyline points="315.59999999999997,397.0 441.0,331.0 573.0,298.0" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="394.79999999999995" y="284.79999999999995" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">wind + parents</text>
+<polyline points="335.4,423.4 368.4,509.2 368.4,608.2 487.2,628.0 579.6,700.6" fill="none" stroke="#aa6136" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="566.4" y="740.1999999999999" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-Lost</text>
+<polyline points="210.0,482.79999999999995 328.8,364.0" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="210.0" cy="482.79999999999995" r="12" fill="#8b4d92"/>
+<text x="225.0" y="474.79999999999995" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">P1</text>
+<polyline points="243.0,496.0 447.59999999999997,344.2" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="243.0" cy="496.0" r="12" fill="#8b4d92"/>
+<text x="258.0" y="488.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">P2</text>
+<polyline points="441.0,661.0 368.4,535.5999999999999" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="441.0" cy="661.0" r="12" fill="#8b4d92"/>
+<text x="456.0" y="653.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">P3</text>
+<polyline points="678.5999999999999,733.5999999999999 566.4,674.1999999999999" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
+<circle cx="678.5999999999999" cy="733.5999999999999" r="12" fill="#8b4d92"/>
+<text x="693.5999999999999" y="725.5999999999999" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">P4</text>
+<text x="735" y="330" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P1 picnic / P2 gust</text>
+<text x="735" y="355" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P3 hedge departure</text>
+<text x="735" y="380" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P4 lost around bend</text>
+<text x="735" y="405" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-S = sightline-blocking shrub</text>
+<text x="735" y="430" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">P-G remains open behind them</text>
+<text x="735" y="455" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Children head toward creek</text>
+<text x="735" y="480" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">Parents chase toward lake</text>
+<text x="735" y="505" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">No magical closing hedge</text>
+<text x="45" y="800" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#25362f">Camera arrows show aim only; framing and lens are specified in the companion plan.</text></svg>

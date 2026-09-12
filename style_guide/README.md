@@ -6,6 +6,7 @@ Status: simplified painterly style selected by the user on 2026-09-12. Location 
 Rebuild all 17 story backgrounds as one coherent illustrated world: stable character identity and scale, consistent locations across camera angles, controlled detail, and readable color/value relationships across desktop, mobile, and television.
 
 ## Start here
+- [Final environment reference set](environments/references/README.md): selected creek pair and subtle-path shelter background for story regeneration.
 - [Recurring location maps](environments/README.md): five proposed top-down layouts and cameras for all 17 story images.
 - [Character sheets and scale proposal](characters/README.md): new parent references and shared family lineup, pending review.
 - [Art direction](art_direction.md): painting, character, color, and quality rules.

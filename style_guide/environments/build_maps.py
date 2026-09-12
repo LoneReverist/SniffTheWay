@@ -47,7 +47,7 @@ m.rect(1,32,98,36,'#a4c7cc','Creek channel');m.line([(3,48),(26,48)],'#aa6136',3
 m.line([(43,98),(47,82),(48,68)],'#c1af8b',26);m.line([(50,32),(59,20),(64,2)],'#c1af8b',26)
 m.oval(48,60,8,4.5,'#c4b18e','S1');m.oval(52,50,9,4.5,'#c4b18e','S2');m.oval(50,40,8,4.5,'#c4b18e','S3')
 m.label(28,76,'BANK A / entry');m.label(29,27,'BANK B / exit')
-m.oval(25,75,6,7,'#7e9262','K-T1');m.oval(74,23,6,7,'#7e9262','K-T2');m.oval(72,72,5,3,'#a3aa98','K-R');m.oval(24,25,7,4,'#c1a2bf','K-F')
+m.oval(25,75,6,7,'#7e9262','K-T1');m.oval(25,23,6,7,'#7e9262','K-T2');m.oval(72,72,5,3,'#a3aa98','K-R');m.oval(74,25,7,4,'#c1a2bf','K-F')
 m.camera('K1',34,91,50,46);m.camera('K2',70,29,48,63);m.camera('K3',59,23,51,51);m.camera('K4',48,8,53,33)
 for i,t in enumerate(['K1 approach / look north','K2 reluctance / look south','K3 crossing / look south','K4 beyond / look south','S1 entry: broad oval','S2 middle: widest, notched east','S3 exit: flat north edge','K-R = entry-bank boulder','K-F = far-bank flower patch']):m.note(i,t)
 m.save('02_creek_map.svg')

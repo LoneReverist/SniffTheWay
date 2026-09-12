@@ -2,6 +2,10 @@
 
 These are proposed continuity layouts for review, not reconstructions of exact geography from the old images. The user's story relationships are fixed requirements; stone count, coordinates, landmark placements, and camera positions below are proposed design decisions. No game assets have been replaced.
 
+## Selected production references
+
+[Final selected environment references](references/README.md): accepted same-side-tree creek pair and the original simplified night background. All night pages keep paths subtle and focus on baby/dog; maps specify connectivity without requiring paths to dominate the images.
+
 ## Map set
 
 1. [Picnic, hedge and lost trail](01_picnic_map.svg)
@@ -51,7 +55,7 @@ Bank A is south (entry), Bank B north (exit). Water flows west to east. Entry pa
 
 Stone centers, orientations and order stay fixed. Bank gaps and stone gaps are symbolic until a character-scale blockout verifies reach. Use broad tops large enough for the crawling baby's support points, short reachable gaps, and low, similar exposed heights. If scale tests fail, adjust the entire crossing map once, never a single shot's stone spacing. Avoid precise real-world dimensions until this test is done.
 
-Landmarks: K-T1 entry-bank tree southwest (25,75); K-T2 exit-bank tree northeast (74,23); K-R broad boulder southeast (72,72); K-F flower patch northwest (24,25). Ripples/wakes stretch downstream east. In the north-facing approach, flow projects roughly left-to-right; in south-facing reverse views it projects roughly right-to-left. Never flip a finished image to create a reverse angle.
+Landmarks: K-T1 entry-bank tree southwest (25,75); K-T2 exit-bank tree northwest (25,23); K-R broad boulder southeast (72,72); K-F flower patch northeast (74,25). User-selected revision: both large trees are WEST of the path, across the creek from each other. Approach shows both on the left; reverse shows both on the right. Boulder and flower patch occupy the more open east side. See [selected creek references](references/README.md). Ripples/wakes stretch downstream east. In the north-facing approach, flow projects roughly left-to-right; in south-facing reverse views it projects roughly right-to-left. Never flip a finished image to create a reverse angle.
 
 | Shot | Camera → aim | Character blocking and stone visibility |
 |---|---|---|
@@ -63,6 +67,8 @@ Landmarks: K-T1 entry-bank tree southwest (25,75); K-T2 exit-bank tree northeast
 Light: evening as stated by story JSON, softer and lower than current bright midday-looking creek images. Within this short sequence keep the same world-space light direction, provisionally from west/southwest. Track modest paw/hand/trouser dampness after crossing without changing clothes.
 
 ## 3. Shelter tree
+
+Use [the original simplified shelter background](references/shelter_background.png) as the selected environment reference. In ALL night pages, the dog and baby are the focal point; paths stay subtle, partly obscured and secondary. The map describes the route offscreen as well as onscreen. Do not force a prominent through-trail or intersection-like clearing into the artwork.
 
 Established: one large rooted tree, several camera angles, incoming and forward paths, sleeping beneath its roots; moon above the path forward. Morning continues from the same shelter.
 

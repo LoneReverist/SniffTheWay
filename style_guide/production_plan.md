@@ -29,6 +29,7 @@ Prove the board with an approach view and reverse view, then make reluctant/cros
 The simplified style and preferred night candidate are selected. Next validate two opposite creek angles for spatial continuity and water texture, and check the selected day/night treatment with actual overlays and representative displays. The style choice does not yet certify every candidate as a final game asset. If a pilot fails, correct the relevant issue within the chosen style.
 
 ## 5. Produce by location
+Selected [environment references](environments/references/README.md) are organized for production: same-side-tree creek pair and original simplified night background. Keep paths secondary across all night pages. Next work is final story-image regeneration, checking scale and overlays as each group is produced.
 Make picnic/path scenes, the creek sequence, shelter sequence, and home sequence in small groups. Review each group as a contact sheet. For each image supply the approved style master, relevant identity references, relevant location/camera guide, and scene brief. Keep reference sets focused so detailed old artwork does not override the new treatment.
 
 Start major revisions from the clean master/reference package rather than a long chain of edited descendants. Use targeted edits for isolated corrections and inspect surrounding regions for new artifacts. Save prompts, reference filenames, available model/settings information, output version, and review notes. Never silently promote a candidate to approved.

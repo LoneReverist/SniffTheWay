@@ -35,12 +35,12 @@
 <text x="236.39999999999998" y="278.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">BANK B / exit</text>
 <ellipse cx="210.0" cy="595.0" rx="39.599999999999994" ry="46.199999999999996" fill="#7e9262" stroke="#667163" stroke-width="2"/>
 <text x="177.0" y="595.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-T1</text>
-<ellipse cx="533.4" cy="251.79999999999998" rx="39.599999999999994" ry="46.199999999999996" fill="#7e9262" stroke="#667163" stroke-width="2"/>
-<text x="500.4" y="251.79999999999998" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-T2</text>
+<ellipse cx="210.0" cy="251.79999999999998" rx="39.599999999999994" ry="46.199999999999996" fill="#7e9262" stroke="#667163" stroke-width="2"/>
+<text x="177.0" y="251.79999999999998" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-T2</text>
 <ellipse cx="520.2" cy="575.2" rx="33.0" ry="19.799999999999997" fill="#a3aa98" stroke="#667163" stroke-width="2"/>
 <text x="493.79999999999995" y="575.2" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-R</text>
-<ellipse cx="203.39999999999998" cy="265.0" rx="46.199999999999996" ry="26.4" fill="#c1a2bf" stroke="#667163" stroke-width="2"/>
-<text x="163.8" y="265.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-F</text>
+<ellipse cx="533.4" cy="265.0" rx="46.199999999999996" ry="26.4" fill="#c1a2bf" stroke="#667163" stroke-width="2"/>
+<text x="493.79999999999995" y="265.0" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#25362f">K-F</text>
 <polyline points="269.4,700.6 375.0,403.59999999999997" fill="none" stroke="#8b4d92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#cam)"/>
 <circle cx="269.4" cy="700.6" r="12" fill="#8b4d92"/>
 <text x="284.4" y="692.6" font-family="Segoe UI,Arial,sans-serif" font-size="13" fill="#713a78">K1</text>

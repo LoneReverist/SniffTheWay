@@ -19,6 +19,8 @@ Describe positive construction in prompts: large interlocking leaf masses, broad
 Judge details at final presentation size. No scattered one-pixel highlights or stippling that competes with faces. At a roughly 400-pixel-wide thumbnail the action and expressions should remain readable. Inspect native pixels as well: softness at small size must not hide malformed hands, eyes, or repeated texture.
 
 ## Night treatment
+
+Primary environment: [selected shelter background](environments/references/shelter_background.png). Across all four night pages, prioritize dog/baby emotion and the protective tree. Keep paths low contrast, narrow or partly hidden; do not expose both directions just to explain geography. The forward route should be suggested, not the main composition.
 Use [night candidate 1](candidates/night_v1/01_simplified_final.png) as the primary reference. Keep bluish/teal leaf masses that belong to the nighttime atmosphere, restrained warm shelter light, and readable characters against cool surroundings. Avoid the overly bright lighting of night candidate 3. Do not brighten the whole scene to improve readability; preserve the night mood and separate the important forms locally.
 
 Simplify moss on trunk and root edges into broad, quiet patches. Avoid densely articulated moss tips or a finely textured bright fringe around the shelter. Candidate 3's edge moss is a negative example.

@@ -87,6 +87,8 @@ Show the two directions as one continuous trail passing the tree, not an unexpla
 
 ## 4. Home exterior
 
+Current user-directed revision: [home exterior v2](../production/home_v2/README.md) supersedes the fence and front-gate layout below. Fence divides the left driveway/garage area from the yard and does not cross in front of the house. Main walkway connects directly to porch steps; a left branch passes through the flowering arch. Both stair handrails reach the bottom step. The chimney marks the rightmost house wall, with no wing beyond it. Officer appears only on arrival. The SVG is still the historical draft and has not yet been redrawn to this revised layout.
+
 Established: pale siding, dark roof, green shutters/garage door, central front porch, garden path, white fence/flowering arch, sign, green mailbox, and parents coming toward the baby and dog. The current 4_1 image also has an officer; this map does not decide character casting. If retained, keep that person near the porch and outside the reunion action.
 
 Proposed layout: front faces south. Garage west; hall/porch center; living room east, with chimney on the east wall to match the interior fireplace. Fence crosses the south garden at y73, gate H-G at (49,73). Sign H-S west of the gate, mailbox H-M east and outside the fence. Keep the mailbox number 17 and sign design consistent if retained; environmental lettering needs its own legibility review.

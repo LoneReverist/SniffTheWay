@@ -10,5 +10,6 @@ dist/
 concept/
 .codex-temp/
 .codex-tools/
+style_guide/production/
 
 *.user

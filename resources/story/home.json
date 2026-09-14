@@ -67,6 +67,12 @@
       ],
       "decorations": [
         {
+          "decoration_id": "short_divider_leaf_paw",
+          "center": [405.0, 410.0],
+          "scale": 0.9,
+          "show_time": 0.75
+        },
+        {
           "decoration_id": "short_divider_paw_arrows",
           "center": [1510.0, 835.0],
           "scale": 0.9,
@@ -78,45 +84,51 @@
       "background": "4_3_reunion.png",
       "texts": [
         {
-          "text": "Arms wrapped\ntight.",
+          "text": "Arms wrapped tight.",
           "font_size": 50.0,
-          "pos": [140.0, 240.0],
-          "align": "left",
+          "pos": [330.0, 240.0],
+          "align": "center",
           "show_time": 0.75
         },
         {
-          "text": "Happy tears\nfell.",
+          "text": "Happy tears fell.",
           "font_size": 50.0,
-          "pos": [140.0, 395.0],
-          "align": "left",
+          "pos": [330.0, 330.0],
+          "align": "center",
           "show_time": 2.0
         },
         {
           "text": "The little one\nwas safe.",
-          "font_size": 50.0,
-          "pos": [140.0, 550.0],
-          "align": "left",
+          "font_size": 56.0,
+          "pos": [330.0, 505.0],
+          "align": "center",
           "show_time": 3.25
         },
         {
           "text": "The dog had\nbrought him home.",
           "font_size": 50.0,
-          "pos": [140.0, 705.0],
-          "align": "left",
+          "pos": [330.0, 670.0],
+          "align": "center",
           "show_time": 4.5
         }
       ],
       "decorations": [
         {
           "decoration_id": "icon_heart",
-          "center": [325.0, 135.0],
-          "scale": 0.8,
+          "center": [330.0, 140.0],
+          "scale": 0.9,
           "show_time": 0.75
         },
         {
-          "decoration_id": "short_divider_paw_arrows",
-          "center": [325.0, 830.0],
-          "scale": 0.9,
+          "decoration_id": "short_divider_diamonds",
+          "center": [330.0, 405.0],
+          "scale": 0.8,
+          "show_time": 2.0
+        },
+        {
+          "decoration_id": "horizontal_divider_paw_flourish",
+          "center": [330.0, 800.0],
+          "scale": 0.85,
           "show_time": 4.5
         }
       ]
@@ -127,21 +139,21 @@
         {
           "text": "That day,",
           "font_size": 56.0,
-          "pos": [140.0, 190.0],
+          "pos": [170.0, 190.0],
           "align": "left",
           "show_time": 0.75
         },
         {
           "text": "the house\nglowed warm,",
           "font_size": 56.0,
-          "pos": [140.0, 270.0],
+          "pos": [170.0, 270.0],
           "align": "left",
           "show_time": 2.0
         },
         {
           "text": "and the family held\neach other close.",
           "font_size": 56.0,
-          "pos": [140.0, 420.0],
+          "pos": [170.0, 420.0],
           "align": "left",
           "show_time": 3.25
         }
@@ -149,7 +161,7 @@
       "decorations": [
         {
           "decoration_id": "short_divider_leaf_paw",
-          "center": [360.0, 560.0],
+          "center": [390.0, 560.0],
           "scale": 0.9,
           "show_time": 3.25
         }

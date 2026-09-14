@@ -8,95 +8,125 @@
   "pages": [
     {
       "background": "3_1_dusk.png",
-      "ambience": { "cue": "night" },
+      "ambience": {
+        "cue": "night"
+      },
       "texts": [
         {
           "text": "The sun slipped behind the hills.",
-          "font_size": 64.0,
-          "pos": [960.0, 250.0],
+          "font_size": 60.0,
+          "pos": [960.0, 165.0],
           "align": "center",
           "show_time": 0.75
         },
         {
           "text": "And the woods turned blue and quiet.",
-          "font_size": 64.0,
-          "pos": [960.0, 330.0],
+          "font_size": 60.0,
+          "pos": [960.0, 245.0],
           "align": "center",
           "show_time": 2.0
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "icon_crescent",
+          "center": [960.0, 325.0],
+          "scale": 0.8,
+          "show_time": 2
         }
       ]
     },
     {
       "background": "3_2_exhausted.png",
-      "ambience": { "cue": "night" },
+      "ambience": {
+        "cue": "night"
+      },
       "texts": [
         {
           "text": "The little one rubbed his tired eyes.",
-          "font_size": 64.0,
-          "pos": [960.0, 150.0],
+          "font_size": 60.0,
+          "pos": [960.0, 145.0],
           "align": "center",
           "show_time": 0.75
         },
         {
           "text": "His brave heart had carried him far.",
-          "font_size": 64.0,
-          "pos": [960.0, 230.0],
+          "font_size": 60.0,
+          "pos": [960.0, 225.0],
           "align": "center",
           "show_time": 2.0
         },
         {
           "text": "But even brave hearts need rest.",
-          "font_size": 64.0,
-          "pos": [960.0, 310.0],
+          "font_size": 60.0,
+          "pos": [960.0, 305.0],
           "align": "center",
+          "show_time": 3.25
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "short_divider_diamonds",
+          "center": [960.0, 375.0],
+          "scale": 0.85,
           "show_time": 3.25
         }
       ]
     },
     {
       "background": "3_3_night.png",
-      "ambience": { "cue": "night" },
+      "ambience": {
+        "cue": "night"
+      },
       "texts": [
         {
           "text": "They curled up beneath the trees.",
-          "font_size": 64.0,
-          "pos": [960.0, 180.0],
+          "font_size": 56.0,
+          "pos": [960.0, 140.0],
           "align": "center",
           "show_time": 0.75
         },
         {
           "text": "And while the little one slept,",
-          "font_size": 64.0,
-          "pos": [960.0, 260.0],
+          "font_size": 56.0,
+          "pos": [960.0, 215.0],
           "align": "center",
           "show_time": 2.5
         },
         {
           "text": "the dog stayed close.",
-          "font_size": 64.0,
-          "pos": [960.0, 340.0],
+          "font_size": 56.0,
+          "pos": [960.0, 290.0],
           "align": "center",
           "show_time": 3.75
         },
         {
           "text": "He listened.",
-          "font_size": 64.0,
-          "pos": [1250.0, 550.0],
-          "align": "left",
+          "font_size": 60.0,
+          "pos": [1480.0, 590.0],
+          "align": "center",
           "show_time": 5.0
         },
         {
           "text": "He watched.",
-          "font_size": 64.0,
-          "pos": [1250.0, 630.0],
-          "align": "left",
+          "font_size": 60.0,
+          "pos": [1480.0, 675.0],
+          "align": "center",
           "show_time": 6.25
         },
         {
           "text": "He waited.",
-          "font_size": 64.0,
-          "pos": [1250.0, 710.0],
-          "align": "left",
+          "font_size": 60.0,
+          "pos": [1480.0, 760.0],
+          "align": "center",
+          "show_time": 7.5
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "short_divider_paw_arrows",
+          "center": [1480.0, 830.0],
+          "scale": 0.9,
           "show_time": 7.5
         }
       ]
@@ -107,37 +137,51 @@
       "texts": [
         {
           "text": "Morning warmed the leaves.",
-          "font_size": 64.0,
-          "pos": [180.0, 200.0],
-          "align": "left",
+          "font_size": 60.0,
+          "pos": [1110.0, 145.0],
+          "align": "center",
           "show_time": 0.75
         },
         {
           "text": "The dog lifted his nose.",
-          "font_size": 64.0,
-          "pos": [180.0, 280.0],
-          "align": "left",
+          "font_size": 60.0,
+          "pos": [1110.0, 225.0],
+          "align": "center",
           "show_time": 2.0
         },
         {
           "text": "And on the breeze",
-          "font_size": 64.0,
-          "pos": [1120.0, 590.0],
-          "align": "left",
+          "font_size": 56.0,
+          "pos": [1480.0, 610.0],
+          "align": "center",
           "show_time": 3.25
         },
         {
           "text": "came something familiar.",
-          "font_size": 64.0,
-          "pos": [1120.0, 670.0],
-          "align": "left",
+          "font_size": 56.0,
+          "pos": [1480.0, 685.0],
+          "align": "center",
           "show_time": 4.5
         },
         {
           "text": "The scent of home.",
           "font_size": 64.0,
-          "pos": [1120.0, 750.0],
-          "align": "left",
+          "pos": [1480.0, 785.0],
+          "align": "center",
+          "show_time": 5.75
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "section_break_sun",
+          "center": [1110.0, 295.0],
+          "scale": 0.75,
+          "show_time": 2
+        },
+        {
+          "decoration_id": "short_divider_leaf_paw",
+          "center": [1480.0, 855.0],
+          "scale": 0.9,
           "show_time": 5.75
         }
       ]

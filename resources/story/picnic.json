@@ -11,29 +11,29 @@
       "texts": [
         {
           "text": "It was the perfect day\nfor a picnic.",
-          "font_size": 80.0,
-          "pos": [1440.0, 250.0],
+          "font_size": 72.0,
+          "pos": [1440.0, 230.0],
           "align": "center",
           "show_time": 1.5
         },
         {
           "text": "A curious baby.",
           "font_size": 56.0,
-          "pos": [1440.0, 460.0],
+          "pos": [1440.0, 435.0],
           "align": "center",
           "show_time": 3.0
         },
         {
           "text": "A watchful dog.",
           "font_size": 56.0,
-          "pos": [1440.0, 560.0],
+          "pos": [1440.0, 520.0],
           "align": "center",
           "show_time": 4.5
         },
         {
           "text": "And a family full of sunshine.",
-          "font_size": 56.0,
-          "pos": [1440.0, 660.0],
+          "font_size": 52.0,
+          "pos": [1440.0, 605.0],
           "align": "center",
           "show_time": 6.0
         }
@@ -41,13 +41,15 @@
       "decorations": [
         {
           "decoration_id": "horizontal_divider_paw_flourish",
-          "center": [1440.0, 110.0],
-          "show_time": 1.0
+          "center": [1440.0, 105.0],
+          "scale": 1.1,
+          "show_time": 1
         },
         {
-          "decoration_id": "short_divider_paw_arrows",
-          "center": [1440.0, 760.0],
-          "show_time": 6.5
+          "decoration_id": "short_divider_leaf_paw",
+          "center": [1440.0, 695.0],
+          "scale": 1.1,
+          "show_time": 6
         }
       ]
     },
@@ -56,16 +58,16 @@
       "texts": [
         {
           "text": "Then,",
-          "font_size": 36.0,
-          "pos": [1200.0, 600.0],
-          "align": "right",
+          "font_size": 44.0,
+          "pos": [1450.0, 495.0],
+          "align": "center",
           "show_time": 0.75
         },
         {
           "text": "WHOOSH!",
-          "font_size": 80.0,
-          "pos": [1250.0, 600.0],
-          "align": "left",
+          "font_size": 88.0,
+          "pos": [1450.0, 590.0],
+          "align": "center",
           "show_time": 1.5,
           "fade_duration": 0.25
         }
@@ -73,7 +75,8 @@
       "decorations": [
         {
           "decoration_id": "short_divider_triple_diamonds",
-          "center": [1440.0, 650.0],
+          "center": [1450.0, 645.0],
+          "scale": 1,
           "show_time": 1.5,
           "fade_duration": 0.25
         }
@@ -90,23 +93,31 @@
       "texts": [
         {
           "text": "While their parents chased the flying blanket,",
-          "font_size": 56.0,
-          "pos": [100.0, 250.0],
-          "align": "left",
+          "font_size": 52.0,
+          "pos": [960.0, 145.0],
+          "align": "center",
           "show_time": 0.75
         },
         {
           "text": "small hands followed fluttering wings.",
-          "font_size": 56.0,
-          "pos": [100.0, 340.0],
-          "align": "left",
+          "font_size": 52.0,
+          "pos": [960.0, 225.0],
+          "align": "center",
           "show_time": 2.25
         },
         {
           "text": "And protective paws stayed close behind.",
-          "font_size": 56.0,
-          "pos": [100.0, 430.0],
-          "align": "left",
+          "font_size": 52.0,
+          "pos": [960.0, 305.0],
+          "align": "center",
+          "show_time": 3.75
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "icon_butterfly",
+          "center": [960.0, 375.0],
+          "scale": 0.85,
           "show_time": 3.75
         }
       ]
@@ -117,29 +128,37 @@
         {
           "text": "When the little one stopped,",
           "font_size": 56.0,
-          "pos": [960.0, 200.0],
+          "pos": [960.0, 135.0],
           "align": "center",
           "show_time": 0.75
         },
         {
           "text": "his parents were nowhere to be seen.",
           "font_size": 56.0,
-          "pos": [960.0, 270.0],
+          "pos": [960.0, 210.0],
           "align": "center",
           "show_time": 2.0
         },
         {
           "text": "He felt small and scared,",
           "font_size": 56.0,
-          "pos": [960.0, 340.0],
+          "pos": [960.0, 305.0],
           "align": "center",
           "show_time": 4.0
         },
         {
           "text": "but a loyal nose was there to guide him home.",
-          "font_size": 56.0,
-          "pos": [960.0, 410.0],
+          "font_size": 52.0,
+          "pos": [960.0, 380.0],
           "align": "center",
+          "show_time": 5.5
+        }
+      ],
+      "decorations": [
+        {
+          "decoration_id": "short_divider_paw_arrows",
+          "center": [960.0, 445.0],
+          "scale": 1,
           "show_time": 5.5
         }
       ]

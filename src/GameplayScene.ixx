@@ -51,6 +51,7 @@ import ScentTrail;
 import ScentTrailPipeline;
 import SniffTheWayConstants;
 import SpritePipeline;
+import Squirrel;
 import TextPipeline;
 import Vertex;
 
@@ -92,6 +93,10 @@ private:
 	void ensure_message_overlays();
 	void update_message_triggers(glm::vec2 dog_pos);
 	void recreate_scent_trails(glm::vec2 dog_pos);
+	void reload_squirrels();
+	void update_squirrels(float dt, glm::vec2 dog_pos);
+	void update_squirrel_trails(float dt);
+	std::string squirrel_trigger_id(std::string const & local_id) const;
 	void pause();
 	void resume();
 
@@ -111,6 +116,8 @@ private:
 	Background m_background;
 	AssetId m_bg_tex_id;
 	std::vector<std::unique_ptr<EnvironmentObject>> m_environment_objects;
+	std::vector<std::unique_ptr<Squirrel>> m_squirrels;
+	std::vector<float> m_squirrel_trail_opacities;
 	PipelineId<SpritePipeline> m_sprite_pipeline_id;
 	PipelineId<SpritePipeline> m_translucent_sprite_pipeline_id;
 	std::vector<ScentTrail> m_scent_trails;
@@ -183,6 +190,7 @@ GameplayScene::GameplayScene(
 
 	const auto [dog_arrival, baby_arrival] = get_arrivals(transition);
 	reload_environment_objects();
+	reload_squirrels();
 	recreate_scent_trails(dog_arrival.position);
 
 #ifdef _DEBUG
@@ -250,6 +258,9 @@ void GameplayScene::OnViewportChanged(GameViewport const & viewport)
 	m_camera3d.SetViewportSize(pixels.z, pixels.w);
 	m_camera2d.SetViewportSize(pixels.z, pixels.w);
 	update_environment_transforms();
+	for (auto const & squirrel : m_squirrels)
+		squirrel->Refresh(m_scene_data.camera, m_camera3d, glm::vec3{ m_scene_data.tint },
+			m_scene_state == SceneState::Editing, m_renderer);
 }
 
 std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & input)
@@ -345,9 +356,12 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
 	m_baby.Update(dt, &m_dog, m_scene_state);
-	order_scene_sprites();
 
 	const glm::vec2 dog_pos = m_dog.GetPosition();
+	if (m_scene_state == SceneState::Gameplay)
+		update_squirrels(dt, dog_pos);
+	update_squirrel_trails(m_scene_state == SceneState::Gameplay ? dt : 0.0f);
+	order_scene_sprites();
 	for (std::size_t i = 0; i < m_scene_data.scent_trails.size() && i < m_scent_trails.size(); ++i)
 		m_scent_trails[i].Update(dt, dog_pos);
 
@@ -452,6 +466,7 @@ void GameplayScene::reload_scene_data()
 	apply_camera_data();
 	reload_background_texture();
 	reload_environment_objects();
+	reload_squirrels();
 	for (GameplayMessageOverlay & message_overlay : m_gameplay_message_overlays)
 		message_overlay.Hide();
 	ensure_message_overlays();
@@ -500,6 +515,7 @@ void GameplayScene::order_scene_sprites()
 	update_environment_transforms();
 	struct Entry { AssetId id; float depth; };
 	std::vector<Entry> entries;
+	std::vector<Entry> translucent_squirrels;
 	auto depth = [&](glm::vec2 position) {
 		return glm::dot(glm::vec3{ position, 0 } - m_camera3d.GetPosition(), m_camera3d.GetDir());
 	};
@@ -508,6 +524,15 @@ void GameplayScene::order_scene_sprites()
 	for (auto const & object : m_environment_objects)
 		if (object->GetRenderObjectId().IsValid())
 			entries.push_back({ object->GetRenderObjectId(), object->GetDepth(m_camera3d) });
+	for (auto const & squirrel : m_squirrels)
+	{
+		squirrel->Refresh(m_scene_data.camera, m_camera3d, glm::vec3{ m_scene_data.tint },
+			m_scene_state == SceneState::Editing, m_renderer);
+		if (!squirrel->IsReady()) continue;
+		auto & target = squirrel->IsTranslucent() || m_scene_state == SceneState::Editing
+			? translucent_squirrels : entries;
+		target.push_back({ squirrel->GetRenderObjectId(), squirrel->GetDepth(m_camera3d) });
+	}
 	std::stable_sort(entries.begin(), entries.end(), [](Entry const & a, Entry const & b) {
 		return a.depth > b.depth;
 	});
@@ -520,6 +545,66 @@ void GameplayScene::order_scene_sprites()
 	for (AssetId trail : m_scent_trail_ro_ids)
 		for (auto const & entry : entries)
 			m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, entry.id, trail);
+	// Revealed squirrels blend over trails without writing an invisible depth mask.
+	std::stable_sort(translucent_squirrels.begin(), translucent_squirrels.end(), [](Entry const & a, Entry const & b) {
+		return a.depth > b.depth;
+	});
+	for (std::size_t i = translucent_squirrels.size(); i > 1; --i)
+		m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, translucent_squirrels[i - 2].id, translucent_squirrels[i - 1].id);
+	for (auto const & squirrel : translucent_squirrels)
+	{
+		for (auto const & entry : entries)
+			m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, entry.id, squirrel.id);
+		for (AssetId trail : m_scent_trail_ro_ids)
+			m_renderer.SetRenderObjectBefore(RenderLayer::Scene3d, trail, squirrel.id);
+	}
+}
+
+std::string GameplayScene::squirrel_trigger_id(std::string const & local_id) const
+{
+	return std::string{ ToString(m_scene_id) } + "/squirrel/" + local_id;
+}
+
+void GameplayScene::reload_squirrels()
+{
+	for (auto const & squirrel : m_squirrels)
+		squirrel->Destroy(m_asset_manager, m_renderer);
+	m_squirrels.clear();
+	for (auto const & data : m_scene_data.squirrels)
+	{
+		auto squirrel = std::make_unique<Squirrel>();
+		squirrel->Init(data, m_playthrough.HasTrigger(squirrel_trigger_id(data.id)),
+			m_asset_manager, m_renderer, m_sprite_pipeline_id, m_translucent_sprite_pipeline_id);
+		m_squirrels.push_back(std::move(squirrel));
+	}
+}
+
+void GameplayScene::update_squirrels(float dt, glm::vec2 dog_pos)
+{
+	for (auto const & squirrel : m_squirrels)
+	{
+		// Start the reaction at t=0 on the discovery frame, even after a slow frame.
+		squirrel->Update(dt);
+		if (squirrel->CanDiscover(dog_pos)
+			&& m_playthrough.SetTrigger(squirrel_trigger_id(squirrel->GetId())))
+			squirrel->Reveal();
+	}
+}
+
+void GameplayScene::update_squirrel_trails(float dt)
+{
+	for (std::size_t i = 0; i < m_scent_trails.size(); ++i)
+	{
+		auto const & id = m_scene_data.scent_trails[i].squirrel_id;
+		if (id.empty()) continue;
+		auto const squirrel = std::find_if(m_squirrels.begin(), m_squirrels.end(), [&](auto const & s) { return s->GetId() == id; });
+		bool const available = squirrel != m_squirrels.end() && (*squirrel)->IsReady();
+		if (!available) m_squirrel_trail_opacities[i] = 0;
+		else if ((*squirrel)->IsFound())
+			m_squirrel_trail_opacities[i] = std::max(0.0f, m_squirrel_trail_opacities[i] - std::max(dt, 0.0f) / 0.35f);
+		float const opacity = available && m_scene_state == SceneState::Editing ? 1.0f : m_squirrel_trail_opacities[i];
+		m_scent_trails[i].SetOpacity(opacity);
+	}
 }
 
 void GameplayScene::update_environment_transforms()
@@ -659,15 +744,25 @@ void GameplayScene::recreate_scent_trails(glm::vec2 dog_pos)
 	m_scent_trail_ro_ids.clear();
 	m_scent_trails.clear();
 	m_scent_trails.resize(m_scene_data.scent_trails.size());
+	m_squirrel_trail_opacities.assign(m_scene_data.scent_trails.size(), 1.0f);
 	m_scent_trail_ro_ids.reserve(m_scene_data.scent_trails.size());
 
 	for (std::size_t i = 0; i < m_scene_data.scent_trails.size(); ++i)
 	{
 		ScentTrail & scent_trail = m_scent_trails[i];
 		scent_trail.Init(m_asset_manager, m_scene_data.scent_trails[i], dog_pos);
+		auto const & squirrel_id = m_scene_data.scent_trails[i].squirrel_id;
+		if (!squirrel_id.empty())
+		{
+			if (m_playthrough.HasTrigger(squirrel_trigger_id(squirrel_id)))
+				m_squirrel_trail_opacities[i] = 0;
+			if (std::none_of(m_squirrels.begin(), m_squirrels.end(), [&](auto const & s) { return s->GetId() == squirrel_id; }))
+				LOG(WARNING) << "Scent trail references missing squirrel: " << squirrel_id;
+		}
 		m_scent_trail_ro_ids.push_back(scent_trail.IsValid()
 			? m_renderer.CreateRenderObject("scent trail " + std::to_string(i + 1),
 				RenderLayer::Scene3d, scent_trail.GetMeshId(), m_scent_trail_pipeline_id, scent_trail.GetPipelineData())
 			: AssetId{});
 	}
+	update_squirrel_trails(0.0f);
 }

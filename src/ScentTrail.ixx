@@ -34,6 +34,7 @@ public:
 	void Init(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos);
 	void Destroy(AssetManager & asset_manager);
 	void Update(float dt, glm::vec2 dog_pos);
+	void SetOpacity(float opacity) { m_pipeline_data.color.a = m_authored_alpha * glm::clamp(opacity, 0.0f, 1.0f); }
 
 	bool IsValid() const { return m_mesh_id.IsValid(); }
 	MeshId<ScentTrailVertex> GetMeshId() const { return m_mesh_id; }
@@ -56,6 +57,7 @@ private:
 private:
 	MeshId<ScentTrailVertex> m_mesh_id;
 	ScentTrailPipeline::ObjectData m_pipeline_data;
+	float m_authored_alpha = 1.0f;
 };
 
 void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail_data, glm::vec2 dog_pos)
@@ -63,6 +65,7 @@ void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail
 	float trail_length = 0.0f;
 	m_mesh_id = create_mesh(asset_manager, trail_data, trail_length);
 	m_pipeline_data.color = trail_data.color;
+	m_authored_alpha = trail_data.color.a;
 	m_pipeline_data.dog_pos = dog_pos;
 	m_pipeline_data.visible_distance = ScentTrailVisibleDistance;
 	m_pipeline_data.base_opacity = 0.68f;

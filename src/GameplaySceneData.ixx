@@ -11,6 +11,7 @@ export module GameplaySceneData;
 
 import GameplayMessageData;
 export import EnvironmentObjectData;
+export import SquirrelData;
 import CharacterFacing;
 import Polygon2d;
 import SniffTheWayConstants;
@@ -38,6 +39,8 @@ export struct ScentTrailData
 	std::vector<glm::vec2> points;
 	// RGBA in [0, 1]. Gold preserves the original trail palette.
 	glm::vec4 color{ 1.0f, 0.84f, 0.42f, 1.0f };
+	// Optional squirrel in this scene; its scent disappears when found.
+	std::string squirrel_id;
 };
 
 export struct GameplayCameraData
@@ -68,6 +71,7 @@ export struct GameplaySceneData
 	SceneAudioData audio;
 	std::string bg_image_filename;
 	std::vector<EnvironmentObjectData> environment_objects;
+	std::vector<SquirrelData> squirrels;
 	glm::vec4 tint{ 1.0f };
 	GameplayCameraData camera;
 	Polygon2d bounds;

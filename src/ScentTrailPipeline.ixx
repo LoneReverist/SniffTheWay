@@ -26,7 +26,7 @@ public:
 
 	struct ObjectData
 	{
-		glm::vec4 color{ 1.0f, 0.83f, 0.38f, 1.0f };
+		glm::vec4 color{ 1.0f, 0.84f, 0.42f, 1.0f };
 		glm::vec2 dog_pos{ 0.0f };
 		float visible_distance = 4.0f;
 		float base_opacity = 0.65f;

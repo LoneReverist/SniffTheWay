@@ -36,6 +36,8 @@ export struct GameplaySceneLink
 export struct ScentTrailData
 {
 	std::vector<glm::vec2> points;
+	// RGBA in [0, 1]. Gold preserves the original trail palette.
+	glm::vec4 color{ 1.0f, 0.84f, 0.42f, 1.0f };
 };
 
 export struct GameplayCameraData

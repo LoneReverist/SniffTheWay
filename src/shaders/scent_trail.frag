@@ -143,6 +143,42 @@ MoteField mote_field(float trail_t, float side, float elapsed_time, float direct
 	return field;
 }
 
+vec3 rgb_to_hsv(vec3 rgb)
+{
+	float high = max(rgb.r, max(rgb.g, rgb.b));
+	float low = min(rgb.r, min(rgb.g, rgb.b));
+	float range = high - low;
+	float hue = 0.0;
+	if (range > 0.0)
+	{
+		if (high == rgb.r)
+			hue = (rgb.g - rgb.b) / range;
+		else if (high == rgb.g)
+			hue = 2.0 + (rgb.b - rgb.r) / range;
+		else
+			hue = 4.0 + (rgb.r - rgb.g) / range;
+	}
+	return vec3(fract(hue / 6.0), high > 0.0 ? range / high : 0.0, high);
+}
+
+vec3 hsv_to_rgb(vec3 hsv)
+{
+	vec3 ramp = clamp(abs(fract(hsv.x + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0))
+		* 6.0 - 3.0) - 1.0, 0.0, 1.0);
+	return hsv.z * mix(vec3(1.0), ramp, hsv.y);
+}
+
+// Shift the entire original palette, retaining its warmer aura and pale cores.
+// The default gold produces the original colors; gray/black inputs are safe.
+vec3 trail_palette_color(vec3 original, vec3 selected_hsv, vec3 default_hsv)
+{
+	vec3 hsv = rgb_to_hsv(original);
+	hsv.x = fract(hsv.x + selected_hsv.x - default_hsv.x);
+	hsv.y = clamp(hsv.y * selected_hsv.y / default_hsv.y, 0.0, 1.0);
+	hsv.z *= selected_hsv.z;
+	return hsv_to_rgb(hsv);
+}
+
 void main()
 {
 	vec2 dog_pos = obj_data.dog_pos;
@@ -185,8 +221,8 @@ void main()
 	float pulse_halo = halo_profile * center_haze * obj_data.glow_intensity;
 	MoteField motes = mote_field(in_trail_t, in_side, obj_data.elapsed_time, directional_glow, center_glow);
 	float aura = edge_fade * (0.2 + center_haze * 0.65 + center_spine * 0.85 + pulse_halo * 0.1);
-	float alpha = visibility * (
-		obj_data.color.a * base_opacity * aura * 0.55
+	float alpha = visibility * obj_data.color.a * (
+		base_opacity * aura * 0.55
 		+ center_spine * 0.35
 		+ pulse_halo * 0.05
 		+ pulse_core * 0.07
@@ -197,10 +233,12 @@ void main()
 	if (alpha < 0.004)
 		discard;
 
-	vec3 aura_color = vec3(1.0, 0.47, 0.12);
-	vec3 halo_color = vec3(1.0, 0.63, 0.16);
-	vec3 mote_color = vec3(1.0, 0.94, 0.34);
-	vec3 core_color = vec3(1.0, 0.99, 0.76);
+	vec3 selected_hsv = rgb_to_hsv(obj_data.color.rgb);
+	vec3 default_hsv = rgb_to_hsv(vec3(1.0, 0.84, 0.42));
+	vec3 aura_color = trail_palette_color(vec3(1.0, 0.47, 0.12), selected_hsv, default_hsv);
+	vec3 halo_color = trail_palette_color(vec3(1.0, 0.63, 0.16), selected_hsv, default_hsv);
+	vec3 mote_color = trail_palette_color(vec3(1.0, 0.94, 0.34), selected_hsv, default_hsv);
+	vec3 core_color = trail_palette_color(vec3(1.0, 0.99, 0.76), selected_hsv, default_hsv);
 
 	vec3 color =
 		aura_color * aura * soft_edge * 0.95

@@ -62,7 +62,7 @@ void ScentTrail::Init(AssetManager & asset_manager, ScentTrailData const & trail
 {
 	float trail_length = 0.0f;
 	m_mesh_id = create_mesh(asset_manager, trail_data, trail_length);
-	m_pipeline_data.color = glm::vec4{ 1.0f, 0.84f, 0.42f, 1.0f };
+	m_pipeline_data.color = trail_data.color;
 	m_pipeline_data.dog_pos = dog_pos;
 	m_pipeline_data.visible_distance = ScentTrailVisibleDistance;
 	m_pipeline_data.base_opacity = 0.68f;

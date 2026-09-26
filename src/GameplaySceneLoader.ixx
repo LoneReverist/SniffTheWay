@@ -114,6 +114,9 @@ ScentTrailData parse_scent_trail(json const & j)
 	if (!j.is_object())
 		return scent_trail;
 
+	if (j.contains("color"))
+		scent_trail.color = parse_gameplay_tint(j["color"], scent_trail.color);
+
 	for (json const & point_json : j.value("points", json::array()))
 		scent_trail.points.push_back(parse_gameplay_vec2(point_json, glm::vec2{ 0.0f }));
 
@@ -268,7 +271,8 @@ json serialize_scent_trail(ScentTrailData const & scent_trail)
 		points.push_back(serialize_gameplay_vec2(point));
 
 	return json{
-		{ "points", std::move(points) }
+		{ "points", std::move(points) },
+		{ "color", serialize_gameplay_vec4(scent_trail.color) }
 	};
 }
 

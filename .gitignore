@@ -11,5 +11,7 @@ concept/
 .codex-temp/
 .codex-tools/
 style_guide/production/
+style_guide/gameplay/
+style_guide/menus/
 
 *.user

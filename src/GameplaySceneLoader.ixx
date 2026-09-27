@@ -106,6 +106,7 @@ GameplayMessageTriggerData parse_gameplay_message_trigger(json const & j)
 	if (j.contains("trigger"))
 		message_trigger.trigger = parse_gameplay_polygon(j["trigger"]);
 	message_trigger.repeat = parse_gameplay_message_repeat(j.value("repeat", "none"));
+	message_trigger.concurrent = j.value("concurrent", false);
 	message_trigger.message = parse_gameplay_message(j.value("message", json::object()));
 	return message_trigger;
 }
@@ -273,6 +274,8 @@ json serialize_gameplay_message_trigger(GameplayMessageTriggerData const & messa
 	};
 	if (!message_trigger.requires_trigger.empty())
 		result["requires_trigger"] = message_trigger.requires_trigger;
+	if (message_trigger.concurrent)
+		result["concurrent"] = true;
 	if (!message_trigger.requires_not_trigger.empty())
 		result["requires_not_trigger"] = message_trigger.requires_not_trigger;
 	return result;

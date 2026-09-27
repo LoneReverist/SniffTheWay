@@ -62,6 +62,8 @@ export struct GameplayMessageTriggerData
 	std::string id;
 	Polygon2d trigger;
 	GameplayMessageRepeat repeat = GameplayMessageRepeat::None;
+	// Independent overlays do not interrupt or wait for the narrative message queue.
+	bool concurrent = false;
 	GameplayMessage message;
 };
 

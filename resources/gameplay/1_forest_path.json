@@ -277,6 +277,7 @@
     },
     {
       "id": "movement_controls_hint",
+      "concurrent": true,
       "trigger": [
         [
           -0.9979791045188904,

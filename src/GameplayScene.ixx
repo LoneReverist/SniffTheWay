@@ -731,7 +731,12 @@ void GameplayScene::update_message_triggers(glm::vec2 dog_pos)
 		{
 		case GameplayMessageRepeat::None:
 			if (m_playthrough.TryTrigger(m_scene_id, message_trigger.id))
-				m_pending_message_triggers.push_back(i);
+			{
+				if (message_trigger.concurrent)
+					m_gameplay_message_overlays[i].Show(message_trigger.message);
+				else
+					m_pending_message_triggers.push_back(i);
+			}
 			break;
 		}
 	}

@@ -5,6 +5,8 @@
     "ambience": "early_forest"
   },
   "background": "1_right_turn.png",
+  "squirrels": [],
+  "environment_objects": [],
   "tint": [
     0.9599999785423279,
     1.0,
@@ -129,6 +131,12 @@
           12.331587791442871,
           7.931575775146484
         ]
+      ],
+      "color": [
+        1.0,
+        0.8399999737739563,
+        0.41999998688697815,
+        1.0
       ]
     }
   ],
@@ -212,5 +220,39 @@
       ]
     }
   ],
-  "message_triggers": []
+  "message_triggers": [
+    {
+      "id": "familiar_smell",
+      "trigger": [
+        [
+          -1.1355421543121338,
+          -3.078342914581299
+        ],
+        [
+          1.198014736175537,
+          -3.0682010650634766
+        ],
+        [
+          1.5015231370925903,
+          -1.9689764976501465
+        ],
+        [
+          -1.3877171277999878,
+          -1.9227783679962158
+        ]
+      ],
+      "repeat": "none",
+      "message": {
+        "text": "A familiar smell... just a little. This way.",
+        "position": [
+          960.0,
+          918.0
+        ],
+        "font_size": 56.0,
+        "fade_in_duration": 0.25,
+        "fade_out_duration": 0.75,
+        "hold_duration": 4.0
+      }
+    }
+  ]
 }

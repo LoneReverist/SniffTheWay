@@ -11,7 +11,7 @@ Sniff the Way is proprietary software. Players may install and play lawfully obt
 
 ## Versioning
 
-The game version is defined by the top-level CMake `project(... VERSION ...)` declaration. Official releases use matching Git tags such as `v0.1.0`.
+The game version is defined by the top-level CMake `project(... VERSION ...)` declaration. Official releases use matching Git tags such as `v1.0.0`.
 
 ## Packaging a Windows release
 

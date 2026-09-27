@@ -132,6 +132,7 @@ SquirrelPoseData parse_squirrel_pose(json const & j)
 	pose.texture = j.at("texture").get<std::string>();
 	if (j.contains("size")) pose.size = parse_gameplay_vec2(j["size"], pose.size);
 	if (j.contains("offset")) pose.offset = parse_gameplay_vec3(j["offset"], pose.offset);
+	pose.opacity = j.value("opacity", pose.opacity);
 	return pose;
 }
 
@@ -310,7 +311,7 @@ json serialize_scent_trail(ScentTrailData const & scent_trail)
 json serialize_squirrel_pose(SquirrelPoseData const & pose)
 {
 	return json{ { "texture", pose.texture }, { "size", serialize_gameplay_vec2(pose.size) },
-		{ "offset", serialize_gameplay_vec3(pose.offset) } };
+		{ "offset", serialize_gameplay_vec3(pose.offset) }, { "opacity", pose.opacity } };
 }
 
 json serialize_squirrel(SquirrelData const & squirrel)

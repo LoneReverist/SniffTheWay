@@ -3,6 +3,8 @@
 module;
 
 #include <cstddef>
+#include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <iomanip>
 #include <optional>
@@ -33,6 +35,7 @@ import SceneRenderer;
 import SniffTheWayConstants;
 import TextPipeline;
 import UILabel;
+import StbImage;
 import Vertex;
 
 namespace dh = Dreamhearth;
@@ -58,8 +61,13 @@ public:
 		glm::ivec4 viewport,
 		SceneState scene_state);
 	bool HasActiveEditMode() const { return m_edit_mode != EditMode::None; }
+	bool CanReload() const { return m_edit_mode == EditMode::None || m_edit_mode == EditMode::Squirrel; }
 	void OnSceneStateChanged(SceneState new_state, AssetManager & asset_manager, SceneRenderer & renderer);
 	void Reload(AssetManager & asset_manager, SceneRenderer & renderer);
+	bool ConsumeSquirrelChanged() { return std::exchange(m_squirrel_changed, false); }
+	bool ConsumeSquirrelPreview() { return std::exchange(m_squirrel_preview, false); }
+	std::optional<std::size_t> GetEditingSquirrel() const;
+	bool IsSurprisedPoseSelected() const { return m_squirrel_surprised; }
 
 private:
 	enum class EditMode
@@ -68,6 +76,7 @@ private:
 		Polygon,
 		Arrival,
 		Camera,
+		Squirrel,
 	};
 
 	enum class PolygonEditTargetKind
@@ -76,6 +85,7 @@ private:
 		SceneLink,
 		ScentTrail,
 		MessageTrigger,
+		SquirrelRegion,
 	};
 
 	struct PolygonEditTarget
@@ -84,6 +94,7 @@ private:
 		std::size_t link_index = 0;
 		std::size_t scent_trail_index = 0;
 		std::size_t message_trigger_index = 0;
+		std::size_t squirrel_index = 0;
 	};
 
 	struct PolygonOverlay
@@ -107,6 +118,14 @@ private:
 	};
 
 private:
+	void begin_squirrel_editing(AssetManager & assets, SceneRenderer & renderer);
+	void update_squirrel_editing(Input const & input, AssetManager & assets, SceneRenderer & renderer,
+		Camera3d const & camera, glm::ivec4 viewport);
+	void rebuild_squirrel_overlays(AssetManager & assets, SceneRenderer & renderer);
+	void show_squirrels(SceneRenderer & renderer, bool show);
+	void read_squirrel_aspects(AssetManager & assets);
+	void move_squirrel(glm::vec3 delta);
+	bool has_selected_squirrel() const;
 	MeshId<Vertex2d> create_line_mesh(AssetManager & asset_manager, std::vector<LineInstance> const & lines) const;
 	PolygonOverlay create_polygon_overlay(
 		AssetManager & asset_manager,
@@ -261,6 +280,15 @@ private:
 	AssetId m_arrival_markers_ro_id;
 	bool m_camera_changed = false;
 	bool m_scent_trail_changed = false;
+	std::optional<std::size_t> m_selected_squirrel_index;
+	std::vector<PolygonOverlay> m_squirrel_overlays;
+	PolygonOverlay m_squirrel_marker;
+	glm::vec2 m_squirrel_aspects{ 1.0f };
+	bool m_squirrel_changed = false;
+	bool m_squirrel_preview = false;
+	bool m_squirrel_surprised = false;
+	bool m_squirrel_dragging = false;
+	std::string m_squirrel_status;
 };
 
 namespace
@@ -352,6 +380,7 @@ void GameplaySceneEditor::Init(
 	if (!m_scene_data->message_triggers.empty())
 		m_selected_message_trigger_index = 0;
 	rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_squirrel_overlays(asset_manager, renderer);
 
 	m_selected_vertex_marker_mesh_id = create_line_mesh(asset_manager, create_selected_vertex_marker_lines());
 	m_selected_vertex_marker_ro_id = renderer.CreateRenderObject("selected polygon vertex",
@@ -371,6 +400,206 @@ void GameplaySceneEditor::Init(
 	renderer.Show(m_polygon_editing_label.GetROId(), false);
 }
 
+bool GameplaySceneEditor::has_selected_squirrel() const
+{
+	return m_scene_data && m_selected_squirrel_index && *m_selected_squirrel_index < m_scene_data->squirrels.size();
+}
+
+std::optional<std::size_t> GameplaySceneEditor::GetEditingSquirrel() const
+{
+	bool const active = m_edit_mode == EditMode::Squirrel
+		|| (is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::SquirrelRegion);
+	return active && has_selected_squirrel() ? m_selected_squirrel_index : std::nullopt;
+}
+
+void GameplaySceneEditor::read_squirrel_aspects(AssetManager & assets)
+{
+	if (!has_selected_squirrel()) return;
+	auto const & squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
+	SquirrelPoseData const * poses[] = { &squirrel.hidden_pose, &squirrel.surprised_pose };
+	for (int i = 0; i < 2; ++i)
+	{
+		StbImage image{ assets.GetTexturesPath() / poses[i]->texture, 4 };
+		m_squirrel_aspects[i] = image.IsValid()
+			? static_cast<float>(image.GetWidth()) / image.GetHeight() : 0.0f;
+	}
+}
+
+void GameplaySceneEditor::begin_squirrel_editing(AssetManager & assets, SceneRenderer & renderer)
+{
+	if (!m_scene_data) return;
+	m_edit_mode = EditMode::Squirrel;
+	m_squirrel_dragging = false;
+	m_squirrel_preview = false;
+	m_squirrel_status.clear();
+	if (!has_selected_squirrel() && !m_scene_data->squirrels.empty()) m_selected_squirrel_index = 0;
+	read_squirrel_aspects(assets);
+	rebuild_squirrel_overlays(assets, renderer);
+	show_squirrels(renderer, true);
+	update_polygon_editing_label();
+}
+
+void GameplaySceneEditor::rebuild_squirrel_overlays(AssetManager & assets, SceneRenderer & renderer)
+{
+	if (!m_scene_data) return;
+	constexpr glm::vec4 color{ 0.9f, 0.55f, 0.2f, 0.95f };
+	while (m_squirrel_overlays.size() < m_scene_data->squirrels.size())
+		m_squirrel_overlays.push_back(create_polygon_overlay(assets, renderer, "squirrel region",
+			{}, false, color, color, 8, 10, false));
+	for (std::size_t i = 0; i < m_squirrel_overlays.size(); ++i)
+	{
+		if (i >= m_scene_data->squirrels.size())
+		{
+			show_polygon_overlay(renderer, m_squirrel_overlays[i], false);
+			continue;
+		}
+		bool const editing = is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::SquirrelRegion
+			&& m_polygon_edit_target->squirrel_index == i;
+		auto const & vertices = editing ? m_draft_vertices : m_scene_data->squirrels[i].discovery_region.GetVertices();
+		auto const tint = GetEditingSquirrel() == i ? SelectedVertexColor : color;
+		rebuild_polygon_overlay(assets, renderer, m_squirrel_overlays[i], vertices, vertices.size() >= 3, tint, tint, 8, 10);
+	}
+	if (!m_squirrel_marker.edges_ro_id.IsValid())
+		m_squirrel_marker = create_polygon_overlay(assets, renderer, "squirrel anchor", {}, true,
+			SelectedVertexColor, SelectedVertexColor, 12, 14, false);
+	std::vector<glm::vec2> marker;
+	if (has_selected_squirrel())
+	{
+		glm::vec2 const p{ m_scene_data->squirrels[*m_selected_squirrel_index].position };
+		marker = { p + glm::vec2{ -.15f, 0 }, p + glm::vec2{ 0, .15f },
+			p + glm::vec2{ .15f, 0 }, p + glm::vec2{ 0, -.15f } };
+	}
+	rebuild_polygon_overlay(assets, renderer, m_squirrel_marker, marker, true, SelectedVertexColor, SelectedVertexColor, 12, 14);
+}
+
+void GameplaySceneEditor::show_squirrels(SceneRenderer & renderer, bool show)
+{
+	for (std::size_t i = 0; i < m_squirrel_overlays.size(); ++i)
+		show_polygon_overlay(renderer, m_squirrel_overlays[i], show && m_scene_data && i < m_scene_data->squirrels.size());
+	show_polygon_overlay(renderer, m_squirrel_marker, show && GetEditingSquirrel().has_value());
+}
+
+void GameplaySceneEditor::move_squirrel(glm::vec3 delta)
+{
+	if (!has_selected_squirrel() || delta == glm::vec3{ 0 }) return;
+	auto & squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
+	squirrel.position += delta;
+	auto vertices = squirrel.discovery_region.GetVertices();
+	for (auto & vertex : vertices) vertex += glm::vec2{ delta };
+	squirrel.discovery_region.SetVertices(std::move(vertices));
+	// Keep the discovery area and scent endpoint together; preserve the branch origin.
+	for (auto & trail : m_scene_data->scent_trails)
+		if (trail.squirrel_id == squirrel.id && !trail.points.empty())
+		{
+			trail.points.back() += glm::vec2{ delta };
+			m_scent_trail_changed = true;
+		}
+	m_squirrel_changed = true;
+}
+
+void GameplaySceneEditor::update_squirrel_editing(Input const & input, AssetManager & assets,
+	SceneRenderer & renderer, Camera3d const & camera, glm::ivec4 viewport)
+{
+	if (!m_scene_data) return;
+	if (input.KeyJustPressed(Input::Key::Esc))
+	{
+		m_edit_mode = EditMode::None;
+		m_squirrel_dragging = false;
+		m_squirrel_preview = false;
+		show_squirrels(renderer, true);
+		update_polygon_editing_label();
+		return;
+	}
+	if (input.ControlIsDown() && input.KeyJustPressed('N'))
+	{
+		SquirrelData squirrel;
+		if (has_selected_squirrel()) squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
+		else
+		{
+			squirrel.hidden_pose.texture = "squirrels/hidden_tail.png";
+			squirrel.hidden_pose.size = { .5408f, .65f };
+			squirrel.surprised_pose.texture = "squirrels/surprised.png";
+			squirrel.surprised_pose.size = { .7917f, .95f };
+			squirrel.discovery_region = Polygon2d{ { { -.4f, -.4f }, { .4f, -.4f }, { .4f, .4f }, { -.4f, .4f } } };
+		}
+		squirrel.id = "squirrel_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+		m_scene_data->squirrels.push_back(std::move(squirrel));
+		m_selected_squirrel_index = m_scene_data->squirrels.size() - 1;
+		move_squirrel({ .5f, 0, 0 });
+		read_squirrel_aspects(assets);
+		m_squirrel_status = "New squirrel (no scent trail linked)";
+		m_squirrel_changed = true;
+	}
+	else if (input.ControlIsDown() && input.KeyJustPressed(Input::Key::Delete) && has_selected_squirrel())
+	{
+		auto const id = m_scene_data->squirrels[*m_selected_squirrel_index].id;
+		m_scene_data->squirrels.erase(m_scene_data->squirrels.begin() + *m_selected_squirrel_index);
+		std::erase_if(m_scene_data->scent_trails, [&](auto const & t) { return t.squirrel_id == id; });
+		m_selected_squirrel_index = m_scene_data->squirrels.empty() ? std::nullopt : std::optional<std::size_t>{ 0 };
+		if (!has_selected_scent_trail()) m_selected_scent_trail_index.reset();
+		read_squirrel_aspects(assets);
+		m_squirrel_changed = true;
+		m_scent_trail_changed = true;
+		m_squirrel_status = "Deleted squirrel and its linked trails";
+	}
+	else if (input.KeyJustPressed(Input::Key::Tab) && !m_scene_data->squirrels.empty())
+	{
+		m_selected_squirrel_index = (m_selected_squirrel_index.value_or(0) + 1) % m_scene_data->squirrels.size();
+		m_squirrel_dragging = false;
+		read_squirrel_aspects(assets);
+		m_squirrel_status.clear();
+	}
+	else if (has_selected_squirrel())
+	{
+		auto & squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
+		if (input.KeyJustPressed('G'))
+		{
+			m_squirrel_dragging = false;
+			begin_polygon_editing(assets, renderer, PolygonEditTarget{
+				.kind = PolygonEditTargetKind::SquirrelRegion, .squirrel_index = *m_selected_squirrel_index });
+			return;
+		}
+		if (input.KeyJustPressed('1')) m_squirrel_surprised = false;
+		if (input.KeyJustPressed('2')) m_squirrel_surprised = true;
+		if (input.KeyJustPressed('P')) m_squirrel_preview = true;
+		if (input.KeyJustPressed('F')) { squirrel.flip_horizontal = !squirrel.flip_horizontal; m_squirrel_changed = true; }
+		if (input.MouseButtonJustPressed(Input::MouseButton::Left)) m_squirrel_dragging = true;
+		if (!input.MouseButtonIsDown(Input::MouseButton::Left)) m_squirrel_dragging = false;
+		if (m_squirrel_dragging)
+			if (auto p = camera.ScreenPointToGround(input.GetMousePos(), viewport))
+				move_squirrel(glm::vec3{ *p - glm::vec2{ squirrel.position }, 0 });
+		float const step = input.ControlIsDown() ? .01f : input.ShiftIsDown() ? .12f : .04f;
+		glm::vec3 delta{ 0 };
+		if (input.KeyJustPressed(Input::Key::Left)) delta.x -= step;
+		if (input.KeyJustPressed(Input::Key::Right)) delta.x += step;
+		if (input.KeyJustPressed(Input::Key::Up)) delta.y += step;
+		if (input.KeyJustPressed(Input::Key::Down)) delta.y -= step;
+		if (input.KeyJustPressed('U')) delta.z += step;
+		if (input.KeyJustPressed('J')) delta.z -= step;
+		move_squirrel(delta);
+		if (input.KeyJustPressed('[') || input.KeyJustPressed(']'))
+		{
+			auto & pose = m_squirrel_surprised ? squirrel.surprised_pose : squirrel.hidden_pose;
+			float const aspect = m_squirrel_aspects[m_squirrel_surprised ? 1 : 0];
+			if (aspect > 0)
+			{
+				float const factor = input.ControlIsDown() ? 1.01f : input.ShiftIsDown() ? 1.2f : 1.05f;
+				float const height = glm::clamp(pose.size.y * (input.KeyJustPressed(']') ? factor : 1.0f / factor), .05f, 20.0f);
+				pose.size = { height * aspect, height };
+				m_squirrel_changed = true;
+			}
+			else m_squirrel_status = "Cannot resize: pose texture could not load";
+		}
+	}
+	if (m_squirrel_changed || input.KeyJustPressed(Input::Key::Tab))
+	{
+		rebuild_squirrel_overlays(assets, renderer);
+		if (m_scent_trail_changed) rebuild_scent_trail_overlays(assets, renderer);
+		show_squirrels(renderer, true);
+	}
+	update_polygon_editing_label();
+}
+
 void GameplaySceneEditor::Update(
 	Input const & input,
 	AssetManager & asset_manager,
@@ -382,13 +611,21 @@ void GameplaySceneEditor::Update(
 	if (scene_state != SceneState::Editing)
 		return;
 
-	m_grid.Update(input, renderer, scene_state);
+	// G opens the squirrel region here; elsewhere it retains its grid shortcut.
+	if (m_edit_mode != EditMode::Squirrel) m_grid.Update(input, renderer, scene_state);
 
 	const bool ctrl_is_down = input.KeyIsDown(Input::Key::LeftControl) || input.KeyIsDown(Input::Key::RightControl);
 	const bool shift_is_down = input.KeyIsDown(Input::Key::LeftShift) || input.KeyIsDown(Input::Key::RightShift);
-	if (ctrl_is_down && input.KeyJustPressed('S') && m_edit_mode == EditMode::None)
+	if (ctrl_is_down && input.KeyJustPressed('S')
+		&& (m_edit_mode == EditMode::None || m_edit_mode == EditMode::Squirrel))
 	{
-		save_scene_data();
+		m_squirrel_status = save_scene_data() ? "Saved" : "Save failed";
+		update_polygon_editing_label();
+		return;
+	}
+	if (m_edit_mode == EditMode::Squirrel)
+	{
+		update_squirrel_editing(input, asset_manager, renderer, camera, viewport);
 		return;
 	}
 
@@ -573,6 +810,12 @@ void GameplaySceneEditor::Update(
 		return;
 	}
 
+	if (input.KeyJustPressed('Q'))
+	{
+		begin_squirrel_editing(asset_manager, renderer);
+		return;
+	}
+
 	if (input.KeyJustPressed('B'))
 	{
 		if (!is_editing_polygon() || !m_polygon_edit_target || m_polygon_edit_target->kind != PolygonEditTargetKind::SceneBounds)
@@ -702,11 +945,18 @@ void GameplaySceneEditor::OnSceneStateChanged(SceneState new_state, AssetManager
 		cancel_arrival_editing(asset_manager, renderer);
 	if (new_state == SceneState::Gameplay && is_editing_camera())
 		end_camera_editing();
+	if (new_state == SceneState::Gameplay && m_edit_mode == EditMode::Squirrel)
+	{
+		m_edit_mode = EditMode::None;
+		m_squirrel_dragging = false;
+		m_squirrel_preview = false;
+	}
 
 	m_grid.OnSceneStateChanged(new_state, renderer);
 	show_bounds(renderer, new_state == SceneState::Editing);
 	show_scent_trails(renderer, new_state == SceneState::Editing);
 	show_message_triggers(renderer, new_state == SceneState::Editing);
+	show_squirrels(renderer, new_state == SceneState::Editing);
 	show_selected_vertex_marker(renderer, new_state == SceneState::Editing);
 	show_scene_link_triggers(renderer, new_state == SceneState::Editing);
 	show_arrival_markers(renderer, new_state == SceneState::Editing);
@@ -722,6 +972,11 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 	m_edit_mode = EditMode::None;
 	m_polygon_edit_target.reset();
 	m_arrival_edit_target.reset();
+	m_squirrel_dragging = false;
+	m_squirrel_preview = false;
+	m_squirrel_changed = false;
+	m_squirrel_status.clear();
+	if (!has_selected_squirrel()) m_selected_squirrel_index.reset();
 	m_selected_vertex_index.reset();
 	m_dragged_vertex_index.reset();
 	m_draft_vertices.clear();
@@ -742,6 +997,7 @@ void GameplaySceneEditor::Reload(AssetManager & asset_manager, SceneRenderer & r
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	rebuild_scent_trail_overlays(asset_manager, renderer);
 	rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_squirrel_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	rebuild_scene_link_overlays(asset_manager, renderer);
 	rebuild_arrival_markers(asset_manager, renderer);
@@ -1112,6 +1368,8 @@ void GameplaySceneEditor::show_polygon_editing_label(SceneRenderer & renderer, b
 
 void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer, PolygonEditTarget target)
 {
+	if (target.kind == PolygonEditTargetKind::SquirrelRegion
+		&& (!m_scene_data || target.squirrel_index >= m_scene_data->squirrels.size())) return;
 	if (target.kind == PolygonEditTargetKind::SceneLink && (!m_scene_data || target.link_index >= m_scene_data->scene_links.size()))
 		return;
 	if (target.kind == PolygonEditTargetKind::ScentTrail
@@ -1149,6 +1407,8 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	{
 		m_selected_message_trigger_index = target.message_trigger_index;
 	}
+	else if (target.kind == PolygonEditTargetKind::SquirrelRegion)
+		m_selected_squirrel_index = target.squirrel_index;
 	m_selected_vertex_index = m_draft_vertices.empty()
 		? std::nullopt
 		: std::optional<std::size_t>{ m_draft_vertices.size() - 1 };
@@ -1159,6 +1419,8 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 		rebuild_scent_trail_overlay(asset_manager, renderer, target.scent_trail_index);
 	else if (target.kind == PolygonEditTargetKind::MessageTrigger)
 		rebuild_message_trigger_overlay(asset_manager, renderer, target.message_trigger_index);
+	else if (target.kind == PolygonEditTargetKind::SquirrelRegion)
+		rebuild_squirrel_overlays(asset_manager, renderer);
 	else
 		rebuild_scene_link_overlay(asset_manager, renderer, target.link_index);
 
@@ -1167,6 +1429,7 @@ void GameplaySceneEditor::begin_polygon_editing(AssetManager & asset_manager, Sc
 	show_bounds(renderer, true);
 	show_scent_trails(renderer, true);
 	show_message_triggers(renderer, true);
+	show_squirrels(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1241,10 +1504,12 @@ void GameplaySceneEditor::begin_message_trigger_editing(
 	m_draft_vertices.clear();
 
 	rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_squirrel_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	show_bounds(renderer, true);
 	show_scent_trails(renderer, true);
 	show_message_triggers(renderer, true);
+	show_squirrels(renderer, true);
 	show_selected_vertex_marker(renderer, false);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1255,7 +1520,8 @@ void GameplaySceneEditor::begin_message_trigger_editing(
 void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, SceneRenderer & renderer)
 {
 	std::optional<PolygonEditTarget> old_target = m_polygon_edit_target;
-	m_edit_mode = EditMode::None;
+	m_edit_mode = old_target && old_target->kind == PolygonEditTargetKind::SquirrelRegion
+		? EditMode::Squirrel : EditMode::None;
 	m_polygon_edit_target.reset();
 	m_selected_vertex_index.reset();
 	m_dragged_vertex_index.reset();
@@ -1267,6 +1533,7 @@ void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, S
 		rebuild_scent_trail_overlays(asset_manager, renderer);
 	if (m_scene_data)
 		rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_squirrel_overlays(asset_manager, renderer);
 	if (old_target && old_target->kind == PolygonEditTargetKind::SceneLink)
 		rebuild_scene_link_overlay(asset_manager, renderer, old_target->link_index);
 
@@ -1274,6 +1541,7 @@ void GameplaySceneEditor::cancel_polygon_editing(AssetManager & asset_manager, S
 	show_bounds(renderer, true);
 	show_scent_trails(renderer, true);
 	show_message_triggers(renderer, true);
+	show_squirrels(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1294,8 +1562,10 @@ bool GameplaySceneEditor::apply_polygon_draft(AssetManager & asset_manager, Scen
 	set_target_vertices(target, m_draft_vertices);
 	if (target.kind == PolygonEditTargetKind::ScentTrail)
 		m_scent_trail_changed = true;
+	if (target.kind == PolygonEditTargetKind::SquirrelRegion)
+		m_squirrel_changed = true;
 
-	m_edit_mode = EditMode::None;
+	m_edit_mode = target.kind == PolygonEditTargetKind::SquirrelRegion ? EditMode::Squirrel : EditMode::None;
 	m_polygon_edit_target.reset();
 	m_selected_vertex_index.reset();
 	m_dragged_vertex_index.reset();
@@ -1304,11 +1574,13 @@ bool GameplaySceneEditor::apply_polygon_draft(AssetManager & asset_manager, Scen
 	rebuild_bounds_overlay(asset_manager, renderer, m_scene_data->bounds.GetVertices(), m_scene_data->bounds.IsValid());
 	rebuild_scent_trail_overlays(asset_manager, renderer);
 	rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_squirrel_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	rebuild_scene_link_overlays(asset_manager, renderer);
 	show_bounds(renderer, true);
 	show_scent_trails(renderer, true);
 	show_message_triggers(renderer, true);
+	show_squirrels(renderer, true);
 	show_selected_vertex_marker(renderer, true);
 	show_scene_link_triggers(renderer, true);
 	show_arrival_markers(renderer, true);
@@ -1503,6 +1775,8 @@ void GameplaySceneEditor::rebuild_edit_target_overlay(AssetManager & asset_manag
 		rebuild_scent_trail_overlay(asset_manager, renderer, m_polygon_edit_target->scent_trail_index);
 	else if (m_polygon_edit_target->kind == PolygonEditTargetKind::MessageTrigger)
 		rebuild_message_trigger_overlay(asset_manager, renderer, m_polygon_edit_target->message_trigger_index);
+	else if (m_polygon_edit_target->kind == PolygonEditTargetKind::SquirrelRegion)
+		rebuild_squirrel_overlays(asset_manager, renderer);
 	else
 		rebuild_scene_link_overlay(asset_manager, renderer, m_polygon_edit_target->link_index);
 }
@@ -1861,6 +2135,7 @@ void GameplaySceneEditor::select_next_message_trigger(
 		: std::optional<std::size_t>{ m_draft_vertices.size() - 1 };
 	m_dragged_vertex_index.reset();
 	rebuild_message_trigger_overlays(asset_manager, renderer);
+	rebuild_squirrel_overlays(asset_manager, renderer);
 	rebuild_selected_vertex_marker(asset_manager, renderer);
 	show_selected_vertex_marker(renderer, true);
 	update_polygon_editing_label();
@@ -1888,6 +2163,9 @@ std::vector<glm::vec2> GameplaySceneEditor::get_target_vertices(PolygonEditTarge
 
 	if (target.kind == PolygonEditTargetKind::SceneBounds)
 		return m_scene_data->bounds.GetVertices();
+	if (target.kind == PolygonEditTargetKind::SquirrelRegion)
+		return target.squirrel_index < m_scene_data->squirrels.size()
+			? m_scene_data->squirrels[target.squirrel_index].discovery_region.GetVertices() : std::vector<glm::vec2>{};
 	if (target.kind == PolygonEditTargetKind::ScentTrail)
 	{
 		if (target.scent_trail_index < m_scene_data->scent_trails.size())
@@ -1912,6 +2190,11 @@ void GameplaySceneEditor::set_target_vertices(PolygonEditTarget target, std::vec
 
 	if (target.kind == PolygonEditTargetKind::SceneBounds)
 		m_scene_data->bounds.SetVertices(std::move(vertices));
+	else if (target.kind == PolygonEditTargetKind::SquirrelRegion)
+	{
+		if (target.squirrel_index < m_scene_data->squirrels.size())
+			m_scene_data->squirrels[target.squirrel_index].discovery_region.SetVertices(std::move(vertices));
+	}
 	else if (target.kind == PolygonEditTargetKind::ScentTrail)
 	{
 		if (target.scent_trail_index < m_scene_data->scent_trails.size())
@@ -1997,6 +2280,46 @@ void GameplaySceneEditor::update_polygon_editing_label()
 
 std::string GameplaySceneEditor::create_editor_label_text() const
 {
+	if (m_edit_mode == EditMode::Squirrel)
+	{
+		std::ostringstream text;
+		text << "Editing squirrels\n";
+		if (has_selected_squirrel())
+		{
+			auto const & squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
+			auto const & pose = m_squirrel_surprised ? squirrel.surprised_pose : squirrel.hidden_pose;
+			text << squirrel.id << " (" << *m_selected_squirrel_index + 1 << "/" << m_scene_data->squirrels.size() << ")\n"
+				<< "Position: " << format_vec3(squirrel.position) << "\n"
+				<< "Pose: " << (m_squirrel_surprised ? "surprised" : "tail")
+				<< "  Size: " << std::fixed << std::setprecision(3) << pose.size.x << " x " << pose.size.y << "\n"
+				<< "[Tab] Next squirrel  [1/2] Tail / surprised\n"
+				<< "[Left click/drag] Place  [Arrows] Nudge\n"
+				<< "[U/J] Raise / lower  [F] Mirror\n"
+				<< "[[ / ]] Resize pose (image proportions)\n"
+				<< "[Shift] Coarse, [Ctrl] Fine\n"
+				<< "[G] Edit discovery region\n"
+				<< "[P] Preview bounce + fade (no discovery)\n"
+				<< "[Ctrl+Delete] Delete squirrel + linked trails\n";
+		}
+		else text << "No squirrels in this scene\n";
+		text << "[Ctrl+N] New squirrel (copies selected)\n"
+			<< "[Ctrl+S] Save  [R] Reload from file\n"
+			<< "[Escape] Back (edits kept; save to write file)";
+		if (!m_squirrel_status.empty()) text << "\n" << m_squirrel_status;
+		return text.str();
+	}
+	if (is_editing_polygon() && m_polygon_edit_target->kind == PolygonEditTargetKind::SquirrelRegion)
+	{
+		std::string const id = has_selected_squirrel() ? m_scene_data->squirrels[*m_selected_squirrel_index].id : "none";
+		return "Editing squirrel discovery region: " + id + "\n"
+			"[Left Drag] Move vertex\n"
+			"[N] Insert vertex  [Delete] Delete vertex\n"
+			"[[ / ]] Select vertex\n"
+			"[WASD]/[Arrows] Nudge vertex\n"
+			"[Shift] Coarse, [Ctrl] Fine\n"
+			"[Enter] Apply and return to squirrel\n"
+			"[Escape] Discard region changes";
+	}
 	if (is_editing_camera() && m_scene_data)
 	{
 		GameplayCameraData const & camera = m_scene_data->camera;
@@ -2054,6 +2377,7 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 		}
 
 		return "Editing: " + m_scene_filepath.stem().string() + "\n"
+			"[Q] Edit squirrels\n"
 			"[B] Edit bounds\n"
 			"[T] Edit scent trails\n"
 			"[M] Edit message triggers (" + selected_message_trigger_text + ")\n"

@@ -341,10 +341,30 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		return std::nullopt;
 	}
 
-	if (!m_editor.HasActiveEditMode() && input.KeyJustPressed('R'))
+	if (m_editor.CanReload() && input.KeyJustPressed('R'))
 		reload_scene_data();
 
 	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport.pixels, m_scene_state);
+	if (m_editor.ConsumeSquirrelChanged())
+	{
+		bool const same_objects = m_squirrels.size() == m_scene_data.squirrels.size()
+			&& std::equal(m_squirrels.begin(), m_squirrels.end(), m_scene_data.squirrels.begin(),
+				[](auto const & object, auto const & data) { return object->GetId() == data.id; });
+		if (same_objects)
+		{
+			for (std::size_t i = 0; i < m_squirrels.size(); ++i)
+				m_squirrels[i]->ApplyEditorData(m_scene_data.squirrels[i]);
+		}
+		else reload_squirrels();
+	}
+	auto const selected_squirrel = m_scene_state == SceneState::Editing ? m_editor.GetEditingSquirrel() : std::nullopt;
+	bool const preview_squirrel = m_editor.ConsumeSquirrelPreview();
+	for (std::size_t i = 0; i < m_squirrels.size(); ++i)
+	{
+		m_squirrels[i]->SetEditorSelection(selected_squirrel == i, m_editor.IsSurprisedPoseSelected());
+		if (m_scene_state == SceneState::Editing) m_squirrels[i]->UpdateEditorPreview(dt);
+		if (preview_squirrel && selected_squirrel == i) m_squirrels[i]->PreviewReaction();
+	}
 	if (m_editor.ConsumeCameraChanged())
 	{
 		store_camera_data();

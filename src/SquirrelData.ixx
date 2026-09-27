@@ -14,6 +14,7 @@ export struct SquirrelPoseData
 	glm::vec2 size{ 0.65f, 0.8f };
 	// World-space offset from the shared, bottom-center emergence point.
 	glm::vec3 offset{ 0.0f };
+	float opacity = 1.0f;
 };
 
 export struct SquirrelData
@@ -38,7 +39,8 @@ export struct SquirrelData
 		};
 		auto valid_pose = [&](SquirrelPoseData const & pose) {
 			return !pose.texture.empty() && finite(pose.size) && finite(pose.offset)
-				&& pose.size.x > 0 && pose.size.y > 0;
+				&& pose.size.x > 0 && pose.size.y > 0
+				&& std::isfinite(pose.opacity) && pose.opacity >= 0 && pose.opacity <= 1;
 		};
 		for (auto const & vertex : discovery_region.GetVertices())
 			if (!finite(vertex)) return false;

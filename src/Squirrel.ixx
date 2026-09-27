@@ -39,6 +39,11 @@ public:
 	}
 	void Reveal();
 	void Update(float dt);
+	// Editor presentation never changes m_state or m_elapsed (live discovery).
+	void SetEditorSelection(bool selected, bool surprised);
+	void PreviewReaction() { if (m_editor_selected) m_preview_elapsed = 0.0f; }
+	void UpdateEditorPreview(float dt);
+	void ApplyEditorData(SquirrelData const & data) { m_data = data; m_preview_elapsed = -1.0f; }
 	void Refresh(GameplayCameraData const & authored, Camera3d const & camera,
 		glm::vec3 scene_tint, bool editing, SceneRenderer & renderer);
 	bool IsReady() const { return m_render_id.IsValid(); }
@@ -55,6 +60,9 @@ private:
 	SquirrelData m_data;
 	State m_state = State::Hidden;
 	float m_elapsed = 0.0f;
+	bool m_editor_selected = false;
+	bool m_editor_surprised = false;
+	float m_preview_elapsed = -1.0f;
 	AssetId m_hidden_texture;
 	AssetId m_surprised_texture;
 	MeshId<TextureVertex2d> m_mesh;
@@ -72,6 +80,9 @@ void Squirrel::Init(SquirrelData const & data, bool found, AssetManager & assets
 	m_data = data;
 	m_state = found ? State::Gone : State::Hidden;
 	m_elapsed = 0;
+	m_editor_selected = false;
+	m_editor_surprised = false;
+	m_preview_elapsed = -1;
 	if (!data.IsValid())
 	{
 		LOG(WARNING) << "Invalid squirrel: " << data.id;
@@ -131,30 +142,54 @@ void Squirrel::Update(float dt)
 		m_state = State::Fading;
 }
 
+void Squirrel::SetEditorSelection(bool selected, bool surprised)
+{
+	if (selected != m_editor_selected || surprised != m_editor_surprised || !selected)
+		m_preview_elapsed = -1.0f;
+	m_editor_selected = selected;
+	m_editor_surprised = surprised;
+}
+
+void Squirrel::UpdateEditorPreview(float dt)
+{
+	if (m_preview_elapsed < 0.0f || !std::isfinite(dt)) return;
+	m_preview_elapsed += std::max(dt, 0.0f);
+	if (m_preview_elapsed >= m_data.bounce_duration + m_data.fade_duration)
+		m_preview_elapsed = -1.0f;
+}
+
 void Squirrel::Refresh(GameplayCameraData const & authored, Camera3d const & camera,
 	glm::vec3 scene_tint, bool editing, SceneRenderer & renderer)
 {
 	if (!IsReady()) return;
-	// Editor shows the authored hiding pose, without changing discovery or timers.
-	bool const hidden = editing || m_state == State::Hidden;
+	State display_state = m_state;
+	float elapsed = m_elapsed;
+	if (editing)
+	{
+		elapsed = std::max(m_preview_elapsed, 0.0f);
+		display_state = m_preview_elapsed >= 0.0f
+			? (elapsed < m_data.bounce_duration ? State::Bouncing : State::Fading)
+			: m_editor_selected && m_editor_surprised ? State::Bouncing : State::Hidden;
+	}
+	bool const hidden = display_state == State::Hidden;
 	SquirrelPoseData const & pose = hidden ? m_data.hidden_pose : m_data.surprised_pose;
 	EnvironmentObjectData placement;
 	placement.position = m_data.position + pose.offset;
 	placement.size = pose.size;
 	m_pipeline_data.model = EnvironmentObject::CalculateTransform(placement, authored, camera);
 	float opacity = 1.0f;
-	if (!editing && m_state == State::Bouncing)
+	if (display_state == State::Bouncing)
 	{
-		float const u = glm::clamp(m_elapsed / m_data.bounce_duration, 0.0f, 1.0f);
+		float const u = glm::clamp(elapsed / m_data.bounce_duration, 0.0f, 1.0f);
 		glm::vec3 const up = glm::normalize(glm::vec3{ m_pipeline_data.model[1] });
 		m_pipeline_data.model[3] += glm::vec4{ up * (4.0f * m_data.bounce_height * u * (1.0f - u)), 0 };
 	}
-	if (!editing && m_state == State::Fading)
-		opacity = 1.0f - glm::smoothstep(0.0f, 1.0f, (m_elapsed - m_data.bounce_duration) / m_data.fade_duration);
+	if (display_state == State::Fading)
+		opacity = 1.0f - glm::smoothstep(0.0f, 1.0f, (elapsed - m_data.bounce_duration) / m_data.fade_duration);
 	m_pipeline_data.tex_id = hidden ? m_hidden_texture : m_surprised_texture;
 	// Recompute from source colors; opacity updates must never overwrite scene RGB.
 	m_pipeline_data.tint = glm::vec4{ scene_tint * glm::vec3{ m_data.tint },
-		m_data.tint.a * opacity * (editing ? 0.3f : 1.0f) };
+		m_data.tint.a * pose.opacity * opacity * (editing && !m_editor_selected ? 0.3f : 1.0f) };
 	m_center = glm::vec3{ m_pipeline_data.model * glm::vec4{ 0.5f, 0.5f, 0, 1 } };
 	if (auto * object = renderer.GetRenderObject(m_render_id))
 	{

@@ -12,6 +12,7 @@ $packageBuildRoot = Join-Path $repoRoot "build-package"
 $vulkanBuildRoot = Join-Path $packageBuildRoot "vulkan"
 $openGLBuildRoot = Join-Path $packageBuildRoot "opengl"
 $licensePath = Join-Path $repoRoot "LICENSE.txt"
+$noticesPath = Join-Path $repoRoot "THIRD_PARTY_NOTICES.txt"
 
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
 	$distRoot = Join-Path $repoRoot "dist"
@@ -95,6 +96,7 @@ function Get-RequiredFile {
 }
 
 Get-RequiredFile $licensePath | Out-Null
+Get-RequiredFile $noticesPath | Out-Null
 
 if ($CleanBuilds) {
 	Remove-DirectoryWithin -Target $vulkanBuildRoot -AllowedParent $packageBuildRoot
@@ -111,6 +113,17 @@ finally {
 }
 
 $vulkanVersionPath = Join-Path $vulkanBuildRoot "SniffTheWayVersion.txt"
+foreach ($buildRoot in @($vulkanBuildRoot, $openGLBuildRoot)) {
+	$cache = Get-Content -LiteralPath (Join-Path $buildRoot "CMakeCache.txt") -Raw
+	if ($cache -notmatch '(?m)^VCPKG_INSTALLED_DIR:PATH=([^\r\n]+)') {
+		throw "Cannot determine installed dependency root for notices: $buildRoot"
+	}
+	$installedRoot = $Matches[1]
+	if ($cache -notmatch '(?m)^VCPKG_TARGET_TRIPLET:STRING=([^\r\n]+)') {
+		throw "Cannot determine dependency triplet for notices: $buildRoot"
+	}
+	& (Join-Path $PSScriptRoot "Update-ThirdPartyNotices.ps1") -Check -InstalledRoot $installedRoot -Triplet $Matches[1]
+}
 $openGLVersionPath = Join-Path $openGLBuildRoot "SniffTheWayVersion.txt"
 $version = (Get-Content -LiteralPath $vulkanVersionPath -Raw).Trim()
 $openGLVersion = (Get-Content -LiteralPath $openGLVersionPath -Raw).Trim()
@@ -217,6 +230,7 @@ $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
 [System.IO.File]::WriteAllText((Join-Path $packageRoot "VERSION.txt"), "$packageVersion`r`n", $utf8WithoutBom)
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot "Package-README.txt") -Destination (Join-Path $packageRoot "README.txt")
 Copy-Item -LiteralPath $licensePath -Destination (Join-Path $packageRoot "LICENSE.txt")
+Copy-Item -LiteralPath $noticesPath -Destination (Join-Path $packageRoot "THIRD_PARTY_NOTICES.txt")
 
 # Normalize staged timestamps so identical inputs produce stable ZIP metadata.
 Get-ChildItem -LiteralPath $packageRoot -Recurse -Force | ForEach-Object {
@@ -236,6 +250,8 @@ try {
 		"$packageName/SniffTheWay-OpenGL.exe",
 		"$packageName/VERSION.txt",
 		"$packageName/LICENSE.txt",
+		"$packageName/THIRD_PARTY_NOTICES.txt",
+		"$packageName/resources/fonts/OFL.txt",
 		"$packageName/README.txt")) {
 		if ($entryNames -notcontains $requiredEntry) {
 			throw "ZIP verification failed; missing entry: $requiredEntry"

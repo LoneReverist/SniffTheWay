@@ -13,4 +13,5 @@ Both executables use the shared resources directory. Keep the executables and re
 Copyright (c) 2026 Jonathan Kraber. All rights reserved.
 This game is licensed for personal, non-commercial installation and play.
 See LICENSE.txt for the full terms. Separately licensed components remain
-subject to their own licenses and notices, including resources/fonts/OFL.txt.
+subject to their own licenses and notices. See THIRD_PARTY_NOTICES.txt for
+library and font notices, and resources/fonts/OFL.txt for the Alice font license.

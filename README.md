@@ -24,3 +24,15 @@ Run the packaging script from PowerShell:
 It builds isolated Vulkan and OpenGL Release configurations, combines both executables with their shared resources, and writes a versioned ZIP and SHA-256 checksum under `dist/`.
 
 Use `-Official` for a release build. Official packaging requires a clean working tree and a Git tag matching the CMake version.
+
+The ZIP includes [third-party notices](THIRD_PARTY_NOTICES.txt) for both renderers
+and the Alice font. Packaging checks these notices against the installed vcpkg
+dependencies and rejects missing or stale notices.
+
+After upgrading dependencies, run `./buildtools/Update-ThirdPartyNotices.ps1`,
+review the updated notices, and commit them with the dependency change. Use
+`-InstalledRoot` and `-Triplet` for a different vcpkg installation. When adding
+or removing dependencies, update the package list in that script, including
+transitive libraries. Demo-only dependencies and development tools are excluded
+because they are not shipped. Art, music, and sound-effect provenance must be
+reviewed separately; this generated inventory covers libraries and the font.

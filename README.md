@@ -1,5 +1,5 @@
 ## Sniff the Way — A Tail to Guide You Home
-A short story about a lost duo trying to find their way home.
+A curious baby. A devoted dog. A long way home. Sniff the Way is a storybook adventure about two small companions lost in the woods, where a little courage and a loyal nose guide the journey back to family.
 
 ![](cover.png)
 

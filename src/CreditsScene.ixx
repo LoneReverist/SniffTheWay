@@ -57,6 +57,7 @@ private:
 	UIShadowedLabel m_title_label;
 	UIShadowedLabel m_creator_label;
 	UIShadowedLabel m_thanks_label;
+	UIShadowedLabel m_inspiration_label;
 	UIShadowedLabel m_controls_label;
 	SceneFadeOverlay m_scene_fade_overlay;
 };
@@ -119,7 +120,7 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem
 		"Created by\nJonathan Kraber",
 		m_font_atlas,
 		StoryMediumFontSize,
-		glm::vec2{ UIWidth * 0.5f, 440.0f },
+		glm::vec2{ UIWidth * 0.5f, 400.0f },
 		UILabel::Align::Center,
 		StoryTextColor);
 
@@ -131,7 +132,22 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem
 		"Special thanks to my wife Rayne",
 		m_font_atlas,
 		StoryMediumFontSize,
-		glm::vec2{ UIWidth * 0.5f, 700.0f },
+		glm::vec2{ UIWidth * 0.5f, 620.0f },
+		UILabel::Align::Center,
+		StoryTextColor);
+
+	m_inspiration_label.Init(
+		m_asset_manager,
+		m_renderer,
+		m_camera2d,
+		"credits inspiration",
+		"This game was inspired by walks through the park\n"
+		"with my wife, our son, and our dog.\n"
+		"I hope it inspires you to head outside and enjoy\n"
+		"a little adventure of your own.",
+		m_font_atlas,
+		StorySmallFontSize,
+		glm::vec2{ UIWidth * 0.5f, 740.0f },
 		UILabel::Align::Center,
 		StoryTextColor);
 
@@ -150,6 +166,7 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem
 	if (result)
 	{
 		m_showing_result = true;
+		m_inspiration_label.SetVisible(false);
 		m_title_label.SetText("THANKS FOR PLAYING");
 		m_creator_label.SetText("You guided them safely home.\nSquirrels found: "
 			+ std::to_string(result->found) + " of " + std::to_string(result->total));
@@ -180,6 +197,7 @@ std::optional<SceneTransition> CreditsScene::Update(float /*dt*/, Input const & 
 		if (m_showing_result)
 		{
 			m_showing_result = false;
+			m_inspiration_label.SetVisible(true);
 			m_title_label.SetText("CREDITS");
 			m_creator_label.SetText("Created by\nJonathan Kraber");
 			m_thanks_label.SetText("Special thanks to my wife Rayne");
@@ -207,6 +225,7 @@ void CreditsScene::Render() const
 	m_title_label.RenderOffscreenTexture();
 	m_creator_label.RenderOffscreenTexture();
 	m_thanks_label.RenderOffscreenTexture();
+	m_inspiration_label.RenderOffscreenTexture();
 	m_controls_label.RenderOffscreenTexture();
 	m_renderer.Render();
 }

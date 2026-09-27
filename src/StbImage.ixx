@@ -3,7 +3,9 @@
 module;
 
 #include <concepts>
+#include <cstdio>
 #include <filesystem>
+#include <memory>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -63,7 +65,16 @@ void StbImage::LoadImage(std::filesystem::path const & filepath, int req_comp, b
 
 	stbi_set_flip_vertically_on_load(flip_vertically);
 
-	m_data = stbi_load(filepath.string().c_str(), &m_width, &m_height, &m_channels, req_comp);
+	// Open the native filesystem path ourselves: stb's narrow filename API
+	// otherwise loses characters outside the Windows active code page.
+#if defined(_WIN32)
+	std::unique_ptr<FILE, decltype(&std::fclose)> file{ _wfopen(filepath.c_str(), L"rb"), &std::fclose };
+#else
+	std::unique_ptr<FILE, decltype(&std::fclose)> file{ std::fopen(filepath.c_str(), "rb"), &std::fclose };
+#endif
+	if (!file)
+		return;
+	m_data = stbi_load_from_file(file.get(), &m_width, &m_height, &m_channels, req_comp);
 }
 
 void StbImage::free_image()

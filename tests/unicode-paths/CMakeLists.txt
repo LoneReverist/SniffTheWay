@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.29)
+project(UnicodePathTests LANGUAGES CXX)
+if(NOT WIN32)
+    message(FATAL_ERROR "This regression test exercises Windows native paths.")
+endif()
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_path(STB_INCLUDE_DIR stb_image.h REQUIRED)
+add_executable(UnicodePathTests main.cpp)
+target_sources(UnicodePathTests PRIVATE FILE_SET CXX_MODULES BASE_DIRS ../../src FILES
+    ../../src/PlatformUtils.ixx ../../src/StbImage.ixx)
+target_include_directories(UnicodePathTests PRIVATE "${STB_INCLUDE_DIR}")
+target_link_libraries(UnicodePathTests PRIVATE user32)

@@ -76,10 +76,23 @@ namespace PlatformUtils
 		std::filesystem::path path;
 
 #if defined(_WIN32)
-		char buffer[MAX_PATH];
-		if (GetModuleFileNameA(nullptr, buffer, MAX_PATH))
+		// Windows paths are UTF-16. A successful call can still return a
+		// truncated name, so grow the buffer until the complete path fits.
+		std::wstring buffer(MAX_PATH, L'\0');
+		for (;;)
 		{
-			path = std::filesystem::path(buffer);
+			DWORD const count = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+			if (count == 0)
+				throw std::runtime_error("Failed to get executable path.");
+			if (count < buffer.size())
+			{
+				buffer.resize(count);
+				path = std::filesystem::path(buffer);
+				break;
+			}
+			if (buffer.size() >= 32768)
+				throw std::runtime_error("Executable path exceeds the Windows path limit.");
+			buffer.resize(buffer.size() > 16384 ? 32768 : buffer.size() * 2);
 		}
 
 #elif defined(__linux__)

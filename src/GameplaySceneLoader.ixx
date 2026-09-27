@@ -126,30 +126,14 @@ ScentTrailData parse_scent_trail(json const & j)
 	return scent_trail;
 }
 
-SquirrelPoseData parse_squirrel_pose(json const & j)
-{
-	SquirrelPoseData pose;
-	pose.texture = j.at("texture").get<std::string>();
-	if (j.contains("size")) pose.size = parse_gameplay_vec2(j["size"], pose.size);
-	if (j.contains("offset")) pose.offset = parse_gameplay_vec3(j["offset"], pose.offset);
-	pose.opacity = j.value("opacity", pose.opacity);
-	return pose;
-}
-
 SquirrelData parse_squirrel(json const & j)
 {
 	SquirrelData squirrel;
 	squirrel.id = j.at("id").get<std::string>();
 	squirrel.position = parse_gameplay_vec3(j.at("position"), squirrel.position);
-	squirrel.hidden_pose = parse_squirrel_pose(j.at("hidden_pose"));
-	squirrel.surprised_pose = parse_squirrel_pose(j.at("surprised_pose"));
 	squirrel.discovery_region = parse_gameplay_polygon(j.at("discovery_region"));
-	if (j.contains("tint")) squirrel.tint = parse_gameplay_tint(j["tint"], squirrel.tint);
 	squirrel.flip_horizontal = j.value("flip_horizontal", false);
-	squirrel.bounce_height = j.value("bounce_height", squirrel.bounce_height);
-	squirrel.bounce_duration = j.value("bounce_duration", squirrel.bounce_duration);
-	squirrel.fade_duration = j.value("fade_duration", squirrel.fade_duration);
-	if (!squirrel.IsValid()) throw std::runtime_error("Invalid squirrel placement, poses, region, or timing: " + squirrel.id);
+	if (!squirrel.IsValid()) throw std::runtime_error("Invalid squirrel placement or discovery region: " + squirrel.id);
 	return squirrel;
 }
 
@@ -308,21 +292,11 @@ json serialize_scent_trail(ScentTrailData const & scent_trail)
 	return result;
 }
 
-json serialize_squirrel_pose(SquirrelPoseData const & pose)
-{
-	return json{ { "texture", pose.texture }, { "size", serialize_gameplay_vec2(pose.size) },
-		{ "offset", serialize_gameplay_vec3(pose.offset) }, { "opacity", pose.opacity } };
-}
-
 json serialize_squirrel(SquirrelData const & squirrel)
 {
 	return json{ { "id", squirrel.id }, { "position", serialize_gameplay_vec3(squirrel.position) },
-		{ "hidden_pose", serialize_squirrel_pose(squirrel.hidden_pose) },
-		{ "surprised_pose", serialize_squirrel_pose(squirrel.surprised_pose) },
 		{ "discovery_region", serialize_gameplay_polygon(squirrel.discovery_region) },
-		{ "tint", serialize_gameplay_vec4(squirrel.tint) }, { "flip_horizontal", squirrel.flip_horizontal },
-		{ "bounce_height", squirrel.bounce_height }, { "bounce_duration", squirrel.bounce_duration },
-		{ "fade_duration", squirrel.fade_duration } };
+		{ "flip_horizontal", squirrel.flip_horizontal } };
 }
 
 json serialize_gameplay_camera(GameplayCameraData const & camera)

@@ -35,7 +35,6 @@ import SceneRenderer;
 import SniffTheWayConstants;
 import TextPipeline;
 import UILabel;
-import StbImage;
 import Vertex;
 
 namespace dh = Dreamhearth;
@@ -123,7 +122,6 @@ private:
 		Camera3d const & camera, glm::ivec4 viewport);
 	void rebuild_squirrel_overlays(AssetManager & assets, SceneRenderer & renderer);
 	void show_squirrels(SceneRenderer & renderer, bool show);
-	void read_squirrel_aspects(AssetManager & assets);
 	void move_squirrel(glm::vec3 delta);
 	bool has_selected_squirrel() const;
 	MeshId<Vertex2d> create_line_mesh(AssetManager & asset_manager, std::vector<LineInstance> const & lines) const;
@@ -283,7 +281,6 @@ private:
 	std::optional<std::size_t> m_selected_squirrel_index;
 	std::vector<PolygonOverlay> m_squirrel_overlays;
 	PolygonOverlay m_squirrel_marker;
-	glm::vec2 m_squirrel_aspects{ 1.0f };
 	bool m_squirrel_changed = false;
 	bool m_squirrel_preview = false;
 	bool m_squirrel_surprised = false;
@@ -412,19 +409,6 @@ std::optional<std::size_t> GameplaySceneEditor::GetEditingSquirrel() const
 	return active && has_selected_squirrel() ? m_selected_squirrel_index : std::nullopt;
 }
 
-void GameplaySceneEditor::read_squirrel_aspects(AssetManager & assets)
-{
-	if (!has_selected_squirrel()) return;
-	auto const & squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
-	SquirrelPoseData const * poses[] = { &squirrel.hidden_pose, &squirrel.surprised_pose };
-	for (int i = 0; i < 2; ++i)
-	{
-		StbImage image{ assets.GetTexturesPath() / poses[i]->texture, 4 };
-		m_squirrel_aspects[i] = image.IsValid()
-			? static_cast<float>(image.GetWidth()) / image.GetHeight() : 0.0f;
-	}
-}
-
 void GameplaySceneEditor::begin_squirrel_editing(AssetManager & assets, SceneRenderer & renderer)
 {
 	if (!m_scene_data) return;
@@ -433,7 +417,6 @@ void GameplaySceneEditor::begin_squirrel_editing(AssetManager & assets, SceneRen
 	m_squirrel_preview = false;
 	m_squirrel_status.clear();
 	if (!has_selected_squirrel() && !m_scene_data->squirrels.empty()) m_selected_squirrel_index = 0;
-	read_squirrel_aspects(assets);
 	rebuild_squirrel_overlays(assets, renderer);
 	show_squirrels(renderer, true);
 	update_polygon_editing_label();
@@ -516,17 +499,12 @@ void GameplaySceneEditor::update_squirrel_editing(Input const & input, AssetMana
 		if (has_selected_squirrel()) squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
 		else
 		{
-			squirrel.hidden_pose.texture = "squirrels/hidden_tail.png";
-			squirrel.hidden_pose.size = { .5408f, .65f };
-			squirrel.surprised_pose.texture = "squirrels/surprised.png";
-			squirrel.surprised_pose.size = { .7917f, .95f };
 			squirrel.discovery_region = Polygon2d{ { { -.4f, -.4f }, { .4f, -.4f }, { .4f, .4f }, { -.4f, .4f } } };
 		}
 		squirrel.id = "squirrel_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
 		m_scene_data->squirrels.push_back(std::move(squirrel));
 		m_selected_squirrel_index = m_scene_data->squirrels.size() - 1;
 		move_squirrel({ .5f, 0, 0 });
-		read_squirrel_aspects(assets);
 		m_squirrel_status = "New squirrel (no scent trail linked)";
 		m_squirrel_changed = true;
 	}
@@ -537,7 +515,6 @@ void GameplaySceneEditor::update_squirrel_editing(Input const & input, AssetMana
 		std::erase_if(m_scene_data->scent_trails, [&](auto const & t) { return t.squirrel_id == id; });
 		m_selected_squirrel_index = m_scene_data->squirrels.empty() ? std::nullopt : std::optional<std::size_t>{ 0 };
 		if (!has_selected_scent_trail()) m_selected_scent_trail_index.reset();
-		read_squirrel_aspects(assets);
 		m_squirrel_changed = true;
 		m_scent_trail_changed = true;
 		m_squirrel_status = "Deleted squirrel and its linked trails";
@@ -546,7 +523,6 @@ void GameplaySceneEditor::update_squirrel_editing(Input const & input, AssetMana
 	{
 		m_selected_squirrel_index = (m_selected_squirrel_index.value_or(0) + 1) % m_scene_data->squirrels.size();
 		m_squirrel_dragging = false;
-		read_squirrel_aspects(assets);
 		m_squirrel_status.clear();
 	}
 	else if (has_selected_squirrel())
@@ -577,19 +553,6 @@ void GameplaySceneEditor::update_squirrel_editing(Input const & input, AssetMana
 		if (input.KeyJustPressed('U')) delta.z += step;
 		if (input.KeyJustPressed('J')) delta.z -= step;
 		move_squirrel(delta);
-		if (input.KeyJustPressed('[') || input.KeyJustPressed(']'))
-		{
-			auto & pose = m_squirrel_surprised ? squirrel.surprised_pose : squirrel.hidden_pose;
-			float const aspect = m_squirrel_aspects[m_squirrel_surprised ? 1 : 0];
-			if (aspect > 0)
-			{
-				float const factor = input.ControlIsDown() ? 1.01f : input.ShiftIsDown() ? 1.2f : 1.05f;
-				float const height = glm::clamp(pose.size.y * (input.KeyJustPressed(']') ? factor : 1.0f / factor), .05f, 20.0f);
-				pose.size = { height * aspect, height };
-				m_squirrel_changed = true;
-			}
-			else m_squirrel_status = "Cannot resize: pose texture could not load";
-		}
 	}
 	if (m_squirrel_changed || input.KeyJustPressed(Input::Key::Tab))
 	{
@@ -2287,15 +2250,12 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 		if (has_selected_squirrel())
 		{
 			auto const & squirrel = m_scene_data->squirrels[*m_selected_squirrel_index];
-			auto const & pose = m_squirrel_surprised ? squirrel.surprised_pose : squirrel.hidden_pose;
 			text << squirrel.id << " (" << *m_selected_squirrel_index + 1 << "/" << m_scene_data->squirrels.size() << ")\n"
 				<< "Position: " << format_vec3(squirrel.position) << "\n"
-				<< "Pose: " << (m_squirrel_surprised ? "surprised" : "tail")
-				<< "  Size: " << std::fixed << std::setprecision(3) << pose.size.x << " x " << pose.size.y << "\n"
+				<< "Preview pose: " << (m_squirrel_surprised ? "surprised" : "tail") << "\n"
 				<< "[Tab] Next squirrel  [1/2] Tail / surprised\n"
 				<< "[Left click/drag] Place  [Arrows] Nudge\n"
 				<< "[U/J] Raise / lower  [F] Mirror\n"
-				<< "[[ / ]] Resize pose (image proportions)\n"
 				<< "[Shift] Coarse, [Ctrl] Fine\n"
 				<< "[G] Edit discovery region\n"
 				<< "[P] Preview bounce + fade (no discovery)\n"

@@ -13,31 +13,6 @@
         2.287339210510254,
         0.03999999910593033
       ],
-      "hidden_pose": {
-        "texture": "squirrels/hidden_tail.png",
-        "opacity": 0.55,
-        "size": [
-          0.5407999753952026,
-          0.6499999761581421
-        ],
-        "offset": [
-          0.0,
-          0.0,
-          0.0
-        ]
-      },
-      "surprised_pose": {
-        "texture": "squirrels/surprised.png",
-        "size": [
-          0.800000011920929,
-          0.949999988079071
-        ],
-        "offset": [
-          -0.10000000149011612,
-          0.0,
-          0.0
-        ]
-      },
       "discovery_region": [
         [
           -2.011821985244751,
@@ -56,16 +31,7 @@
           2.140291690826416
         ]
       ],
-      "tint": [
-        1.0,
-        1.0,
-        1.0,
-        1.0
-      ],
-      "flip_horizontal": false,
-      "bounce_height": 0.4000000059604645,
-      "bounce_duration": 0.4000000059604645,
-      "fade_duration": 0.6000000238418579
+      "flip_horizontal": false
     }
   ],
   "environment_objects": [],

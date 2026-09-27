@@ -2,6 +2,7 @@ module;
 
 #include <algorithm>
 #include <cmath>
+#include <string_view>
 #include <vector>
 #include <glm/glm.hpp>
 #include <glog/logging.h>
@@ -21,6 +22,20 @@ import SniffTheWayConstants;
 import SpritePipeline;
 import SquirrelData;
 import Vertex;
+
+namespace
+{
+	constexpr std::string_view kHiddenTexture = "squirrels/hidden_tail.png";
+	constexpr std::string_view kSurprisedTexture = "squirrels/surprised.png";
+	constexpr glm::vec2 kHiddenSize{ 0.5408f, 0.65f };
+	constexpr glm::vec2 kSurprisedSize{ 0.7917f, 0.95f };
+	constexpr glm::vec3 kHiddenOffset{ 0.0f };
+	constexpr glm::vec3 kSurprisedOffset{ -0.1f, 0.0f, 0.0f };
+	constexpr float kHiddenPoseOpacity = 0.55f;
+	constexpr float kBounceHeight = 0.4f;
+	constexpr float kBounceDuration = 0.4f;
+	constexpr float kFadeDuration = 0.6f;
+}
 
 // Nonmovable: the renderer retains the address of m_pipeline_data.
 export class Squirrel
@@ -88,9 +103,9 @@ void Squirrel::Init(SquirrelData const & data, bool found, AssetManager & assets
 		LOG(WARNING) << "Invalid squirrel: " << data.id;
 		return;
 	}
-	m_hidden_texture = assets.AddTexture(assets.GetTexturesPath() / data.hidden_pose.texture,
+	m_hidden_texture = assets.AddTexture(assets.GetTexturesPath() / kHiddenTexture,
 		Dreamhearth::PixelFormat::RGBA_SRGB, false, false);
-	m_surprised_texture = assets.AddTexture(assets.GetTexturesPath() / data.surprised_pose.texture,
+	m_surprised_texture = assets.AddTexture(assets.GetTexturesPath() / kSurprisedTexture,
 		Dreamhearth::PixelFormat::RGBA_SRGB, false, false);
 	if (!m_hidden_texture.IsValid() || !m_surprised_texture.IsValid())
 	{
@@ -136,9 +151,9 @@ void Squirrel::Update(float dt)
 {
 	if (m_state == State::Hidden || m_state == State::Gone || !std::isfinite(dt)) return;
 	m_elapsed += std::max(dt, 0.0f);
-	if (m_elapsed >= m_data.bounce_duration + m_data.fade_duration)
+	if (m_elapsed >= kBounceDuration + kFadeDuration)
 		m_state = State::Gone;
-	else if (m_elapsed >= m_data.bounce_duration)
+	else if (m_elapsed >= kBounceDuration)
 		m_state = State::Fading;
 }
 
@@ -154,7 +169,7 @@ void Squirrel::UpdateEditorPreview(float dt)
 {
 	if (m_preview_elapsed < 0.0f || !std::isfinite(dt)) return;
 	m_preview_elapsed += std::max(dt, 0.0f);
-	if (m_preview_elapsed >= m_data.bounce_duration + m_data.fade_duration)
+	if (m_preview_elapsed >= kBounceDuration + kFadeDuration)
 		m_preview_elapsed = -1.0f;
 }
 
@@ -168,28 +183,28 @@ void Squirrel::Refresh(GameplayCameraData const & authored, Camera3d const & cam
 	{
 		elapsed = std::max(m_preview_elapsed, 0.0f);
 		display_state = m_preview_elapsed >= 0.0f
-			? (elapsed < m_data.bounce_duration ? State::Bouncing : State::Fading)
+			? (elapsed < kBounceDuration ? State::Bouncing : State::Fading)
 			: m_editor_selected && m_editor_surprised ? State::Bouncing : State::Hidden;
 	}
 	bool const hidden = display_state == State::Hidden;
-	SquirrelPoseData const & pose = hidden ? m_data.hidden_pose : m_data.surprised_pose;
 	EnvironmentObjectData placement;
-	placement.position = m_data.position + pose.offset;
-	placement.size = pose.size;
+	placement.position = m_data.position + (hidden ? kHiddenOffset : kSurprisedOffset);
+	placement.size = hidden ? kHiddenSize : kSurprisedSize;
 	m_pipeline_data.model = EnvironmentObject::CalculateTransform(placement, authored, camera);
 	float opacity = 1.0f;
 	if (display_state == State::Bouncing)
 	{
-		float const u = glm::clamp(elapsed / m_data.bounce_duration, 0.0f, 1.0f);
+		float const u = glm::clamp(elapsed / kBounceDuration, 0.0f, 1.0f);
 		glm::vec3 const up = glm::normalize(glm::vec3{ m_pipeline_data.model[1] });
-		m_pipeline_data.model[3] += glm::vec4{ up * (4.0f * m_data.bounce_height * u * (1.0f - u)), 0 };
+		m_pipeline_data.model[3] += glm::vec4{ up * (4.0f * kBounceHeight * u * (1.0f - u)), 0 };
 	}
 	if (display_state == State::Fading)
-		opacity = 1.0f - glm::smoothstep(0.0f, 1.0f, (elapsed - m_data.bounce_duration) / m_data.fade_duration);
+		opacity = 1.0f - glm::smoothstep(0.0f, 1.0f, (elapsed - kBounceDuration) / kFadeDuration);
 	m_pipeline_data.tex_id = hidden ? m_hidden_texture : m_surprised_texture;
 	// Recompute from source colors; opacity updates must never overwrite scene RGB.
-	m_pipeline_data.tint = glm::vec4{ scene_tint * glm::vec3{ m_data.tint },
-		m_data.tint.a * pose.opacity * opacity * (editing && !m_editor_selected ? 0.3f : 1.0f) };
+	float const pose_opacity = hidden ? kHiddenPoseOpacity : 1.0f;
+	m_pipeline_data.tint = glm::vec4{ scene_tint,
+		pose_opacity * opacity * (editing && !m_editor_selected ? 0.3f : 1.0f) };
 	m_center = glm::vec3{ m_pipeline_data.model * glm::vec4{ 0.5f, 0.5f, 0, 1 } };
 	if (auto * object = renderer.GetRenderObject(m_render_id))
 	{

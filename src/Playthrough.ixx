@@ -27,6 +27,7 @@ public:
 	}
 
 	PlaythroughState const & GetState() const { return m_state; }
+	void Reset() { m_state.triggered_ids.clear(); }
 
 private:
 	PlaythroughState m_state;

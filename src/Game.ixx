@@ -69,6 +69,9 @@ void Game::OnWindowResized(int width, int height)
 void Game::Update(float dt, Input const & input)
 {
 #ifdef _DEBUG
+	if (m_playthrough.has_value() && input.ControlIsDown() && input.ShiftIsDown() && input.KeyJustPressed('R'))
+		m_playthrough.value().Reset();
+
 	m_scene_manager.Update(dt, input, get_debug_transition(input));
 #else
 	m_scene_manager.Update(dt, input);

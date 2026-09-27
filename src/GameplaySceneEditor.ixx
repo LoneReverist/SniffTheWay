@@ -63,6 +63,7 @@ public:
 	bool CanReload() const { return m_edit_mode == EditMode::None || m_edit_mode == EditMode::Squirrel; }
 	void OnSceneStateChanged(SceneState new_state, AssetManager & asset_manager, SceneRenderer & renderer);
 	void Reload(AssetManager & asset_manager, SceneRenderer & renderer);
+	bool ConsumeSceneSaved() { return std::exchange(m_scene_saved, false); }
 	bool ConsumeSquirrelChanged() { return std::exchange(m_squirrel_changed, false); }
 	bool ConsumeSquirrelPreview() { return std::exchange(m_squirrel_preview, false); }
 	std::optional<std::size_t> GetEditingSquirrel() const;
@@ -214,7 +215,7 @@ private:
 	void toggle_arrival_horizontal_facing(ArrivalEditTarget target, AssetManager & asset_manager, SceneRenderer & renderer);
 	void update_polygon_editing_label();
 	std::string create_editor_label_text() const;
-	bool save_scene_data() const;
+	bool save_scene_data();
 	std::string format_vec3(glm::vec3 value) const;
 	std::vector<LineInstance> create_edge_lines(
 		std::vector<glm::vec2> const & vertices,
@@ -253,6 +254,7 @@ public:
 	bool ConsumeScentTrailChanged();
 
 private:
+	bool m_scene_saved = false;
 	GameplaySceneData * m_scene_data = nullptr;
 	std::filesystem::path m_scene_filepath;
 	EditorGrid m_grid;
@@ -2476,9 +2478,11 @@ std::string GameplaySceneEditor::create_editor_label_text() const
 		"[Escape] Cancel";
 }
 
-bool GameplaySceneEditor::save_scene_data() const
+bool GameplaySceneEditor::save_scene_data()
 {
-	return m_scene_data && GameplaySceneLoader::SaveSceneData(m_scene_filepath, *m_scene_data);
+	bool const saved = m_scene_data && GameplaySceneLoader::SaveSceneData(m_scene_filepath, *m_scene_data);
+	m_scene_saved = m_scene_saved || saved;
+	return saved;
 }
 
 std::string GameplaySceneEditor::format_vec3(glm::vec3 value) const

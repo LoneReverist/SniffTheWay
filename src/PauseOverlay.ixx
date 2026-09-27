@@ -48,6 +48,7 @@ public:
 
 	PauseAction Update(Input const & input, GameViewport const & viewport);
 	void SetVisible(bool visible);
+	void SetSquirrelProgress(std::size_t found, std::size_t total);
 	bool IsVisible() const { return m_visible; }
 
 private:
@@ -69,6 +70,9 @@ private:
 	AudioSystem * m_audio_system = nullptr;
 	AudioTrack m_chime_track;
 	UIDarkBackdrop m_backdrop;
+	UILabel m_progress_label;
+	AssetId m_progress_ro_id;
+	bool m_has_progress = false;
 	UILabel m_title_label;
 	UILabel m_resume_label;
 	UILabel m_settings_label;
@@ -140,6 +144,8 @@ void PauseOverlay::Init(
 	init_label(m_exit_label, m_exit_ro_id, "pause exit", "Exit",
 		StoryMediumFontSize, glm::vec2{ UIWidth * 0.5f, 820.0f });
 
+	init_label(m_progress_label, m_progress_ro_id, "pause squirrels", "",
+		LabelFontSize, glm::vec2{ UIWidth * 0.5f, 940.0f });
 	SetVisible(false);
 }
 
@@ -224,6 +230,7 @@ void PauseOverlay::SetVisible(bool visible)
 
 	m_renderer->Show(m_backdrop_ro_id, visible);
 	m_renderer->Show(m_title_ro_id, visible);
+	m_renderer->Show(m_progress_ro_id, visible && m_has_progress);
 	m_renderer->Show(m_resume_ro_id, visible);
 	m_renderer->Show(m_settings_ro_id, visible);
 	m_renderer->Show(m_return_to_title_ro_id, visible);
@@ -296,4 +303,11 @@ void PauseOverlay::update_button_colors()
 		return_to_title_selected ? SelectedColor : UnselectedColor);
 	m_exit_label.SetText(exit_selected ? ">  Exit  <" : "Exit");
 	m_exit_label.SetTextColor(exit_selected ? SelectedColor : UnselectedColor);
+}
+
+void PauseOverlay::SetSquirrelProgress(std::size_t found, std::size_t total)
+{
+	m_has_progress = total > 0;
+	m_progress_label.SetText("Squirrels found: " + std::to_string(found) + " of " + std::to_string(total));
+	if (m_renderer) m_renderer->Show(m_progress_ro_id, m_visible && m_has_progress);
 }

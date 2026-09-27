@@ -39,6 +39,8 @@ import GameplaySceneEditor;
 import GameplaySceneData;
 import GameplaySceneLoader;
 import GameplayMessageOverlay;
+import GameplayMessageData;
+import GameAudio;
 import Input;
 import IScene;
 import PauseOverlay;
@@ -96,7 +98,6 @@ private:
 	void reload_squirrels();
 	void update_squirrels(float dt, glm::vec2 dog_pos);
 	void update_squirrel_trails(float dt);
-	std::string squirrel_trigger_id(std::string const & local_id) const;
 	void pause();
 	void resume();
 
@@ -139,6 +140,7 @@ private:
 	std::deque<std::size_t> m_pending_message_triggers;
 	std::optional<std::size_t> m_active_message_trigger;
 	std::vector<bool> m_message_trigger_was_inside;
+	GameplayMessageOverlay m_squirrel_notification;
 	PauseOverlay m_pause_overlay;
 	SettingsOverlay m_settings_overlay;
 	SceneFadeOverlay m_scene_fade_overlay;
@@ -162,6 +164,7 @@ GameplayScene::GameplayScene(
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
 	, m_scene_id{ scene_id }
 {
+	m_playthrough.LoadSquirrelCatalog(m_asset_manager.GetResourcesPath());
 	m_scene_data = GameplaySceneLoader::LoadSceneData(get_gameplay_filepath());
 	if (m_scene_data.bg_image_filename.empty())
 	{
@@ -238,6 +241,7 @@ GameplayScene::GameplayScene(
 	m_fps_label.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas);
 #endif
 
+	m_squirrel_notification.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, "squirrel discovery");
 	ensure_message_overlays();
 	reset_message_triggers();
 	m_pause_overlay.Init(m_asset_manager, m_renderer, m_camera2d, m_font_atlas, audio_system);
@@ -345,6 +349,8 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		reload_scene_data();
 
 	m_editor.Update(input, m_asset_manager, m_renderer, m_camera3d, m_game_viewport.pixels, m_scene_state);
+	if (m_editor.ConsumeSceneSaved())
+		m_playthrough.LoadSquirrelCatalog(m_asset_manager.GetResourcesPath(), true);
 	if (m_editor.ConsumeSquirrelChanged())
 	{
 		bool const same_objects = m_squirrels.size() == m_scene_data.squirrels.size()
@@ -379,7 +385,10 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 
 	const glm::vec2 dog_pos = m_dog.GetPosition();
 	if (m_scene_state == SceneState::Gameplay)
+	{
+		m_squirrel_notification.Update(dt);
 		update_squirrels(dt, dog_pos);
+	}
 	update_squirrel_trails(m_scene_state == SceneState::Gameplay ? dt : 0.0f);
 	order_scene_sprites();
 	for (std::size_t i = 0; i < m_scene_data.scent_trails.size() && i < m_scent_trails.size(); ++i)
@@ -419,12 +428,14 @@ void GameplayScene::Render() const
 #endif
 	for (GameplayMessageOverlay const & message_overlay : m_gameplay_message_overlays)
 		message_overlay.RenderOffscreenTexture();
+	m_squirrel_notification.RenderOffscreenTexture();
 	m_renderer.Render();
 }
 
 void GameplayScene::ChangeSceneState(SceneState new_state)
 {
 	m_scene_state = new_state;
+	if (new_state == SceneState::Editing) m_squirrel_notification.Hide();
 
 	m_dog.OnSceneStateChanged(m_scene_state);
 	m_baby.OnSceneStateChanged(m_scene_state);
@@ -456,6 +467,8 @@ void GameplayScene::pause()
 {
 	m_state_before_pause = m_scene_state;
 	ChangeSceneState(SceneState::Paused);
+	auto const progress = m_playthrough.GetSquirrelProgress();
+	m_pause_overlay.SetSquirrelProgress(progress.found, progress.total);
 	m_pause_overlay.SetVisible(true);
 	m_settings_overlay.SetVisible(false);
 }
@@ -481,6 +494,8 @@ void GameplayScene::reload_scene_data()
 		return;
 	}
 
+	m_playthrough.LoadSquirrelCatalog(m_asset_manager.GetResourcesPath(), true);
+	m_squirrel_notification.Hide();
 	m_scene_data = std::move(reloaded_scene_data);
 	ApplySceneAudio(m_audio_system, m_scene_data.audio, m_asset_manager.GetResourcesPath());
 	apply_camera_data();
@@ -580,11 +595,6 @@ void GameplayScene::order_scene_sprites()
 	}
 }
 
-std::string GameplayScene::squirrel_trigger_id(std::string const & local_id) const
-{
-	return std::string{ ToString(m_scene_id) } + "/squirrel/" + local_id;
-}
-
 void GameplayScene::reload_squirrels()
 {
 	for (auto const & squirrel : m_squirrels)
@@ -593,7 +603,7 @@ void GameplayScene::reload_squirrels()
 	for (auto const & data : m_scene_data.squirrels)
 	{
 		auto squirrel = std::make_unique<Squirrel>();
-		squirrel->Init(data, m_playthrough.HasTrigger(squirrel_trigger_id(data.id)),
+		squirrel->Init(data, m_playthrough.HasFoundSquirrel(m_scene_id, data.id),
 			m_asset_manager, m_renderer, m_sprite_pipeline_id, m_translucent_sprite_pipeline_id);
 		m_squirrels.push_back(std::move(squirrel));
 	}
@@ -601,13 +611,29 @@ void GameplayScene::reload_squirrels()
 
 void GameplayScene::update_squirrels(float dt, glm::vec2 dog_pos)
 {
+	std::size_t discoveries = 0;
 	for (auto const & squirrel : m_squirrels)
 	{
-		// Start the reaction at t=0 on the discovery frame, even after a slow frame.
 		squirrel->Update(dt);
 		if (squirrel->CanDiscover(dog_pos)
-			&& m_playthrough.SetTrigger(squirrel_trigger_id(squirrel->GetId())))
+			&& m_playthrough.TryFindSquirrel(m_scene_id, squirrel->GetId()))
+		{
 			squirrel->Reveal();
+			++discoveries;
+		}
+	}
+	if (discoveries > 0)
+	{
+		auto const progress = m_playthrough.GetSquirrelProgress();
+		GameplayMessage message;
+		message.text = discoveries == 1 ? "Squirrel found! " : "Squirrels found! ";
+		message.text += std::to_string(progress.found) + " of " + std::to_string(progress.total);
+		if (progress.AllFound()) message.text += "\nYou found all the squirrels!";
+		message.position = { UIWidth * 0.5f, 120.0f };
+		message.font_size = StorySmallFontSize;
+		message.hold_duration = progress.AllFound() ? 5.0f : 3.0f;
+		m_squirrel_notification.Show(message);
+		m_audio_system.PlaySound(SoundTrack(SoundCue::ShortChime, m_asset_manager.GetResourcesPath()));
 	}
 }
 
@@ -779,7 +805,7 @@ void GameplayScene::recreate_scent_trails(glm::vec2 dog_pos)
 		auto const & squirrel_id = m_scene_data.scent_trails[i].squirrel_id;
 		if (!squirrel_id.empty())
 		{
-			if (m_playthrough.HasTrigger(squirrel_trigger_id(squirrel_id)))
+			if (m_playthrough.HasFoundSquirrel(m_scene_id, squirrel_id))
 				m_squirrel_trail_opacities[i] = 0;
 			if (std::none_of(m_squirrels.begin(), m_squirrels.end(), [&](auto const & s) { return s->GetId() == squirrel_id; }))
 				LOG(WARNING) << "Scent trail references missing squirrel: " << squirrel_id;

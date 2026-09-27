@@ -3,6 +3,7 @@
 module;
 
 #include <optional>
+#include <string>
 
 #include <glm/vec2.hpp>
 
@@ -20,6 +21,7 @@ import ColorPipeline;
 import FontAtlas;
 import GameViewport;
 import Input;
+import Playthrough;
 import IScene;
 import SceneRenderer;
 import SceneFadeOverlay;
@@ -35,7 +37,8 @@ using namespace SniffTheWay;
 export class CreditsScene : public IScene
 {
 public:
-	explicit CreditsScene(dh::RenderContext const & render_context, AudioSystem & audio_system);
+	explicit CreditsScene(dh::RenderContext const & render_context, AudioSystem & audio_system,
+		std::optional<SquirrelProgress> result = std::nullopt);
 
 	void OnViewportChanged(GameViewport const & viewport) override;
 	std::optional<SceneTransition> Update(float dt, Input const & input) override;
@@ -44,6 +47,7 @@ public:
 	void Render() const override;
 
 private:
+	bool m_showing_result = false;
 	AssetManager m_asset_manager;
 	SceneRenderer m_renderer;
 	Camera2d m_camera2d;
@@ -57,7 +61,8 @@ private:
 	SceneFadeOverlay m_scene_fade_overlay;
 };
 
-CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem & audio_system)
+CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem & audio_system,
+	std::optional<SquirrelProgress> result)
 	: m_asset_manager{ render_context }
 	, m_renderer{ render_context, m_asset_manager }
 	, m_camera2d{ render_context.ShouldFlipScreenY() }
@@ -142,6 +147,17 @@ CreditsScene::CreditsScene(dh::RenderContext const & render_context, AudioSystem
 		UILabel::Align::Center,
 		StoryTextColor);
 
+	if (result)
+	{
+		m_showing_result = true;
+		m_title_label.SetText("THANKS FOR PLAYING");
+		m_creator_label.SetText("You guided them safely home.\nSquirrels found: "
+			+ std::to_string(result->found) + " of " + std::to_string(result->total));
+		m_thanks_label.SetText(result->AllFound()
+			? "You found all the squirrels!\nCongratulations, expert sniffer!"
+			: "Thank you for sharing this adventure.");
+		m_controls_label.SetText("(Press [Space] or [Enter] to continue)");
+	}
 	m_scene_fade_overlay.Init(m_asset_manager, m_renderer, m_camera2d);
 	
 	audio_system.PlayMusic(MusicTrack(MusicCue::Home, m_asset_manager.GetResourcesPath()));
@@ -161,6 +177,15 @@ std::optional<SceneTransition> CreditsScene::Update(float /*dt*/, Input const & 
 		|| input.KeyJustPressed(Input::Key::Space)
 		|| (input.KeyJustPressed(Input::Key::Enter) && !input.AltIsDown()))
 	{
+		if (m_showing_result)
+		{
+			m_showing_result = false;
+			m_title_label.SetText("CREDITS");
+			m_creator_label.SetText("Created by\nJonathan Kraber");
+			m_thanks_label.SetText("Special thanks to my wife Rayne");
+			m_controls_label.SetText("(Press [Esc] to return)");
+			return std::nullopt;
+		}
 		return SceneTransition{ SceneId::Title, SceneId::Credits };
 	}
 

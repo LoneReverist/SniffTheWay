@@ -3,6 +3,7 @@
 module;
 
 #include <memory>
+#include <optional>
 
 #include <glog/logging.h>
 
@@ -44,7 +45,9 @@ std::unique_ptr<IScene> SceneRegistry::Create(
 		return std::make_unique<TitleScene>(ctx, audio_system);
 
 	if (trans.next_scene_id == SceneId::Credits)
-		return std::make_unique<CreditsScene>(ctx, audio_system);
+		return std::make_unique<CreditsScene>(ctx, audio_system,
+			playthrough && trans.previous_scene_id == SceneId::Home
+				? std::optional<SquirrelProgress>{ playthrough->GetSquirrelProgress() } : std::nullopt);
 
 	if (IsStoryScene(trans.next_scene_id))
 		return std::make_unique<StoryScene>(ctx, audio_system, trans.next_scene_id);

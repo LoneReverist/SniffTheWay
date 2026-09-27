@@ -1,0 +1,44 @@
+Sniff the Way - A Tail to Guide You Home
+Proprietary License
+
+Copyright (c) 2026 Jonathan Kraber. All rights reserved.
+
+1. Scope
+
+These terms apply to the original Sniff the Way game software, source code,
+documentation, and game assets owned by Jonathan Kraber (the "Game"), except
+for components covered by separate licenses or notices.
+
+2. Permission to play
+
+If you lawfully obtain a released copy of the Game from Jonathan Kraber or an
+authorized distributor, you are granted a limited, non-exclusive license to
+install and play that copy for your personal, non-commercial use. You may make
+copies reasonably necessary to install the Game on devices you own or control
+and to keep a personal backup. This permission does not transfer ownership.
+
+3. Reserved rights
+
+Except as expressly permitted above, by separate written permission from the
+applicable rights holder, or by applicable law, you may not copy, modify,
+distribute, sell, sublicense, or create derivative works of the Game, or extract
+and reuse its code or assets in other projects. All rights not expressly granted
+are reserved. Public availability of the source code does not grant an
+open-source license or permission to build, reuse, or redistribute the Game.
+
+4. Separate licenses and legal rights
+
+Third-party libraries, fonts, tools, and other separately licensed components
+remain subject to their own licenses and copyright notices. These terms do not
+replace those licenses or restrict permissions they grant. Nothing in these
+terms limits rights that cannot be excluded under applicable law, including
+applicable consumer rights, or permissions granted under the terms of the
+repository hosting service for viewing or forking the repository on that service.
+
+5. Warranty and liability
+
+To the extent permitted by applicable law, the Game is provided "AS IS", without
+warranties of any kind, express or implied, including warranties of
+merchantability, fitness for a particular purpose, and non-infringement. To the
+extent permitted by applicable law, Jonathan Kraber is not liable for damages
+arising from use of or inability to use the Game.

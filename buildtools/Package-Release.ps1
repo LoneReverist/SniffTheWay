@@ -11,6 +11,7 @@ $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $packageBuildRoot = Join-Path $repoRoot "build-package"
 $vulkanBuildRoot = Join-Path $packageBuildRoot "vulkan"
 $openGLBuildRoot = Join-Path $packageBuildRoot "opengl"
+$licensePath = Join-Path $repoRoot "LICENSE.txt"
 
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
 	$distRoot = Join-Path $repoRoot "dist"
@@ -92,6 +93,8 @@ function Get-RequiredFile {
 	}
 	return $file
 }
+
+Get-RequiredFile $licensePath | Out-Null
 
 if ($CleanBuilds) {
 	Remove-DirectoryWithin -Target $vulkanBuildRoot -AllowedParent $packageBuildRoot
@@ -213,6 +216,7 @@ foreach ($requiredResourceDirectory in @("fonts", "gameplay", "music", "sfx", "s
 $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
 [System.IO.File]::WriteAllText((Join-Path $packageRoot "VERSION.txt"), "$packageVersion`r`n", $utf8WithoutBom)
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot "Package-README.txt") -Destination (Join-Path $packageRoot "README.txt")
+Copy-Item -LiteralPath $licensePath -Destination (Join-Path $packageRoot "LICENSE.txt")
 
 # Normalize staged timestamps so identical inputs produce stable ZIP metadata.
 Get-ChildItem -LiteralPath $packageRoot -Recurse -Force | ForEach-Object {
@@ -231,6 +235,7 @@ try {
 		"$packageName/SniffTheWay-Vulkan.exe",
 		"$packageName/SniffTheWay-OpenGL.exe",
 		"$packageName/VERSION.txt",
+		"$packageName/LICENSE.txt",
 		"$packageName/README.txt")) {
 		if ($entryNames -notcontains $requiredEntry) {
 			throw "ZIP verification failed; missing entry: $requiredEntry"

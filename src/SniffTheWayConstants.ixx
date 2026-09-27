@@ -167,6 +167,7 @@ export namespace SniffTheWay
 	{
 		ShortChime,
 		GustOfWind,
+		StartledSquirrel,
 	};
 
 	constexpr std::string_view ToString(SoundCue cue)
@@ -177,6 +178,8 @@ export namespace SniffTheWay
 			return "short_chime";
 		case SoundCue::GustOfWind:
 			return "gust_of_wind";
+		case SoundCue::StartledSquirrel:
+			return "startled_squirrel";
 		}
 		return {};
 	}
@@ -187,6 +190,8 @@ export namespace SniffTheWay
 			return SoundCue::ShortChime;
 		if (name == "gust_of_wind")
 			return SoundCue::GustOfWind;
+		if (name == "startled_squirrel")
+			return SoundCue::StartledSquirrel;
 		return std::nullopt;
 	}
 

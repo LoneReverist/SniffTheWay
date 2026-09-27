@@ -43,6 +43,8 @@ export namespace SniffTheWay
 			return { resources_path / "sfx" / "short_chime.wav", 1.0f };
 		case SoundCue::GustOfWind:
 			return { resources_path / "sfx" / "gust_of_wind.wav", 1.0f };
+		case SoundCue::StartledSquirrel:
+			return { resources_path / "sfx" / "startled_squirrel.wav", 1.0f };
 		}
 
 		return {};

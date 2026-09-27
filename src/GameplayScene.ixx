@@ -633,7 +633,7 @@ void GameplayScene::update_squirrels(float dt, glm::vec2 dog_pos)
 		message.font_size = StorySmallFontSize;
 		message.hold_duration = progress.AllFound() ? 5.0f : 3.0f;
 		m_squirrel_notification.Show(message);
-		m_audio_system.PlaySound(SoundTrack(SoundCue::ShortChime, m_asset_manager.GetResourcesPath()));
+		m_audio_system.PlaySound(SoundTrack(SoundCue::StartledSquirrel, m_asset_manager.GetResourcesPath()));
 	}
 }
 

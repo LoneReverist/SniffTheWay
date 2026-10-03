@@ -243,7 +243,7 @@
       ],
       "repeat": "none",
       "message": {
-        "text": "Use [W][A][S][D] or Arrow Keys to move.",
+        "text": "Click to move, or use [W][A][S][D] / Arrow Keys.",
         "position": [
           960.0,
           993.5999755859375

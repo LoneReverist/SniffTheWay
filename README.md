@@ -1,7 +1,7 @@
 ## Sniff the Way — A Tail to Guide You Home
 A curious baby. A devoted dog. A long way home. Sniff the Way is a storybook adventure about two small companions lost in the woods, where a little courage and a loyal nose guide the journey back to family.
 
-Play now on Itch.io: https://lonereverist.itch.io/sniff-the-way
+Play now on Itch.io: https://lonereverist.itch.io/sniff-the-way	
 
 ![](cover.png)
 

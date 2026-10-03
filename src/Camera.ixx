@@ -50,7 +50,10 @@ public:
 	void SetPosition(glm::vec3 const & pos);
 	void SetDirection(glm::vec3 const & dir);
 	void SetFovDegrees(float fov_degrees);
-	std::optional<glm::vec2> ScreenPointToGround(glm::vec2 framebuffer_pos, glm::ivec4 viewport) const;
+	
+	// A distance limit also maps horizon/sky clicks to that distance along the ray's ground bearing.
+	std::optional<glm::vec2> ScreenPointToGround(glm::vec2 framebuffer_pos, glm::ivec4 viewport,
+		std::optional<float> max_ground_distance = std::nullopt) const;
 
 	void Update(float dt, Input const & input) {}
 
@@ -164,7 +167,8 @@ void Camera3d::update_projection()
 		m_view_proj_uniform.proj[1][1] *= -1; // account for vulkan having flipped y-axis compared to opengl
 }
 
-std::optional<glm::vec2> Camera3d::ScreenPointToGround(glm::vec2 framebuffer_pos, glm::ivec4 viewport) const
+std::optional<glm::vec2> Camera3d::ScreenPointToGround(glm::vec2 framebuffer_pos, glm::ivec4 viewport,
+	std::optional<float> max_ground_distance) const
 {
 	if (viewport.z <= 0 || viewport.w <= 0)
 		return std::nullopt;
@@ -200,6 +204,20 @@ std::optional<glm::vec2> Camera3d::ScreenPointToGround(glm::vec2 framebuffer_pos
 	glm::vec3 const ray_start{ near_world };
 	glm::vec3 const ray_end{ far_world };
 	glm::vec3 const ray_dir = glm::normalize(ray_end - ray_start);
+
+	if (max_ground_distance && *max_ground_distance > 0.0f)
+	{
+		glm::vec2 const bearing{ ray_dir };
+		float const horizontal_length = glm::length(bearing);
+		if (horizontal_length > 1e-6f)
+		{
+			// Compare before dividing by ray_dir.z: this stays finite at the horizon
+			// and joins continuously with ordinary ground clicks below it.
+			float const distance_along_ray = *max_ground_distance / horizontal_length;
+			if (ray_dir.z >= 0.0f || GetPosition().z + ray_dir.z * distance_along_ray >= 0.0f)
+				return glm::vec2{ GetPosition() } + bearing * distance_along_ray;
+		}
+	}
 
 	if (std::abs(ray_dir.z) < 1e-6f)
 		return std::nullopt;

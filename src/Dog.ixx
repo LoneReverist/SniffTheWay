@@ -3,6 +3,8 @@
 module;
 
 #include <cstdint>
+#include <algorithm>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -51,6 +53,9 @@ public:
 		CharacterHorizontalFacing horizontal_facing);
 
 	void SetPosition(glm::vec2 pos);
+	void SetDestination(glm::vec2 destination, Polygon2d const & bounds);
+	void CancelDestination() { m_destination.reset(); }
+	std::optional<glm::vec2> GetDestination() const { return m_destination; }
 	void SetFacing(CharacterCameraFacing camera_facing, CharacterHorizontalFacing horizontal_facing);
 	void SetCameraDirection(glm::vec3 const & camera_dir);
 	void SetTint(glm::vec3 tint);
@@ -78,6 +83,7 @@ private:
 	SpritePipeline::ObjectData m_pipeline_data;
 	SpritePipeline::ObjectData m_shadow_pipeline_data;
 	State m_state = State::Idle;
+	std::optional<glm::vec2> m_destination;
 	CharacterCameraFacing m_walk_direction = CharacterCameraFacing::TowardsCamera;
 	CharacterHorizontalFacing m_horizontal_facing = CharacterHorizontalFacing::Right;
 
@@ -213,19 +219,47 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 	}
 
 	glm::vec2 velocity(0.0f);
+	bool const keyboard_movement = move_dir != glm::vec2(0.0f);
+	// A quick tap (pressed and released between frames) must also cancel travel.
+	bool const keyboard_intent = input.KeyIsDown('W') || input.KeyIsDown('A')
+		|| input.KeyIsDown('S') || input.KeyIsDown('D')
+		|| input.KeyIsDown(Input::Key::Up) || input.KeyIsDown(Input::Key::Down)
+		|| input.KeyIsDown(Input::Key::Left) || input.KeyIsDown(Input::Key::Right)
+		|| input.KeyJustPressed('W') || input.KeyJustPressed('A')
+		|| input.KeyJustPressed('S') || input.KeyJustPressed('D')
+		|| input.KeyJustPressed(Input::Key::Up) || input.KeyJustPressed(Input::Key::Down)
+		|| input.KeyJustPressed(Input::Key::Left) || input.KeyJustPressed(Input::Key::Right);
+	if (scene_state == SceneState::Gameplay && keyboard_intent)
+		CancelDestination();
+	float step = m_move_speed * dt;
+	if (!keyboard_movement && scene_state == SceneState::Gameplay && m_destination)
+	{
+		move_dir = *m_destination - GetPosition();
+		float const distance = glm::length(move_dir);
+		if (distance <= 0.02f)
+		{
+			CancelDestination();
+			move_dir = glm::vec2(0.0f);
+		}
+		else
+			step = std::min(step, distance);
+	}
 	if (move_dir != glm::vec2(0.0f))
 	{
 		glm::vec2 cur_pos = GetPosition();
 		velocity = glm::normalize(move_dir) * m_move_speed;
-		glm::vec2 desired_pos = cur_pos + velocity * dt;
+		glm::vec2 desired_pos = cur_pos + glm::normalize(move_dir) * step;
 		
 		glm::vec2 new_pos = desired_pos;
 		if (bounds.IsValid())
 			new_pos = bounds.SlideAlongBoundary(cur_pos, desired_pos);
 
 		SetPosition(new_pos);
+		if (m_destination && (glm::length(new_pos - *m_destination) <= 0.02f
+			|| (step > 0.0f && glm::length(new_pos - cur_pos) < step * 0.001f)))
+			CancelDestination();
 
-		m_state = State::Walking;
+		m_state = new_pos != cur_pos ? State::Walking : State::Idle;
 	}
 	else
 	{
@@ -264,7 +298,31 @@ void Dog::Update(float dt, Input const & input, Polygon2d const & bounds, SceneS
 void Dog::OnSceneStateChanged(SceneState new_state)
 {
 	if (new_state != SceneState::Gameplay)
+	{
+		CancelDestination();
 		m_state = State::Idle;
+	}
+}
+
+void Dog::SetDestination(glm::vec2 destination, Polygon2d const & bounds)
+{
+	glm::vec2 const from = GetPosition();
+	glm::vec2 const delta = destination - from;
+	float const distance = glm::length(delta);
+	if (distance <= 0.02f)
+	{
+		CancelDestination();
+		return;
+	}
+	// Check the entire segment, even when its endpoint is inside a concave path.
+	if (bounds.IsValid())
+	{
+		if (auto hit = bounds.FindClosestIntersection({ from, destination }))
+			destination = from + delta / distance * std::max(0.0f, distance * hit->t - 0.002f);
+		if (!bounds.Contains(destination))
+			return;
+	}
+	m_destination = destination;
 }
 
 void Dog::Reload(
@@ -273,6 +331,7 @@ void Dog::Reload(
 	CharacterCameraFacing camera_facing,
 	CharacterHorizontalFacing horizontal_facing)
 {
+	CancelDestination();
 	m_state = State::Idle;
 	m_animation_timer = 0.0f;
 	m_walk_sprite_sheet.SetCurrentFrame(0);

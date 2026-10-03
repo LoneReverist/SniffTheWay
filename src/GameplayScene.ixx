@@ -27,6 +27,7 @@ import Background;
 import Texture2dPipeline;
 import Camera;
 import Dog;
+import DestinationMarker;
 import EnvironmentObject;
 import FontAtlas;
 #ifdef _DEBUG
@@ -125,6 +126,7 @@ private:
 	PipelineId<ScentTrailPipeline> m_scent_trail_pipeline_id;
 	std::vector<AssetId> m_scent_trail_ro_ids;
 	Dog m_dog;
+	DestinationMarker m_destination_marker;
 	Baby m_baby;
 	AssetId m_dog_shadow_ro_id;
 	AssetId m_baby_shadow_ro_id;
@@ -220,6 +222,7 @@ GameplayScene::GameplayScene(
 	}
 	m_dog_ro_id = m_renderer.CreateRenderObject(
 		"dog", RenderLayer::Scene3d, m_dog.GetMeshId(), m_sprite_pipeline_id, m_dog.GetPipelineData());
+	m_destination_marker.Init(m_asset_manager, m_renderer, m_camera3d);
 
 	m_baby.Init(m_asset_manager, m_camera3d.GetDir(), baby_arrival.position, character_shadow_tex_id);
 	m_baby.SetFacing(baby_arrival.camera_facing, baby_arrival.horizontal_facing);
@@ -380,7 +383,22 @@ std::optional<SceneTransition> GameplayScene::Update(float dt, Input const & inp
 		recreate_scent_trails(m_dog.GetPosition());
 #endif
 
+	if (m_scene_state == SceneState::Gameplay && input.MouseButtonJustPressed(Input::MouseButton::Left))
+	{
+		std::optional<float> max_ground_distance;
+		if (m_scene_data.bounds.IsValid())
+		{
+			float distance = 0.0f;
+			for (glm::vec2 vertex : m_scene_data.bounds.GetVertices())
+				distance = std::max(distance, glm::length(vertex - glm::vec2{ m_camera3d.GetPosition() }));
+			// Put sky targets beyond every boundary; Dog clips travel to the first edge.
+			max_ground_distance = distance + 1.0f;
+		}
+		if (auto destination = m_camera3d.ScreenPointToGround(input.GetMousePos(), m_game_viewport.pixels, max_ground_distance))
+			m_dog.SetDestination(*destination, m_scene_data.bounds);
+	}
 	m_dog.Update(dt, input, m_scene_data.bounds, m_scene_state);
+	m_destination_marker.Update(m_asset_manager, m_renderer, m_dog.GetDestination());
 	m_baby.Update(dt, &m_dog, m_scene_state);
 
 	const glm::vec2 dog_pos = m_dog.GetPosition();
@@ -438,6 +456,7 @@ void GameplayScene::ChangeSceneState(SceneState new_state)
 	if (new_state == SceneState::Editing) m_squirrel_notification.Hide();
 
 	m_dog.OnSceneStateChanged(m_scene_state);
+	m_destination_marker.Update(m_asset_manager, m_renderer, m_dog.GetDestination());
 	m_baby.OnSceneStateChanged(m_scene_state);
 
 #ifdef _DEBUG

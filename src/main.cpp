@@ -192,7 +192,12 @@ std::optional<std::string> run_application()
 
 	dh::Window window(dh::WindowSize{ 1920, 1080 }, FullTitle, on_error);
 	if (!window.IsValid())
-		return "Failed to initialize the application window. See the log for details.";
+	{
+		std::string const initialization_error = window.GetInitializationError();
+		if (initialization_error.empty())
+			return "Window startup failed\n\nGLFW did not provide an error description.";
+		return initialization_error;
+	}
 	set_window_icon(window);
 	window.ToggleFullscreen(); // start fullscreen
 
